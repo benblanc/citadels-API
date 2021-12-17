@@ -1,0 +1,303 @@
+swagger: '2.0'
+info:
+  description: API for the game named Citadels.
+  termsOfService: No terms of service.
+  title: Citadels API
+  version: 0.0.1
+host: localhost
+basePath: '/'
+schemes:
+  - http
+paths:
+  '/status':
+    get:
+      description: ''
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            properties:
+              message:
+                type: string
+                example: 'API is running.'
+      summary: Requests the status of the API
+      tags:
+        - status
+  '/cards/districts':
+    get:
+      description: ''
+      parameters:
+        - default: asc
+          description: Sort order
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - default: 10
+          description: Return limited amount of items, -1 to get all items
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 0
+          maximum: 50
+        - default: 0
+          description: Return items starting from this index position
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of district card objects
+      summary: Requests a list of district card objects
+      tags:
+        - cards
+  '/cards/districts/{name}':
+    get:
+      description: ''
+      parameters:
+        - description: District card name
+          in: path
+          name: name
+          required: true
+          type: string
+      responses:
+        200:
+          description: Returns a district card object
+      summary: Requests a district card object
+      tags:
+        - cards
+  '/cards/characters':
+    get:
+      description: ''
+      parameters:
+        - default: asc
+          description: Sort order
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - default: 10
+          description: Return limited amount of items, -1 to get all items
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 0
+          maximum: 50
+        - default: 0
+          description: Return items starting from this index position
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of character card objects
+      summary: Requests a list of character card objects
+      tags:
+        - cards
+  '/cards/characters/{name}':
+    get:
+      description: ''
+      parameters:
+        - description: Character card name
+          in: path
+          name: name
+          required: true
+          type: string
+      responses:
+        200:
+          description: Returns a character card object
+      summary: Requests a character card object
+      tags:
+        - cards
+  '/game':
+    get:
+      description: ''
+      parameters:
+        - default: asc
+          description: Sort order
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - default: 10
+          description: Return limited amount of items, -1 to get all items
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 0
+          maximum: 50
+        - default: 0
+          description: Return items starting from this index position
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of game objects
+      summary: Requests a list of game objects
+      tags:
+        - game
+  '/game/{game_uuid}':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: Returns a game object
+      summary: Requests a game object
+      tags:
+        - game
+  '/game/action.create':
+    post:
+      description: ''
+      parameters:
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              amount_players:
+                type: integer
+                description: The amount of players that will play the game.
+                example: 4
+                minimum: 2
+                maximum: 7
+      responses:
+        200:
+          description: Returns the UUID of the created game
+      summary: Requests the creation of a new game
+      tags:
+        - game
+  '/game/{game_uuid}/action.join':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: Returns the UUID of the player
+      summary: Requests joining a game
+      tags:
+        - game
+  '/game/{game_uuid}/players':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - default: asc
+          description: Sort order
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - description: Order by given value
+          default: index
+          enum:
+            - index
+            - name
+          in: query
+          name: order_by
+          required: false
+          type: string
+        - description: Return limited amount of items, -1 to get all items
+          default: 10
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 1
+        - description: Return items starting from this index position
+          default: 0
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of player objects
+      summary: Requests a list of player objects
+      tags:
+        - game
+  '/game/{game_uuid}/players/{player_uuid}':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: Returns a player object
+      summary: Requests a player object
+      tags:
+        - game
+  '/game/{game_uuid}/players/{player_uuid}/action.build':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        204:
+          description: Building succesful
+      summary: Requests the building of a district
+      tags:
+        - game

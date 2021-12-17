@@ -9,4 +9,4 @@ from api.utils import helpers
 app = Flask(__name__)
 
 api = Api(app)
-swagger = Swagger(app, template_file="./templates/schema.yml")
+swagger = Swagger(app, template_file="./templates/index.yml")
