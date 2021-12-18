@@ -1,3 +1,8 @@
 {
-  "value": "false"
+  "sqlalchemy_database_uri": "mysql://user:password@0.0.0.0:3306/citadels",
+  "sqlalchemy_track_modifications": "false",
+  "sqlalchemy_echo": "false",
+  "sqlalchemy_pool_recycle": "300",
+  "secret_key": "\\xfb\\x12\\xdf\\xa1@i\\xd6>V\\xc0\\xbb\\x8fp\\x16#Z\\x0b\\x81\\xeb\\x16",
+  "debug": "true"
 }
