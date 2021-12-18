@@ -1,57 +1,98 @@
-import json, logging, pickle, traceback
+import logging, traceback
 
 from api.classes import card
 
 import api.responses as responses
 
-from api.utils import helpers
 
-
-
-def get_cards(sort_order, limit, offset):
+def apply_query(cards, sort_order, limit, offset):
     try:
-        cards_object = card.ClassCard()
+        default_sort_order = False  # 'asc' = False | 'desc' = True
+        default_limit = len(cards)
+        default_offset = 0
 
-        characters = cards_object.get_characters()
+        if sort_order:  # check if sort order is not none
+            if sort_order == 'asc':
+                default_sort_order = False
+            elif sort_order == 'desc':
+                default_sort_order = True
+            else:
+                return responses.conflict('sort_order')
 
-        districts = cards_object.get_districts()
+        cards = sorted(cards, key=lambda x: x.name, reverse=default_sort_order)  # apply sort order
 
-        logging.info(characters)
+        if offset:  # check if offset is not none
+            if 0 < offset < len(cards):
+                default_offset = offset
+            else:
+                return responses.conflict('offset')
 
-        response = list(map(lambda x: x.info, characters + districts))
+        cards = cards[default_offset:]  # apply offset
 
-        return response, 200
+        if limit:  # check if limit is not none
+            if limit > 0:
+                default_limit = limit
+            else:
+                return responses.conflict('limit')
+
+        cards = cards[:default_limit]  # apply limit
+
+        return responses.success_get_cards(cards)
 
     except Exception:
         logging.error(traceback.format_exc())
-        return "Something went wrong", 500
+        return responses.internal_server_error()
 
 
 def get_districts(sort_order, limit, offset):
     try:
-        cards_object = card.ClassCard()
+        districts = card.ClassCard().get_districts()
 
-        districts = cards_object.get_districts()
-
-        response = list(map(lambda x: x.info, districts))
-
-        return response, 200
+        return apply_query(districts, sort_order, limit, offset)
 
     except Exception:
         logging.error(traceback.format_exc())
-        return "Something went wrong", 500
+        return responses.internal_server_error()
+
+
+def get_district(name):
+    try:
+        districts = card.ClassCard().get_districts()
+
+        district = list(filter(lambda x: x.name.lower() == name.lower(), districts))
+
+        if district:
+            return responses.success_get_card(district)
+
+        return responses.not_found()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.internal_server_error()
 
 
 def get_characters(sort_order, limit, offset):
     try:
-        cards_object = card.ClassCard()
+        characters = card.ClassCard().get_characters()
 
-        characters = cards_object.get_characters()
-
-        response = list(map(lambda x: x.info, characters))
-
-        return response, 200
+        return apply_query(characters, sort_order, limit, offset)
 
     except Exception:
         logging.error(traceback.format_exc())
-        return "Something went wrong", 500
+        return responses.internal_server_error()
+
+
+def get_character(name):
+    try:
+        characters = card.ClassCard().get_characters()
+
+        character = list(filter(lambda x: x.name.lower() == name.lower(), characters))
+
+        if character:
+            return responses.success_get_card(character)
+
+        return responses.not_found()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.internal_server_error()
