@@ -8,7 +8,7 @@ from api.classes import player
 
 
 class ClassGame:
-    def __init__(self):
+    def __init__(self, uuid="", created="", name="", description=""):
         self.__settings = {
             "min_players": 2,
             "max_players": 7,
@@ -16,12 +16,18 @@ class ClassGame:
             "amount_starting_coins": 2
         }
 
+        self.__uuid = uuid
+        self.__created = created
+
+        self.__name = name
+        self.__description = description
+
         self.__players = []
         self.__amount_players = 0
 
         # less than 4 players
-        self.__characters_unused = 2
-        self.__characters_per_player = 2
+        self.__characters_unused = 0
+        self.__characters_per_player = 0
 
         self.__deck_characters = []
         self.__deck_districts = []
@@ -35,6 +41,22 @@ class ClassGame:
     @property
     def settings(self):
         return self.__settings
+
+    @property
+    def uuid(self):
+        return self.__uuid
+
+    @property
+    def created(self):
+        return self.__created
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def description(self):
+        return self.__description
 
     @property
     def amount_players(self):
