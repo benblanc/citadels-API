@@ -1,8 +1,14 @@
 import uuid, json, os, time
 
+from datetime import datetime
+
 
 def create_uuid():
     return str(uuid.uuid4())
+
+
+def create_timestamp():
+    return datetime.now()
 
 
 def read_json(file_path):
