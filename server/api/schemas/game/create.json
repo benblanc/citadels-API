@@ -1,11 +1,15 @@
 {
   "type": "object",
   "properties": {
-    "uuid": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
       "type": "string"
     }
   },
   "required": [
-    "uuid"
+    "name",
+    "description"
   ]
 }
