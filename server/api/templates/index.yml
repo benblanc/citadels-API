@@ -37,7 +37,7 @@ paths:
           required: false
           type: string
         - default: 10
-          description: Return limited amount of items, -1 to get all items
+          description: Return limited amount of items
           in: query
           name: limit
           required: false
@@ -86,7 +86,7 @@ paths:
           required: false
           type: string
         - default: 10
-          description: Return limited amount of items, -1 to get all items
+          description: Return limited amount of items
           in: query
           name: limit
           required: false
@@ -135,7 +135,7 @@ paths:
           required: false
           type: string
         - default: 10
-          description: Return limited amount of items, -1 to get all items
+          description: Return limited amount of items
           in: query
           name: limit
           required: false
@@ -237,7 +237,7 @@ paths:
           name: order_by
           required: false
           type: string
-        - description: Return limited amount of items, -1 to get all items
+        - description: Return limited amount of items
           default: 10
           in: query
           name: limit
@@ -280,7 +280,7 @@ paths:
       tags:
         - game
   '/game/{game_uuid}/players/{player_uuid}/action.build':
-    get:
+    post:
       description: ''
       parameters:
         - description: Game UUID
