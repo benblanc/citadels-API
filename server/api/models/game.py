@@ -17,6 +17,6 @@ class Game(db.Model):
     child2 = db.relationship("Players", cascade="all, delete-orphan")
     child3 = db.relationship("DeckDistricts", cascade="all, delete-orphan")
     child4 = db.relationship("DeckDiscardPile", cascade="all, delete-orphan")
-    child5 = db.relationship("DeckCharacter", cascade="all, delete-orphan")
+    child5 = db.relationship("DeckCharacters", cascade="all, delete-orphan")
     child6 = db.relationship("PossibleCharacters", cascade="all, delete-orphan")
     child7 = db.relationship("RemovedCharacters", cascade="all, delete-orphan")
