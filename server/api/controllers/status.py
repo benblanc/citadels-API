@@ -9,5 +9,4 @@ def get_status():
 
     except Exception:
         logging.error(traceback.format_exc())
-        # return responses.internal_server_error("5xS01", traceback.format_exc())
-        return "Something went wrong", 500
+        return responses.internal_server_error()

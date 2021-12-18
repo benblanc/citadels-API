@@ -1,6 +1,6 @@
 def status_success_reading():
-    dict_result = {
+    response = {
         "message": "API is running."
     }
 
-    return dict_result, 200
+    return response, 200
