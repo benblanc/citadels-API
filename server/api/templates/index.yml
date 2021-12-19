@@ -4,7 +4,7 @@ info:
   termsOfService: No terms of service.
   title: Citadels API
   version: 0.0.1
-host: localhost
+host: 127.0.0.1:8080
 basePath: '/'
 schemes:
   - http
@@ -181,14 +181,16 @@ paths:
           schema:
             type: object
             properties:
-              amount_players:
-                type: integer
-                description: The amount of players that will play the game.
-                example: 4
-                minimum: 2
-                maximum: 7
+              name:
+                type: string
+                description: The name for the game used for display purposes.
+                example: Citadels, new players only
+              description:
+                type: string
+                description: The description for the game used for display purposes.
+                example: My first time playing the game
       responses:
-        200:
+        201:
           description: Returns the UUID of the created game
       summary: Requests the creation of a new game
       tags:
@@ -256,7 +258,7 @@ paths:
           description: Returns a list of player objects
       summary: Requests a list of player objects
       tags:
-        - game
+        - players
   '/game/{game_uuid}/players/{player_uuid}':
     get:
       description: ''
@@ -278,7 +280,7 @@ paths:
           description: Returns a player object
       summary: Requests a player object
       tags:
-        - game
+        - players
   '/game/{game_uuid}/players/{player_uuid}/action.build':
     post:
       description: ''
@@ -300,4 +302,4 @@ paths:
           description: Building succesful
       summary: Requests the building of a district
       tags:
-        - game
+        - players
