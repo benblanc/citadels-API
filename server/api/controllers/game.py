@@ -57,8 +57,6 @@ def get_games(sort_order, order_by, limit, offset):
         else:
             games = game_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
 
-        pprint(games)
-
         return responses.db_success_reading_all_games(games)
 
     except Exception:
