@@ -190,7 +190,7 @@ paths:
                 description: The description for the game used for display purposes.
                 example: My first time playing the game
       responses:
-        200:
+        201:
           description: Returns the UUID of the created game
       summary: Requests the creation of a new game
       tags:
