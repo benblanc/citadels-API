@@ -8,9 +8,8 @@ def validate_sort_order(sort_order):
     return valid
 
 
-def validate_order_by(order_by):
+def validate_order_by(order_by, options):
     valid = False
-    options = ['created', 'name']
 
     if order_by in options:
         valid = True
@@ -36,7 +35,7 @@ def validate_offset(offset):
     return valid
 
 
-def validate_query(sort_order, order_by, limit, offset):
+def validate_query(sort_order, order_by, limit, offset, options_order_by):
     invalid_query = None
 
     if sort_order:  # check if not none
@@ -44,7 +43,7 @@ def validate_query(sort_order, order_by, limit, offset):
             invalid_query = 'sort_order'
 
     if order_by:  # check if not none
-        if not validate_order_by(order_by):
+        if not validate_order_by(order_by, options_order_by):
             invalid_query = 'order_by'
 
     if limit:  # check if not none

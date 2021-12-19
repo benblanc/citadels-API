@@ -25,7 +25,7 @@ def get_games(sort_order, order_by, limit, offset):
         default_limit = 0
         default_offset = 0
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset)
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created', 'name'])
 
         if invalid_query:
             return responses.conflict(invalid_query)
