@@ -125,8 +125,8 @@ paths:
     get:
       description: ''
       parameters:
-        - default: asc
-          description: Sort order
+        - description: Sort order
+          default: asc
           enum:
             - asc
             - desc
@@ -134,16 +134,24 @@ paths:
           name: sort_order
           required: false
           type: string
-        - default: 10
-          description: Return limited amount of items
+        - description: Order by given value
+          default: created
+          enum:
+            - created
+            - name
+          in: query
+          name: order_by
+          required: false
+          type: string
+        - description: Return limited amount of items
+          default: 0
           in: query
           name: limit
           required: false
           type: integer
           minimum: 0
-          maximum: 50
-        - default: 0
-          description: Return items starting from this index position
+        - description: Return items starting from this index position
+          default: 0
           in: query
           name: offset
           required: false
