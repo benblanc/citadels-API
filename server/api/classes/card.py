@@ -74,50 +74,64 @@ class ClassCharacter:
         return info
 
 
+class ClassDeckDistrict:
+    def __init__(self, amount, card):
+        self.__amount = amount
+        self.__card = card
+
+    @property
+    def amount(self):
+        return self.__amount
+
+    @property
+    def card(self):
+        return self.__card
+
+
 class ClassCard:
     def __init__(self):
         self.__districts_red = [
-            {"amount": 3, "card": ClassDistrict("Tower", "red", 1, 1, None)},
-            {"amount": 3, "card": ClassDistrict("Prison", "red", 2, 2, None)},
-            {"amount": 3, "card": ClassDistrict("Tournament field", "red", 3, 3, None)},
-            {"amount": 2, "card": ClassDistrict("Stronghold", "red", 5, 5, None)}
+            ClassDeckDistrict(3, ClassDistrict("Tower", "red", 1, 1, None)),
+            ClassDeckDistrict(3, ClassDistrict("Prison", "red", 2, 2, None)),
+            ClassDeckDistrict(3, ClassDistrict("Tournament field", "red", 3, 3, None)),
+            ClassDeckDistrict(2, ClassDistrict("Stronghold", "red", 5, 5, None))
         ]
 
         self.__districts_yellow = [
-            {"amount": 5, "card": ClassDistrict("Domain", "yellow", 3, 3, None)},
-            {"amount": 4, "card": ClassDistrict("Castle", "yellow", 4, 4, None)},
-            {"amount": 3, "card": ClassDistrict("Palace", "yellow", 5, 5, None)}
+            ClassDeckDistrict(5, ClassDistrict("Domain", "yellow", 3, 3, None)),
+            ClassDeckDistrict(4, ClassDistrict("Castle", "yellow", 4, 4, None)),
+            ClassDeckDistrict(3, ClassDistrict("Palace", "yellow", 5, 5, None))
         ]
 
         self.__districts_blue = [
-            {"amount": 3, "card": ClassDistrict("Temple", "blue", 1, 1, None)},
-            {"amount": 3, "card": ClassDistrict("Church", "blue", 2, 2, None)},
-            {"amount": 3, "card": ClassDistrict("Monastery", "blue", 3, 3, None)},
-            {"amount": 2, "card": ClassDistrict("Cathedral", "blue", 5, 5, None)}
+            ClassDeckDistrict(3, ClassDistrict("Temple", "blue", 1, 1, None)),
+            ClassDeckDistrict(3, ClassDistrict("Church", "blue", 2, 2, None)),
+            ClassDeckDistrict(3, ClassDistrict("Monastery", "blue", 3, 3, None)),
+            ClassDeckDistrict(2, ClassDistrict("Cathedral", "blue", 5, 5, None))
         ]
 
         self.__districts_green = [
-            {"amount": 5, "card": ClassDistrict("Tavern", "green", 1, 1, None)},
-            {"amount": 4, "card": ClassDistrict("Marketplace", "green", 2, 2, None)},
-            {"amount": 3, "card": ClassDistrict("Shop", "green", 2, 2, None)},
-            {"amount": 3, "card": ClassDistrict("Company", "green", 3, 3, None)},
-            {"amount": 2, "card": ClassDistrict("Town hall", "green", 5, 5, None)}
+            ClassDeckDistrict(5, ClassDistrict("Tavern", "green", 1, 1, None)),
+            ClassDeckDistrict(4, ClassDistrict("Marketplace", "green", 2, 2, None)),
+            ClassDeckDistrict(3, ClassDistrict("Shop", "green", 2, 2, None)),
+            ClassDeckDistrict(3, ClassDistrict("Company", "green", 3, 3, None)),
+            ClassDeckDistrict(2, ClassDistrict("Town hall", "green", 5, 5, None))
         ]
 
         self.__districts_purple = [
-            {"amount": 1, "card": ClassDistrict("Court of miracles", "purple", 2, 2, None)},
-            {"amount": 2, "card": ClassDistrict("Dungeon", "purple", 3, 3, None)},
-            {"amount": 1, "card": ClassDistrict("Powder tower", "purple", 3, 3, None)},
-            {"amount": 1, "card": ClassDistrict("Lighthouse", "purple", 3, 3, None)},
-            {"amount": 1, "card": ClassDistrict("Museum", "purple", 4, 4, None)},
-            {"amount": 1, "card": ClassDistrict("Treasury", "purple", 4, 4, None)},
-            {"amount": 1, "card": ClassDistrict("Casino", "purple", 5, 5, None)},
-            {"amount": 1, "card": ClassDistrict("Laboratory", "purple", 5, 5, None)},
-            {"amount": 1, "card": ClassDistrict("Graveyard", "purple", 5, 5, None)},
-            {"amount": 1, "card": ClassDistrict("Library", "purple", 6, 6, None)},
-            {"amount": 1, "card": ClassDistrict("Magicians' school", "purple", 6, 6, None)},
-            {"amount": 1, "card": ClassDistrict("Dragon gate", "purple", 6, 8, None)},
-            {"amount": 1, "card": ClassDistrict("University", "purple", 6, 8, None)}
+            ClassDeckDistrict(1, ClassDistrict("Court of miracles", "purple", 2, 2, None)),
+            ClassDeckDistrict(2, ClassDistrict("Dungeon", "purple", 3, 3, None)),
+            ClassDeckDistrict(1, ClassDistrict("Powder tower", "purple", 3, 3, None)),
+            ClassDeckDistrict(1, ClassDistrict("Lighthouse", "purple", 3, 3, None)),
+            ClassDeckDistrict(1, ClassDistrict("Museum", "purple", 4, 4, None)),
+            ClassDeckDistrict(1, ClassDistrict("Treasury", "purple", 4, 4, None)),
+            ClassDeckDistrict(1, ClassDistrict("Casino", "purple", 5, 5, None)),
+            ClassDeckDistrict(1, ClassDistrict("Laboratory", "purple", 5, 5, None)),
+            ClassDeckDistrict(1, ClassDistrict("Graveyard", "purple", 5, 5, None)),
+            ClassDeckDistrict(1, ClassDistrict("Library", "purple", 6, 6, None)),
+            ClassDeckDistrict(1, ClassDistrict("Magicians' school", "purple", 6, 6, None)),
+            ClassDeckDistrict(1, ClassDistrict("Dragon gate", "purple", 6, 8, None)),
+            ClassDeckDistrict(1, ClassDistrict("University", "purple", 6, 8, None))
         ]
 
         self.__unique_districts = [
@@ -128,28 +142,20 @@ class ClassCard:
             self.__districts_purple
         ]
 
-    def get_districts(self):
+    def get_districts(self, separate=True):
         districts = []
 
         for districts_color in self.__unique_districts:  # go through each district color group
             for unique_district in districts_color:  # go through each unique district
-                for index in range(unique_district['amount']):  # for the specified amount
-                    districts.append(unique_district['card'])  # add card to list
+                if separate:  # check if cards need to be separate (not by amount)
+                    for index in range(unique_district.amount):  # for the specified amount
+                        districts.append(unique_district.card)  # add card to list
+                else:  # cards need to be by amount
+                    districts.append(unique_district)  # add card to list
 
         return districts
 
     def get_characters(self):
-        # characters = [
-        #     ClassCharacter(1, "Assassin", None),
-        #     ClassCharacter(2, "Thief", None),
-        #     ClassCharacter(3, "Magician", None),
-        #     ClassCharacter(4, "King", None),
-        #     ClassCharacter(5, "Bishop", None),
-        #     ClassCharacter(6, "Merchant", None),
-        #     ClassCharacter(7, "Architect", None),
-        #     ClassCharacter(8, "Warlord", None)
-        # ]
-
         characters = [
             ClassCharacter(1, "Assassin", "Kill another character. The killed character's turn is skipped."),
             ClassCharacter(2, "Thief", "Steal all coins from another character at the beginning the turn."),
