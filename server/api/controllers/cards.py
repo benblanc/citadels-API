@@ -4,38 +4,47 @@ from api.classes import card
 
 import api.responses as responses
 
+from api.validation import query
 
-def apply_query(cards, sort_order, limit, offset):
+
+def apply_query(cards, sort_order, order_by, limit, offset, options_order_by):
     try:
         default_sort_order = False  # 'asc' = False | 'desc' = True
+        default_order_by = 'name'
         default_limit = len(cards)
         default_offset = 0
 
-        if sort_order:  # check if sort order is not none
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, options_order_by)
+
+        if invalid_query:
+            return responses.conflict(invalid_query)
+
+        if sort_order:  # check if not none
             if sort_order == 'asc':
                 default_sort_order = False
             elif sort_order == 'desc':
                 default_sort_order = True
-            else:
-                return responses.conflict('sort_order')
 
-        cards = sorted(cards, key=lambda x: x.name, reverse=default_sort_order)  # apply sort order
+        if order_by:  # check if not none
+            default_order_by = order_by
 
-        if offset:  # check if offset is not none
-            if 0 < offset < len(cards):
-                default_offset = offset
-            else:
-                return responses.conflict('offset')
+        if limit:  # check if not none
+            default_limit = limit
+
+        if offset:  # check if not none
+            default_offset = offset
+
+        # apply order by and sort order
+        if default_order_by == 'color':
+            cards = sorted(cards, key=lambda card: card.color, reverse=default_sort_order)
+        elif default_order_by == 'name':
+            cards = sorted(cards, key=lambda card: card.name, reverse=default_sort_order)
+        elif default_order_by == 'order':
+            cards = sorted(cards, key=lambda card: card.order, reverse=default_sort_order)
 
         cards = cards[default_offset:]  # apply offset
 
-        if limit:  # check if limit is not none
-            if limit > 0:
-                default_limit = limit
-            else:
-                return responses.conflict('limit')
-
-        cards = cards[:default_limit]  # apply limit
+        cards = cards[:default_limit]  # apply limit | needs to be separate from offset slice so limit value will not be used as index position
 
         return responses.success_get_cards(cards)
 
@@ -44,11 +53,11 @@ def apply_query(cards, sort_order, limit, offset):
         return responses.internal_server_error()
 
 
-def get_districts(sort_order, limit, offset):
+def get_districts(sort_order, order_by, limit, offset):
     try:
         districts = card.ClassCard().get_districts()
 
-        return apply_query(districts, sort_order, limit, offset)
+        return apply_query(districts, sort_order, order_by, limit, offset, ['color', 'name'])
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -59,10 +68,10 @@ def get_district(name):
     try:
         districts = card.ClassCard().get_districts()
 
-        district = list(filter(lambda x: x.name.lower() == name.lower(), districts))
+        districts = list(filter(lambda district: district.name.lower() == name.lower(), districts))
 
-        if district:
-            return responses.success_get_card(district)
+        if districts:
+            return responses.success_get_card(districts)
 
         return responses.not_found()
 
@@ -71,11 +80,11 @@ def get_district(name):
         return responses.internal_server_error()
 
 
-def get_characters(sort_order, limit, offset):
+def get_characters(sort_order, order_by, limit, offset):
     try:
         characters = card.ClassCard().get_characters()
 
-        return apply_query(characters, sort_order, limit, offset)
+        return apply_query(characters, sort_order, order_by, limit, offset, ['name', 'order'])
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -86,7 +95,7 @@ def get_character(name):
     try:
         characters = card.ClassCard().get_characters()
 
-        character = list(filter(lambda x: x.name.lower() == name.lower(), characters))
+        character = list(filter(lambda character: character.name.lower() == name.lower(), characters))
 
         if character:
             return responses.success_get_card(character)
