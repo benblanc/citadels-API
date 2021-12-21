@@ -146,6 +146,8 @@ def join_game(game_uuid, name):
 
         game_uuid = game.uuid  # get game uuid before connection with database closes
 
+        # TODO: add check to see if player amount does not exceed max_players defined in settings linked to game through uuid
+
         hosting = True  # assume new player is hosting
 
         players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
