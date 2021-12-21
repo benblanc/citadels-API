@@ -1,11 +1,12 @@
 import logging, traceback
 
-from api.classes import card, game
+from api.classes import card, game, player
 
 from api.models.game import Game as game_db
 from api.models.settings import Settings as settings_db
 from api.models.deck_districts import DeckDistricts as deck_districts_db
 from api.models.deck_characters import DeckCharacters as deck_characters_db
+from api.models.players import Players as players_db
 
 import api.responses as responses
 
@@ -80,65 +81,106 @@ def get_game(game_uuid):
 
 def create_game(name, description):
     try:
-        game_object = game.ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description)
+        new_game = game.ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description)
 
         success_write_game = database.write_row_to_db(game_db(
-            uuid=game_object.uuid,
-            created=game_object.created,
-            name=game_object.name,
-            description=game_object.description,
-            amount_players=game_object.amount_players,
-            characters_unused=game_object.characters_unused,
-            characters_per_player=game_object.characters_per_player,
-            eight_districts_built=game_object.eight_districts_built,
-            round=game_object.round))
+            uuid=new_game.uuid,
+            created=new_game.created,
+            name=new_game.name,
+            description=new_game.description,
+            amount_players=new_game.amount_players,
+            characters_unused=new_game.characters_unused,
+            characters_per_player=new_game.characters_per_player,
+            eight_districts_built=new_game.eight_districts_built,
+            round=new_game.round))
 
         if not success_write_game:
             return responses.internal_server_error()
 
         success_write_settings = database.write_row_to_db(settings_db(
             uuid=helpers.create_uuid(),
-            min_players=game_object.settings.min_players,
-            max_players=game_object.settings.max_players,
-            amount_starting_hand=game_object.settings.amount_starting_hand,
-            amount_starting_coins=game_object.settings.amount_starting_coins,
-            game_uuid=game_object.uuid))
+            min_players=new_game.settings.min_players,
+            max_players=new_game.settings.max_players,
+            amount_starting_hand=new_game.settings.amount_starting_hand,
+            amount_starting_coins=new_game.settings.amount_starting_coins,
+            game_uuid=new_game.uuid))
 
         if not success_write_settings:
             return responses.internal_server_error()
 
-        game_object.deck_districts = card.ClassCard().get_districts(False)
+        new_game.deck_districts = card.ClassCard().get_districts(False)
 
         success_write_deck_districts = []
-        for district in game_object.deck_districts:
+        for district in new_game.deck_districts:
             success_write_deck_districts.append(database.write_row_to_db(deck_districts_db(
                 uuid=helpers.create_uuid(),
                 name=district.card.name,
                 amount=district.amount,
-                game_uuid=game_object.uuid)))
+                game_uuid=new_game.uuid)))
 
         if False in success_write_deck_districts:
             return responses.internal_server_error()
 
-        game_object.deck_characters = card.ClassCard().get_characters()
+        new_game.deck_characters = card.ClassCard().get_characters()
 
         success_write_deck_characters = []
-        for character in game_object.deck_characters:
+        for character in new_game.deck_characters:
             success_write_deck_characters.append(database.write_row_to_db(deck_characters_db(
                 uuid=helpers.create_uuid(),
                 name=character.name,
-                game_uuid=game_object.uuid)))
+                game_uuid=new_game.uuid)))
 
-        return responses.db_success_uuid(game_object.uuid)
+        return responses.success_uuid_entity_created(new_game.uuid)
 
     except Exception:
         logging.error(traceback.format_exc())
         return responses.internal_server_error()
 
 
-def join_game(game_uuid):
+def join_game(game_uuid, name):
     try:
-        return
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found()
+
+        game_uuid = game.uuid  # get game uuid before connection with database closes
+
+        hosting = True  # assume new player is hosting
+
+        players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+
+        if players:  # check if there are players
+            host = list(filter(lambda player: player.hosting == True, players))  # get host
+
+            if host:  # check if there is a host
+                hosting = False  # new player will not host the game
+
+        new_player = player.ClassPlayer(helpers.create_uuid(), name, hosting)
+
+        success_write_player = database.write_row_to_db(players_db(
+            uuid=new_player.uuid,
+            name=new_player.name,
+            hosting=new_player.hosting,
+            index=new_player.index,
+            coins=new_player.coins,
+            flag_king=new_player.flag_king,
+            flag_assassinated=new_player.flag_assassinated,
+            flag_robbed=new_player.flag_robbed,
+            flag_protected=new_player.flag_protected,
+            flag_built=new_player.flag_built,
+            game_uuid=game_uuid
+        ))
+
+        if not success_write_player:
+            return responses.internal_server_error()
+
+        success_update_game = database.update_row_from_db(game_db, game_uuid, dict(amount_players=len(players) + 1))  # update player count for game
+
+        if not success_update_game:
+            return responses.internal_server_error()
+
+        return responses.success_uuid_entity_created(new_player.uuid)
 
     except Exception:
         logging.error(traceback.format_exc())

@@ -5,6 +5,7 @@ class Players(db.Model):
     __tablename__ = 'players'
     uuid = db.Column(db.String(150), primary_key=True, nullable=False)
     name = db.Column(db.String(100))
+    hosting = db.Column(db.Boolean)
     index = db.Column(db.Integer)
     coins = db.Column(db.Integer)
     flag_king = db.Column(db.Boolean)

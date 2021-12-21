@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, index=0, name="", coins=0, character=None, cards=None, buildings=None, flag_king=False, flag_assassinated=False, flag_stolen=False, flag_protected=False, flag_built=False):
+    def __init__(self, uuid="", name="", hosting=False, index=0, coins=0, character=None, cards=None, buildings=None, flag_king=False, flag_assassinated=False, flag_stolen=False, flag_protected=False, flag_built=False):
         if character is None:
             character = []
 
@@ -9,8 +9,10 @@ class ClassPlayer:
         if buildings is None:
             buildings = []
 
-        self.__index = index  # player position
+        self.__uuid = uuid  # uuid of the player
         self.__name = name  # player name
+        self.__hosting = hosting  # is player hosting the game
+        self.__index = index  # player position
         self.__coins = coins  # amount of coins player has
         self.__character = character  # character(s) for current round
         self.__cards = cards  # distracts in hand
@@ -22,8 +24,8 @@ class ClassPlayer:
         self.__flag_built = flag_built  # has the player built a district this turn
 
     @property
-    def index(self):
-        return self.__index
+    def uuid(self):
+        return self.__uuid
 
     @property
     def name(self):
@@ -32,6 +34,18 @@ class ClassPlayer:
     @name.setter
     def name(self, value):
         self.__name = value
+
+    @property
+    def hosting(self):
+        return self.__hosting
+
+    @hosting.setter
+    def hosting(self, value):
+        self.__hosting = value
+
+    @property
+    def index(self):
+        return self.__index
 
     @property
     def coins(self):
@@ -121,6 +135,7 @@ class ClassPlayer:
             buildings.append(item.info)
 
         info = {
+            "hosting": self.__hosting,
             "index": self.__index,
             "name": self.__name,
             "coins": self.__coins,
