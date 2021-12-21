@@ -203,6 +203,9 @@ paths:
           in: body
           name: body
           schema:
+            required:
+              - name
+              - description
             type: object
             properties:
               name:
@@ -233,6 +236,8 @@ paths:
           in: body
           name: body
           schema:
+            required:
+              - name
             type: object
             properties:
               name:
@@ -243,6 +248,34 @@ paths:
         201:
           description: Returns the UUID of the player
       summary: Requests joining a game
+      tags:
+        - game
+  '/game/{game_uuid}/action.start':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            required:
+              - player_uuid
+            type: object
+            properties:
+              player_uuid:
+                type: string
+                description: The UUID of the player who wants to start the game.
+                example: '8c3f22f9-7959-47ec-8e28-ab586201cef9'
+      responses:
+        204:
+          description: Start successful
+      summary: Requests starting a game
       tags:
         - game
   '/game/{game_uuid}/players':

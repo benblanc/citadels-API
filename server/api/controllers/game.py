@@ -88,6 +88,7 @@ def create_game(name, description):
             created=new_game.created,
             name=new_game.name,
             description=new_game.description,
+            started=new_game.started,
             amount_players=new_game.amount_players,
             characters_unused=new_game.characters_unused,
             characters_per_player=new_game.characters_per_player,
@@ -183,6 +184,47 @@ def join_game(game_uuid, name):
             return responses.internal_server_error()
 
         return responses.success_uuid_entity_created(new_player.uuid)
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.internal_server_error()
+
+
+def start_game(game_uuid, player_uuid):
+    try:
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found()
+
+        game_uuid = game.uuid  # get game uuid before connection with database closes
+
+        amount_players = game.amount_players  # get amount of players in game before connection with database closes
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found()
+
+        if not player.hosting:  # check if the player is not hosting the game
+            return responses.not_host()
+
+        settings = settings_db.query.filter_by(game_uuid=game_uuid).first()  # get settings from database
+
+        if amount_players < settings.min_players:  # check if there are not enough players
+            return responses.not_enough_players()
+
+        success_update_game = database.update_row_from_db(game_db, game_uuid, dict(started=True))  # update game to say it has started
+
+        if not success_update_game:  # check if database failed to update
+            return responses.internal_server_error()
+
+        ### game has started
+        ## prepare game
+
+
+
+        return responses.no_content()
 
     except Exception:
         logging.error(traceback.format_exc())

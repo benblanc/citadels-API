@@ -41,6 +41,8 @@ class ClassGame:
         self.__name = name
         self.__description = description
 
+        self.__started = False
+
         self.__players = []
         self.__amount_players = 0
 
@@ -75,6 +77,14 @@ class ClassGame:
     @property
     def description(self):
         return self.__description
+
+    @property
+    def started(self):
+        return self.__started
+
+    @started.setter
+    def started(self, value):
+        self.__started = value
 
     @property
     def amount_players(self):

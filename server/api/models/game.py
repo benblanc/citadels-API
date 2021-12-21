@@ -7,6 +7,7 @@ class Game(db.Model):
     created = db.Column(db.DateTime)
     name = db.Column(db.String(100))
     description = db.Column(db.String(100))
+    started = db.Column(db.Boolean)
     amount_players = db.Column(db.Integer)
     characters_unused = db.Column(db.Integer)
     characters_per_player = db.Column(db.Integer)
