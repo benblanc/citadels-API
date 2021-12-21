@@ -1,11 +1,3 @@
-def db_success_uuid(uuid):
-    response = {
-        "uuid": uuid
-    }
-
-    return response, 201
-
-
 def define_response_game(game):
     response = {
         "uuid": game.uuid,
