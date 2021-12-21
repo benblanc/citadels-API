@@ -8,7 +8,7 @@ def bad_request(field):
 
 def not_found():
     response = {
-        "message": "The requested item is not found or does not exist"
+        "message": "The requested item is not found or does not exist."
     }
 
     return response, 404

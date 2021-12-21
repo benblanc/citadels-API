@@ -1,5 +1,8 @@
-from .bad_request import *
 from .cards import *
+from .client_error import *
 from .database import *
-from .internal_server_error import *
+from .server_error import *
 from .status import *
+from .successful import *
+
+# TODO: Apply corrct status codes everywhere
