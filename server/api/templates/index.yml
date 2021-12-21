@@ -229,8 +229,18 @@ paths:
           required: true
           type: string
           format: uuid
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the player for display purposes.
+                example: Machiavelli
       responses:
-        200:
+        201:
           description: Returns the UUID of the player
       summary: Requests joining a game
       tags:
