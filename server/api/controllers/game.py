@@ -1,12 +1,16 @@
-import logging, traceback
+import logging, traceback, random
 
-from api.classes import card, game, player
+# from api.classes import card, game, player
+from api.classes.card import *
+from api.classes.game import *
+from api.classes.player import *
 
 from api.models.game import Game as game_db
 from api.models.settings import Settings as settings_db
 from api.models.deck_districts import DeckDistricts as deck_districts_db
 from api.models.deck_characters import DeckCharacters as deck_characters_db
 from api.models.players import Players as players_db
+from api.models.cards import Cards as cards_db
 
 import api.responses as responses
 
@@ -81,7 +85,7 @@ def get_game(game_uuid):
 
 def create_game(name, description):
     try:
-        new_game = game.ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description)
+        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description)
 
         success_write_game = database.write_row_to_db(game_db(
             uuid=new_game.uuid,
@@ -109,7 +113,7 @@ def create_game(name, description):
         if not success_write_settings:
             return responses.internal_server_error()
 
-        new_game.deck_districts = card.ClassCard().get_districts(False)
+        new_game.deck_districts = ClassCard().get_districts(False)
 
         success_write_deck_districts = []
         for district in new_game.deck_districts:
@@ -122,7 +126,7 @@ def create_game(name, description):
         if False in success_write_deck_districts:
             return responses.internal_server_error()
 
-        new_game.deck_characters = card.ClassCard().get_characters()
+        new_game.deck_characters = ClassCard().get_characters()
 
         success_write_deck_characters = []
         for character in new_game.deck_characters:
@@ -145,8 +149,6 @@ def join_game(game_uuid, name):
         if not game:  # check if game does not exist
             return responses.not_found()
 
-        game_uuid = game.uuid  # get game uuid before connection with database closes
-
         # TODO: add check to see if player amount does not exceed max_players defined in settings linked to game through uuid
 
         hosting = True  # assume new player is hosting
@@ -159,7 +161,7 @@ def join_game(game_uuid, name):
             if host:  # check if there is a host
                 hosting = False  # new player will not host the game
 
-        new_player = player.ClassPlayer(helpers.create_uuid(), name, hosting)
+        new_player = ClassPlayer(helpers.create_uuid(), name, hosting)
 
         success_write_player = database.write_row_to_db(players_db(
             uuid=new_player.uuid,
@@ -197,9 +199,7 @@ def start_game(game_uuid, player_uuid):
         if not game:  # check if game does not exist
             return responses.not_found()
 
-        game_uuid = game.uuid  # get game uuid before connection with database closes
-
-        amount_players = game.amount_players  # get amount of players in game before connection with database closes
+        game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, started=game.started, amount_players=game.amount_players, characters_unused=game.characters_unused, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
 
         player = players_db.query.get(player_uuid)  # get player from database
 
@@ -211,18 +211,106 @@ def start_game(game_uuid, player_uuid):
 
         settings = settings_db.query.filter_by(game_uuid=game_uuid).first()  # get settings from database
 
-        if amount_players < settings.min_players:  # check if there are not enough players
+        if not settings:  # check if game settings do not exist
+            return responses.not_found()
+
+        game.settings = ClassSettings(min_players=settings.min_players, max_players=settings.max_players, amount_starting_hand=settings.amount_starting_hand, amount_starting_coins=settings.amount_starting_coins)  # add settings to game object
+
+        if game.amount_players < game.settings.min_players:  # check if there are not enough players
             return responses.not_enough_players()
 
-        success_update_game = database.update_row_from_db(game_db, game_uuid, dict(started=True))  # update game to say it has started
+        game.started = True  # update game to say it has started
+
+        success_update_game = database.update_row_from_db(game_db, game_uuid, dict(started=game.started))  # update database to say game has started
 
         if not success_update_game:  # check if database failed to update
             return responses.internal_server_error()
 
-        ### game has started
-        ## prepare game
+        deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
 
+        districts = []
+        for district in deck_districts:  # go through each district in the deck of districts
+            for index in range(district.amount):  # add the separated district to a new list as class objects
+                districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
 
+        random.shuffle(districts)  # shuffle district cards
+
+        game.deck_districts = districts  # add districts to game object
+
+        deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of characters in game
+
+        characters = list(map(lambda character: ClassCharacter(uuid=character.uuid, name=character.name), deck_characters))  # get characters as class objects
+
+        random.shuffle(characters)  # shuffle district cards
+
+        game.deck_characters = characters  # add characters to game object
+
+        players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+
+        if not players:  # check if there are no players
+            return responses.not_found()
+
+        game.players = list(map(lambda player: ClassPlayer(uuid=player.uuid, name=player.name, hosting=player.hosting, index=player.index, coins=player.coins, flag_king=player.flag_king, flag_assassinated=player.flag_assassinated, flag_robbed=player.flag_robbed, flag_protected=player.flag_protected, flag_built=player.flag_built), players))  # add players to game object
+
+        game.set_starting_coins_per_player()  # give each player coins to start with
+
+        game.set_starting_hand_per_player()  # give each player district cards to start with
+
+        for player in game.players:  # go through each player
+            success_update_player = database.update_row_from_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+
+            if not success_update_player:  # check if failed to update database
+                return responses.internal_server_error()
+
+            cards = {}
+            for card in player.cards:  # go through each card in the player's hand
+                if card.name not in cards.keys():  # check if card is not on new object
+                    cards[card.name] = ClassDeckDistrict(1, card)  # add card by amount to object
+                else:  # card is in object
+                    new_deck_district = cards[card.name]  # get card from object
+                    new_deck_district.amount += 1  # increase amount
+                    cards[card.name] = new_deck_district  # update card in object
+
+            for _, deck_district in cards.items():  # go through each card in object
+                success_write_card = database.write_row_to_db(cards_db(  # write card to database
+                    uuid=helpers.create_uuid(),
+                    name=deck_district.card.name,
+                    amount=deck_district.amount,
+                    player_uuid=player.uuid
+                ))
+
+                if not success_write_card:  # check if failed to write to database
+                    return responses.internal_server_error()
+
+                amount = 0  # amount by default
+
+                district_by_amount = list(filter(lambda item: item.card.name.lower() == deck_district.card.name.lower(), game.deck_districts_by_amount))  # get current district from deck
+
+                if district_by_amount:  # check if there is a district
+                    amount = district_by_amount[0].amount  # get amount
+
+                success_update_deck_districts = database.update_row_from_db(deck_districts_db, deck_district.card.uuid, dict(amount=amount))  # update card amount in deck of districts in database
+
+                if not success_update_deck_districts:  # check if failed to update database
+                    return responses.internal_server_error()
+
+        # TODO: fix deletion of empty districts
+
+        districts_by_amount = list(filter(lambda district: district.amount == 0, game.deck_districts_by_amount))  # get districts from deck where amount is 0
+
+        pprint(districts_by_amount)
+
+        for district in districts_by_amount:  # go through each district
+            print("district name with amount 0: ", district.card.name)
+            print("uuid: ", district.card.uuid)
+            print("=" * 80)
+
+            success_delete_district = database.delete_row_from_db(deck_districts_db, district.card.uuid)  # delete district from deck of districts in database
+
+            if not success_delete_district:  # check if failed to delete in database
+                return responses.internal_server_error()
+
+        # TODO: add some way of showing chracters can be chosen
 
         return responses.no_content()
 

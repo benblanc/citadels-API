@@ -5,6 +5,7 @@ from pprint import pprint
 from copy import deepcopy
 
 from api.classes import player
+from api.classes.card import ClassDeckDistrict
 
 
 class ClassSettings:
@@ -32,8 +33,27 @@ class ClassSettings:
 
 
 class ClassGame:
-    def __init__(self, uuid="", created="", name="", description=""):
-        self.__settings = ClassSettings()
+    def __init__(self, uuid=None, created="", name="", description="", started=False, players=None, amount_players=0, characters_unused=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, round=1, possible_characters=None, removed_characters=None, settings=None):
+        if players is None:
+            players = []
+
+        if deck_characters is None:
+            deck_characters = []
+
+        if deck_districts is None:
+            deck_districts = []
+
+        if discard_pile is None:
+            discard_pile = []
+
+        if possible_characters is None:
+            possible_characters = []
+
+        if removed_characters is None:
+            removed_characters = []
+
+        if settings is None:
+            settings = ClassSettings()
 
         self.__uuid = uuid
         self.__created = created
@@ -41,26 +61,24 @@ class ClassGame:
         self.__name = name
         self.__description = description
 
-        self.__started = False
+        self.__started = started
 
-        self.__players = []
-        self.__amount_players = 0
+        self.__players = players
+        self.__amount_players = amount_players
 
-        self.__characters_unused = 0
-        self.__characters_per_player = 0
+        self.__characters_unused = characters_unused
+        self.__characters_per_player = characters_per_player
 
-        self.__deck_characters = []
-        self.__deck_districts = []
-        self.__discard_pile = []
+        self.__deck_characters = deck_characters
+        self.__deck_districts = deck_districts
+        self.__discard_pile = discard_pile
 
-        self.__eight_districts_built = False
-        self.__round = 1
-        self.__possible_characters = []
-        self.__removed_characters = []
+        self.__eight_districts_built = eight_districts_built
+        self.__round = round
+        self.__possible_characters = possible_characters
+        self.__removed_characters = removed_characters
 
-    @property
-    def settings(self):
-        return self.__settings
+        self.__settings = settings
 
     @property
     def uuid(self):
@@ -93,8 +111,7 @@ class ClassGame:
     @amount_players.setter
     def amount_players(self, value):
         if isinstance(value, int):
-            if self.__settings["min_players"] <= value <= self.__settings["max_players"]:
-                self.__amount_players = value
+            self.__amount_players = value
 
     @property
     def characters_unused(self):
@@ -168,6 +185,52 @@ class ClassGame:
     def removed_characters(self, value):
         self.__removed_characters = value
 
+    @property
+    def settings(self):
+        return self.__settings
+
+    @settings.setter
+    def settings(self, value):
+        self.__settings = value
+
+    @property
+    def deck_districts_by_amount(self):
+        districts = {}
+
+        for district in self.__deck_districts:
+            if district.name not in districts.keys():
+                districts[district.name] = ClassDeckDistrict(1, district)
+            else:
+                new_deck_district = districts[district.name]
+                new_deck_district.amount += 1
+                districts[district.name] = new_deck_district
+
+        return list(map(lambda district: district[1], districts.items()))  # index 0 is key, index 1 is value
+
+    @property
+    def info(self):
+        info = {
+            "uuid": self.__uuid,
+            "created": self.__created,
+            "name": self.__name,
+            "description": self.__description,
+            "started": self.__started,
+            "players": self.__players,
+            "amount_players": self.__amount_players,
+            "characters_unused": self.__characters_unused,
+            "characters_per_player": self.__characters_per_player,
+            "deck_characters": self.__deck_characters,
+            "deck_districts": self.__deck_districts,
+            "discard_pile": self.__discard_pile,
+            "eight_districts_built": self.__eight_districts_built,
+            "round": self.__round,
+            "possible_characters": self.__possible_characters,
+            "removed_characters": self.__removed_characters,
+            "settings": self.__settings
+        }
+
+        return info
+
     def create_players(self):
         for index in range(self.__amount_players):
             self.__players.append(player.ClassPlayer(index=index, name="Player %s" % (index + 1)))
@@ -226,10 +289,10 @@ class ClassGame:
 
     def set_starting_coins_per_player(self):
         for player in self.__players:
-            player.coins = self.__settings['amount_starting_coins']
+            player.coins = self.__settings.amount_starting_coins
 
     def set_starting_hand_per_player(self):  # give each player a card for the amount of players there are
-        for index in range(self.__amount_players):
+        for index in range(self.__settings.amount_starting_hand):
             for player in self.__players:
                 drawn_card = self.draw_card_deck_districts()
                 player.cards.append(drawn_card)
@@ -313,7 +376,6 @@ class ClassGame:
         pass
 
     def start_player_turn(self, player_index, character):
-
         player = self.__players[player_index]
 
         # income phase
