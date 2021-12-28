@@ -288,8 +288,8 @@ paths:
           required: true
           type: string
           format: uuid
-        - default: asc
-          description: Sort order
+        - description: Sort order
+          default: asc
           enum:
             - asc
             - desc
@@ -306,13 +306,13 @@ paths:
           name: order_by
           required: false
           type: string
-        - description: Return limited amount of items
-          default: 10
+        - description: Return limited amount of items, 0 to return all items
+          default: 0
           in: query
           name: limit
           required: false
           type: integer
-          minimum: 1
+          minimum: 0
         - description: Return items starting from this index position
           default: 0
           in: query
