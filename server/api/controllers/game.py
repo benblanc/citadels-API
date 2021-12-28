@@ -85,16 +85,17 @@ def get_game(game_uuid):
 
 def create_game(name, description):
     try:
-        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description)
+        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description, ClassState.created.value)
 
         success_write_game = database.write_row_to_db(game_db(
             uuid=new_game.uuid,
             created=new_game.created,
             name=new_game.name,
             description=new_game.description,
-            started=new_game.started,
+            state=new_game.state,
             amount_players=new_game.amount_players,
-            characters_unused=new_game.characters_unused,
+            characters_open=new_game.characters_open,
+            characters_closed=new_game.characters_closed,
             characters_per_player=new_game.characters_per_player,
             eight_districts_built=new_game.eight_districts_built,
             round=new_game.round))
@@ -199,7 +200,7 @@ def start_game(game_uuid, player_uuid):
         if not game:  # check if game does not exist
             return responses.not_found()
 
-        game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, started=game.started, amount_players=game.amount_players, characters_unused=game.characters_unused, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
+        game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, state=game.state, amount_players=game.amount_players, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
 
         player = players_db.query.get(player_uuid)  # get player from database
 
@@ -219,9 +220,9 @@ def start_game(game_uuid, player_uuid):
         if game.amount_players < game.settings.min_players:  # check if there are not enough players
             return responses.not_enough_players()
 
-        game.started = True  # update game to say it has started
+        game.state = ClassState.started.value  # update game to say it has started
 
-        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(started=game.started))  # update database to say game has started
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state))  # update database to say game has started
 
         if not success_update_game:  # check if database failed to update
             return responses.internal_server_error()
@@ -256,11 +257,15 @@ def start_game(game_uuid, player_uuid):
 
         game.set_starting_hand_per_player()  # give each player district cards to start with
 
+        game.set_starting_king()  # let a random player start as the king
+
+        game.set_character_division()  # define how many characters per player and how many are open or closed on the field
+
         updated_districts = []  # to avoid updating already updated districts (with the same value)
         deleted_districts = []  # to avoid deleting already deleted districts
 
         for player in game.players:  # go through each player
-            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, flag_king=player.flag_king))  # update amount of coins and king flag for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.internal_server_error()
@@ -308,7 +313,12 @@ def start_game(game_uuid, player_uuid):
                     if not success_delete_district:  # check if failed to delete in database
                         return responses.internal_server_error()
 
-        # TODO: add some way of showing chracters can be chosen
+        game.state = ClassState.dividing.value  # update game to say it is ready to divide characters per player
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player))  # update database with the latest information about the game state
+
+        if not success_update_game:  # check if database failed to update
+            return responses.internal_server_error()
 
         return responses.no_content()
 

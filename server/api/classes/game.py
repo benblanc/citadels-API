@@ -1,4 +1,4 @@
-import random
+import random, enum
 
 from pprint import pprint
 
@@ -6,6 +6,14 @@ from copy import deepcopy
 
 from api.classes import player
 from api.classes.card import ClassDeckDistrict
+
+
+class ClassState(enum.Enum):
+    created = "created"
+    started = "started"
+    dividing = "dividing"
+    summoning = "summoning"
+    finished = "finished"
 
 
 class ClassSettings:
@@ -33,7 +41,7 @@ class ClassSettings:
 
 
 class ClassGame:
-    def __init__(self, uuid=None, created="", name="", description="", started=False, players=None, amount_players=0, characters_unused=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, round=1, possible_characters=None, removed_characters=None, settings=None):
+    def __init__(self, uuid=None, created="", name="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, round=1, possible_characters=None, removed_characters=None, settings=None):
         if players is None:
             players = []
 
@@ -61,12 +69,13 @@ class ClassGame:
         self.__name = name
         self.__description = description
 
-        self.__started = started
+        self.__state = state
 
         self.__players = players
         self.__amount_players = amount_players
 
-        self.__characters_unused = characters_unused
+        self.__characters_open = characters_open
+        self.__characters_closed = characters_closed
         self.__characters_per_player = characters_per_player
 
         self.__deck_characters = deck_characters
@@ -97,12 +106,12 @@ class ClassGame:
         return self.__description
 
     @property
-    def started(self):
-        return self.__started
+    def state(self):
+        return self.__state
 
-    @started.setter
-    def started(self, value):
-        self.__started = value
+    @state.setter
+    def state(self, value):
+        self.__state = value
 
     @property
     def amount_players(self):
@@ -114,8 +123,12 @@ class ClassGame:
             self.__amount_players = value
 
     @property
-    def characters_unused(self):
-        return self.__characters_unused
+    def characters_open(self):
+        return self.__characters_open
+
+    @property
+    def characters_closed(self):
+        return self.__characters_closed
 
     @property
     def characters_per_player(self):
@@ -214,10 +227,11 @@ class ClassGame:
             "created": self.__created,
             "name": self.__name,
             "description": self.__description,
-            "started": self.__started,
+            "state": self.__state,
             "players": self.__players,
             "amount_players": self.__amount_players,
-            "characters_unused": self.__characters_unused,
+            "characters_open": self.__characters_open,
+            "characters_closed": self.__characters_closed,
             "characters_per_player": self.__characters_per_player,
             "deck_characters": self.__deck_characters,
             "deck_districts": self.__deck_districts,
@@ -231,29 +245,39 @@ class ClassGame:
 
         return info
 
-    def create_players(self):
-        for index in range(self.__amount_players):
-            self.__players.append(player.ClassPlayer(index=index, name="Player %s" % (index + 1)))
-
-        # randomly choose a king
-        index_king = random.randint(0, self.__amount_players - 1)
+    def set_starting_king(self):
+        index_king = random.randint(0, self.__amount_players - 1)  # randomly choose a king
         self.__players[index_king].flag_king = True  # set player is king flag
 
-    def set_unused_cards_per_player(self):
-        if self.__amount_players == 4:
-            self.__characters_unused = 2
+    def set_character_division(self):
+        if self.__amount_players == 2:
+            self.__characters_open = 0
+            self.__characters_closed = 4
+            self.__characters_per_player = 2
+
+        if self.__amount_players == 3:
+            self.__characters_open = 0
+            self.__characters_closed = 2
+            self.__characters_per_player = 2
+
+        elif self.__amount_players == 4:
+            self.__characters_open = 2
+            self.__characters_closed = 2
             self.__characters_per_player = 1
 
         elif self.__amount_players == 5:
-            self.__characters_unused = 1
+            self.__characters_open = 1
+            self.__characters_closed = 2
             self.__characters_per_player = 1
 
         elif self.__amount_players == 6:
-            self.__characters_unused = 0
+            self.__characters_open = 0
+            self.__characters_closed = 2
             self.__characters_per_player = 1
 
         elif self.__amount_players == 7:
-            self.__characters_unused = 0
+            self.__characters_open = 0
+            self.__characters_closed = 1
             self.__characters_per_player = 1
 
     def __draw_card(self, deck, card_index=None):  # draw card from deck
