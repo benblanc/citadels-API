@@ -15,9 +15,9 @@ def write_row_to_db(row):
         return False
 
 
-def update_row_from_db(db_obj, uuid, dict_update):
+def update_row_in_db(table, uuid, dict_update):
     try:
-        db_obj.query.filter_by(uuid=uuid).update(dict_update)
+        table.query.filter_by(uuid=uuid).update(dict_update)
         db.session.commit()
         db.session.close()
         return True
@@ -27,9 +27,9 @@ def update_row_from_db(db_obj, uuid, dict_update):
         return False
 
 
-def delete_row_from_db(db_obj, uuid):
+def delete_row_from_db(table, uuid):
     try:
-        db.session.delete(db_obj.query.filter_by(uuid=uuid).first())
+        db.session.delete(table.query.filter_by(uuid=uuid).first())
         db.session.commit()
         db.session.close()
         return True

@@ -180,7 +180,7 @@ def join_game(game_uuid, name):
         if not success_write_player:
             return responses.internal_server_error()
 
-        success_update_game = database.update_row_from_db(game_db, game_uuid, dict(amount_players=len(players) + 1))  # update player count for game
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(amount_players=len(players) + 1))  # update player count for game
 
         if not success_update_game:
             return responses.internal_server_error()
@@ -221,7 +221,7 @@ def start_game(game_uuid, player_uuid):
 
         game.started = True  # update game to say it has started
 
-        success_update_game = database.update_row_from_db(game_db, game_uuid, dict(started=game.started))  # update database to say game has started
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(started=game.started))  # update database to say game has started
 
         if not success_update_game:  # check if database failed to update
             return responses.internal_server_error()
@@ -256,8 +256,11 @@ def start_game(game_uuid, player_uuid):
 
         game.set_starting_hand_per_player()  # give each player district cards to start with
 
+        updated_districts = []  # to avoid updating already updated districts (with the same value)
+        deleted_districts = []  # to avoid deleting already deleted districts
+
         for player in game.players:  # go through each player
-            success_update_player = database.update_row_from_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.internal_server_error()
@@ -289,26 +292,21 @@ def start_game(game_uuid, player_uuid):
                 if district_by_amount:  # check if there is a district
                     amount = district_by_amount[0].amount  # get amount
 
-                success_update_deck_districts = database.update_row_from_db(deck_districts_db, deck_district.card.uuid, dict(amount=amount))  # update card amount in deck of districts in database
+                if amount and deck_district.card.name not in updated_districts:  # check if district still in deck of districts and not yet updated in database
+                    updated_districts.append(deck_district.card.name)  # add district name to already updated districts
 
-                if not success_update_deck_districts:  # check if failed to update database
-                    return responses.internal_server_error()
+                    success_update_deck_districts = database.update_row_in_db(deck_districts_db, deck_district.card.uuid, dict(amount=amount))  # update card amount in deck of districts in database
 
-        # TODO: fix deletion of empty districts
+                    if not success_update_deck_districts:  # check if failed to update database
+                        return responses.internal_server_error()
 
-        districts_by_amount = list(filter(lambda district: district.amount == 0, game.deck_districts_by_amount))  # get districts from deck where amount is 0
+                elif not amount and deck_district.card.name not in deleted_districts:  # district no longer in deck of districts and not yet deleted in database
+                    deleted_districts.append(deck_district.card.name)  # add district name to already deleted districts
 
-        pprint(districts_by_amount)
+                    success_delete_district = database.delete_row_from_db(deck_districts_db, deck_district.card.uuid)  # delete district from deck of districts in database
 
-        for district in districts_by_amount:  # go through each district
-            print("district name with amount 0: ", district.card.name)
-            print("uuid: ", district.card.uuid)
-            print("=" * 80)
-
-            success_delete_district = database.delete_row_from_db(deck_districts_db, district.card.uuid)  # delete district from deck of districts in database
-
-            if not success_delete_district:  # check if failed to delete in database
-                return responses.internal_server_error()
+                    if not success_delete_district:  # check if failed to delete in database
+                        return responses.internal_server_error()
 
         # TODO: add some way of showing chracters can be chosen
 
