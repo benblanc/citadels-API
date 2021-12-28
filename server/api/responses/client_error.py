@@ -22,6 +22,14 @@ def not_enough_players():
     return response, 400
 
 
+def enough_players():
+    response = {
+        "message": "The game already has enough players to start."
+    }
+
+    return response, 400
+
+
 def not_found():
     response = {
         "message": "The requested item is not found or does not exist."

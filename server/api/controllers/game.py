@@ -150,7 +150,15 @@ def join_game(game_uuid, name):
         if not game:  # check if game does not exist
             return responses.not_found()
 
-        # TODO: add check to see if player amount does not exceed max_players defined in settings linked to game through uuid
+        amount_players = game.amount_players  # get amount of players before connection with database closes
+
+        settings = settings_db.query.filter_by(game_uuid=game_uuid).first()  # get settings from database
+
+        if not settings:  # check if game settings do not exist
+            return responses.not_found()
+
+        if amount_players == settings.max_players:  # check if there are already enough players
+            return responses.enough_players()
 
         hosting = True  # assume new player is hosting
 
