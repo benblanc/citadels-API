@@ -12,3 +12,7 @@ def success_uuid_entity_created(uuid):
     }
 
     return response, 201
+
+
+def no_content():
+    return "", 204

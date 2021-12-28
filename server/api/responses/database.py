@@ -4,8 +4,10 @@ def define_response_game(game):
         "created": game.created.strftime('%Y-%m-%d %H:%M:%S'),
         "name": game.name,
         "description": game.description,
+        "state": game.state,
         "amount_players": game.amount_players,
-        "characters_unused": game.characters_unused,
+        "characters_open": game.characters_open,
+        "characters_closed": game.characters_closed,
         "characters_per_player": game.characters_per_player,
         "eight_districts_built": game.eight_districts_built,
         "round": game.round

@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid="", name="", hosting=False, index=0, coins=0, character=None, cards=None, buildings=None, flag_king=False, flag_assassinated=False, flag_stolen=False, flag_protected=False, flag_built=False):
+    def __init__(self, uuid=None, name="", hosting=False, index=0, coins=0, character=None, cards=None, buildings=None, flag_king=False, flag_assassinated=False, flag_robbed=False, flag_protected=False, flag_built=False):
         if character is None:
             character = []
 
@@ -19,7 +19,7 @@ class ClassPlayer:
         self.__buildings = buildings  # districts built
         self.__flag_king = flag_king  # is player king
         self.__flag_assassinated = flag_assassinated  # is player assassinated
-        self.__flag_robbed = flag_stolen  # is player robbed
+        self.__flag_robbed = flag_robbed  # is player robbed
         self.__flag_protected = flag_protected  # is player protected from warlord
         self.__flag_built = flag_built  # has the player built a district this turn
 
@@ -144,7 +144,7 @@ class ClassPlayer:
             "buildings": buildings,
             "flag_king": self.__flag_king,
             "flag_assassinated": self.__flag_assassinated,
-            "flag_stolen": self.__flag_robbed,
+            "flag_robbed": self.__flag_robbed,
             "flag_protected": self.__flag_protected,
             "flag_built": self.__flag_built
         }
