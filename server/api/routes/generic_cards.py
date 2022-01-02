@@ -1,6 +1,6 @@
 from api import api, Resource, swag_from, reqparse
 
-from api.controllers._cards import *
+from api.controllers.generic_cards import *
 
 
 class Districts(Resource):

@@ -7,14 +7,14 @@ def success_status():
     return response, 200
 
 
-def success_get_card(districts):
-    response = list(map(lambda district: district.info, districts))[0]
+def success_get_generic_card(cards):
+    response = list(map(lambda card: card.info, cards))[0]
 
     return response, 200
 
 
-def success_get_cards(districts):
-    response = list(map(lambda district: district.info, districts))
+def success_get_generic_cards(cards):
+    response = list(map(lambda card: card.info, cards))
 
     return response, 200
 
@@ -39,6 +39,12 @@ def success_get_player(player):
 
 def success_get_players(players):
     response = list(map(lambda player: define_player(player), players))
+
+    return response, 200
+
+
+def success_get_cards(cards):
+    response = list(map(lambda card: define_card(card), cards))
 
     return response, 200
 

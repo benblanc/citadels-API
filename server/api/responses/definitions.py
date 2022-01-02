@@ -47,3 +47,13 @@ def define_player(player):
     }
 
     return response
+
+
+def define_card(card):
+    response = {
+        "uuid": card.uuid,
+        "name": card.name,
+        "amount": card.amount
+    }
+
+    return response

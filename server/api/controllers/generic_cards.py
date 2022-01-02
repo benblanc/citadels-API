@@ -46,7 +46,7 @@ def apply_query(cards, sort_order, order_by, limit, offset, options_order_by):
 
         cards = cards[:default_limit]  # apply limit | needs to be separate from offset slice so limit value will not be used as index position
 
-        return responses.success_get_cards(cards)
+        return responses.success_get_generic_cards(cards)
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -71,7 +71,7 @@ def get_district(name):
         districts = list(filter(lambda district: district.name.lower() == name.lower(), districts))
 
         if districts:
-            return responses.success_get_card(districts)
+            return responses.success_get_generic_card(districts)
 
         return responses.not_found()
 
@@ -98,7 +98,7 @@ def get_character(name):
         character = list(filter(lambda character: character.name.lower() == name.lower(), characters))
 
         if character:
-            return responses.success_get_card(character)
+            return responses.success_get_generic_card(character)
 
         return responses.not_found()
 
