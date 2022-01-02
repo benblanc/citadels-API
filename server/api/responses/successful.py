@@ -7,16 +7,6 @@ def success_status():
     return response, 200
 
 
-def success_uuid(uuid):
-    response = define_uuid(uuid)
-
-    return response, 201
-
-
-def no_content():
-    return "", 204
-
-
 def success_get_card(districts):
     response = list(map(lambda district: district.info, districts))[0]
 
@@ -51,3 +41,13 @@ def success_get_players(players):
     response = list(map(lambda player: define_player(player), players))
 
     return response, 200
+
+
+def success_uuid(uuid):
+    response = define_uuid(uuid)
+
+    return response, 201
+
+
+def no_content():
+    return "", 204
