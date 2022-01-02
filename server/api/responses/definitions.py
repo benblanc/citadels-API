@@ -1,4 +1,20 @@
-def define_response_game(game):
+def define_message(message):
+    response = {
+        "message": message
+    }
+
+    return response
+
+
+def define_uuid(uuid):
+    response = {
+        "uuid": uuid
+    }
+
+    return response
+
+
+def define_game(game):
     response = {
         "uuid": game.uuid,
         "created": game.created.strftime('%Y-%m-%d %H:%M:%S'),
@@ -16,7 +32,7 @@ def define_response_game(game):
     return response
 
 
-def define_response_player(player):
+def define_player(player):
     response = {
         "uuid": player.uuid,
         "name": player.name,
@@ -31,27 +47,3 @@ def define_response_player(player):
     }
 
     return response
-
-
-def db_success_reading_game(game):
-    response = define_response_game(game)
-
-    return response, 200
-
-
-def db_success_reading_all_games(games):
-    response = list(map(lambda game: define_response_game(game), games))
-
-    return response, 200
-
-
-def db_success_reading_player(player):
-    response = define_response_player(player)
-
-    return response, 200
-
-
-def db_success_reading_all_players(players):
-    response = list(map(lambda player: define_response_player(player), players))
-
-    return response, 200

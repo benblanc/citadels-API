@@ -58,7 +58,7 @@ def get_players(game_uuid, sort_order, order_by, limit, offset):
         else:
             players = players_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
 
-        return responses.db_success_reading_all_players(players)
+        return responses.success_get_players(players)
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -75,7 +75,7 @@ def get_player(game_uuid, player_uuid):
         player = players_db.query.get(player_uuid)
 
         if player:
-            return responses.db_success_reading_player(player)
+            return responses.success_get_player(player)
 
         return responses.not_found()
 

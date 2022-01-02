@@ -62,7 +62,7 @@ def get_games(sort_order, order_by, limit, offset):
         else:
             games = game_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
 
-        return responses.db_success_reading_all_games(games)
+        return responses.success_get_games(games)
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -74,7 +74,7 @@ def get_game(game_uuid):
         game = game_db.query.get(game_uuid)
 
         if game:
-            return responses.db_success_reading_game(game)
+            return responses.success_get_game(game)
 
         return responses.not_found()
 
@@ -139,7 +139,7 @@ def create_game(name, description):
         if False in success_write_deck_characters:
             return responses.error_writing_database("deck of characters")
 
-        return responses.success_uuid_entity_created(new_game.uuid)
+        return responses.success_uuid(new_game.uuid)
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -197,7 +197,7 @@ def join_game(game_uuid, name):
         if not success_update_game:
             return responses.error_updating_database("game")
 
-        return responses.success_uuid_entity_created(new_player.uuid)
+        return responses.success_uuid(new_player.uuid)
 
     except Exception:
         logging.error(traceback.format_exc())
