@@ -160,6 +160,8 @@ def join_game(game_uuid, name):
         if not settings:  # check if game settings do not exist
             return responses.not_found("settings", True)
 
+        # TODO: I could join when game was already busy, find out why and fix it
+
         if amount_players == settings.max_players:  # check if there are already enough players
             return responses.enough_players()
 

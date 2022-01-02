@@ -1,29 +1,38 @@
 import logging, traceback
 
-from api.classes import card
+from api.models.game import Game as game_db
+from api.models.players import Players as players_db
+from api.models.cards import Cards as cards_db
 
 import api.responses as responses
 
 from api.validation import query
 
 
-def apply_query(cards, sort_order, order_by, limit, offset, options_order_by):
+def get_cards(game_uuid, player_uuid, sort_order, order_by, limit, offset):
     try:
-        default_sort_order = False  # 'asc' = False | 'desc' = True
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found("game")
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found("player")
+
+        default_sort_order = 'asc'
         default_order_by = 'name'
-        default_limit = len(cards)
+        default_limit = 0
         default_offset = 0
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset, options_order_by)
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['name'])
 
         if invalid_query:
             return responses.conflict(invalid_query)
 
         if sort_order:  # check if not none
-            if sort_order == 'asc':
-                default_sort_order = False
-            elif sort_order == 'desc':
-                default_sort_order = True
+            default_sort_order = sort_order
 
         if order_by:  # check if not none
             default_order_by = order_by
@@ -34,73 +43,20 @@ def apply_query(cards, sort_order, order_by, limit, offset, options_order_by):
         if offset:  # check if not none
             default_offset = offset
 
-        # apply order by and sort order
-        if default_order_by == 'color':
-            cards = sorted(cards, key=lambda card: card.color, reverse=default_sort_order)
-        elif default_order_by == 'name':
-            cards = sorted(cards, key=lambda card: card.name, reverse=default_sort_order)
-        elif default_order_by == 'order':
-            cards = sorted(cards, key=lambda card: card.order, reverse=default_sort_order)
+        if default_order_by == 'name':
+            sort = cards_db.name
 
-        cards = cards[default_offset:]  # apply offset
+        if default_sort_order == 'asc':
+            sort = sort.asc()
+        elif default_sort_order == 'desc':
+            sort = sort.desc()
 
-        cards = cards[:default_limit]  # apply limit | needs to be separate from offset slice so limit value will not be used as index position
+        if default_limit == 0:
+            cards = cards_db.query.filter_by(player_uuid=player_uuid).order_by(sort).offset(default_offset).all()
+        else:
+            cards = cards_db.query.filter_by(player_uuid=player_uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
 
         return responses.success_get_cards(cards)
-
-    except Exception:
-        logging.error(traceback.format_exc())
-        return responses.error_handling_request()
-
-
-def get_districts(sort_order, order_by, limit, offset):
-    try:
-        districts = card.ClassCard().get_districts()
-
-        return apply_query(districts, sort_order, order_by, limit, offset, ['color', 'name'])
-
-    except Exception:
-        logging.error(traceback.format_exc())
-        return responses.error_handling_request()
-
-
-def get_district(name):
-    try:
-        districts = card.ClassCard().get_districts()
-
-        districts = list(filter(lambda district: district.name.lower() == name.lower(), districts))
-
-        if districts:
-            return responses.success_get_card(districts)
-
-        return responses.not_found()
-
-    except Exception:
-        logging.error(traceback.format_exc())
-        return responses.error_handling_request()
-
-
-def get_characters(sort_order, order_by, limit, offset):
-    try:
-        characters = card.ClassCard().get_characters()
-
-        return apply_query(characters, sort_order, order_by, limit, offset, ['name', 'order'])
-
-    except Exception:
-        logging.error(traceback.format_exc())
-        return responses.error_handling_request()
-
-
-def get_character(name):
-    try:
-        characters = card.ClassCard().get_characters()
-
-        character = list(filter(lambda character: character.name.lower() == name.lower(), characters))
-
-        if character:
-            return responses.success_get_card(character)
-
-        return responses.not_found()
 
     except Exception:
         logging.error(traceback.format_exc())
