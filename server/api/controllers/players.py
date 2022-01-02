@@ -19,7 +19,7 @@ def get_players(game_uuid, sort_order, order_by, limit, offset):
         game = game_db.query.get(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
-            return responses.not_found()
+            return responses.not_found("game")
 
         default_sort_order = 'asc'
         default_order_by = 'index'
@@ -58,11 +58,11 @@ def get_players(game_uuid, sort_order, order_by, limit, offset):
         else:
             players = players_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
 
-        return responses.db_success_reading_all_players(players)
+        return responses.success_get_players(players)
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
 
 
 def get_player(game_uuid, player_uuid):
@@ -70,15 +70,15 @@ def get_player(game_uuid, player_uuid):
         game = game_db.query.get(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
-            return responses.not_found()
+            return responses.not_found("game")
 
         player = players_db.query.get(player_uuid)
 
         if player:
-            return responses.db_success_reading_player(player)
+            return responses.success_get_player(player)
 
         return responses.not_found()
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()

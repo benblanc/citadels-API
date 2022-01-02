@@ -50,7 +50,7 @@ def apply_query(cards, sort_order, order_by, limit, offset, options_order_by):
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
 
 
 def get_districts(sort_order, order_by, limit, offset):
@@ -61,7 +61,7 @@ def get_districts(sort_order, order_by, limit, offset):
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
 
 
 def get_district(name):
@@ -77,7 +77,7 @@ def get_district(name):
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
 
 
 def get_characters(sort_order, order_by, limit, offset):
@@ -88,7 +88,7 @@ def get_characters(sort_order, order_by, limit, offset):
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
 
 
 def get_character(name):
@@ -104,4 +104,4 @@ def get_character(name):
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
