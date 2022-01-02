@@ -30,9 +30,14 @@ def enough_players():
     return response, 400
 
 
-def not_found():
+def not_found(item="item", plural=False):
+    message = "The requested {item} is not found or does not exist.".format(item=item)
+
+    if plural:  # check if message needs to be plural
+        message = "The requested {item} are not found or do not exist.".format(item=item)
+
     response = {
-        "message": "The requested item is not found or does not exist."
+        "message": message
     }
 
     return response, 404

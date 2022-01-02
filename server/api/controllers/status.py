@@ -9,4 +9,4 @@ def get_status():
 
     except Exception:
         logging.error(traceback.format_exc())
-        return responses.internal_server_error()
+        return responses.error_handling_request()
