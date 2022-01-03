@@ -47,15 +47,13 @@ def define_setting(setting):
 def define_player(player):
     response = {
         "uuid": player.uuid,
+        "created": player.created.strftime('%Y-%m-%d %H:%M:%S'),
         "name": player.name,
         "hosting": player.hosting,
         "index": player.index,
         "coins": player.coins,
-        "flag_king": player.flag_king,
-        "flag_assassinated": player.flag_assassinated,
-        "flag_robbed": player.flag_robbed,
-        "flag_protected": player.flag_protected,
-        "flag_built": player.flag_built
+        "king": player.king,
+        "protected": player.protected,
     }
 
     return response
@@ -75,7 +73,10 @@ def define_character(character):
     response = {
         "uuid": character.uuid,
         "name": character.name,
-        "open": character.open
+        "open": character.open,
+        "assassinated": character.assassinated,
+        "robbed": character.robbed,
+        "built": character.built
     }
 
     return response

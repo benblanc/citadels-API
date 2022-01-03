@@ -107,12 +107,16 @@ class ClassDistrict:
 
 
 class ClassCharacter:
-    def __init__(self, uuid=None, order=0, name="", effect=None, open=False):
+    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1):
         self.__uuid = uuid
         self.__order = order
         self.__name = name
         self.__effect = effect
         self.__open = open
+        self.__assassinated = assassinated
+        self.__robbed = robbed
+        self.__built = built
+        self.__max_built = max_built
 
     def __eq__(self, other):  # override default equals behavior
         return self.__name == other.__name
@@ -137,6 +141,38 @@ class ClassCharacter:
     def open(self):
         return self.__open
 
+    @open.setter
+    def open(self, value):
+        self.__open = value
+
+    @property
+    def assassinated(self):
+        return self.__assassinated
+
+    @assassinated.setter
+    def assassinated(self, value):
+        self.__assassinated = value
+
+    @property
+    def robbed(self):
+        return self.__robbed
+
+    @robbed.setter
+    def robbed(self, value):
+        self.__robbed = value
+
+    @property
+    def built(self):
+        return self.__built
+
+    @built.setter
+    def built(self, value):
+        self.__built = value
+
+    @property
+    def max_built(self):
+        return self.__max_built
+
     @property
     def info(self):
         info = {
@@ -144,7 +180,11 @@ class ClassCharacter:
             "order": self.__order,
             "name": self.__name,
             "effect": self.__effect,
-            "open": self.__open
+            "open": self.__open,
+            "assassinated": self.__assassinated,
+            "robbed": self.__robbed,
+            "built": self.__built,
+            "max_built": self.__max_built
         }
 
         return info
@@ -261,7 +301,7 @@ class ClassCard:
             ClassCharacter(order=4, name=ClassCharacterName.king.value, effect="Get king status. Start choosing a character next round. Get coins for each yellow district you have built."),
             ClassCharacter(order=5, name=ClassCharacterName.bishop.value, effect="Warlord cannot destroy your buildings. Get coins for each blue district you have built."),
             ClassCharacter(order=6, name=ClassCharacterName.merchant.value, effect="Get one coin. Get coins for each green district you have built."),
-            ClassCharacter(order=7, name=ClassCharacterName.architect.value, effect="Can build up to three districts. Draw two district cards."),
+            ClassCharacter(order=7, name=ClassCharacterName.architect.value, effect="Can build up to three districts. Draw two district cards.", max_built=3),
             ClassCharacter(order=8, name=ClassCharacterName.warlord.value, effect="Destroy one building of another character by paying one less coin than what was paid. Get coins for each red district you have built.")
         ]
 
