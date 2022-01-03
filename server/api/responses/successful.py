@@ -31,6 +31,12 @@ def success_get_games(games):
     return response, 200
 
 
+def success_get_characters(characters):
+    response = list(map(lambda character: define_character(character), characters))
+
+    return response, 200
+
+
 def success_get_districts(districts):
     response = list(map(lambda district: define_card(district), districts))
 
@@ -57,12 +63,6 @@ def success_get_players(players):
 
 def success_get_cards(cards):
     response = list(map(lambda card: define_card(card), cards))
-
-    return response, 200
-
-
-def success_get_characters(characters):
-    response = list(map(lambda character: define_character(character), characters))
 
     return response, 200
 
