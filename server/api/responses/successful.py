@@ -37,6 +37,12 @@ def success_get_settings(settings):
     return response, 200
 
 
+def success_get_deck_districts(districts):
+    response = list(map(lambda district: define_card(district), districts))
+
+    return response, 200
+
+
 def success_get_player(player):
     response = define_player(player)
 
