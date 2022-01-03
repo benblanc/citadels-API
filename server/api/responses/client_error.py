@@ -25,6 +25,12 @@ def enough_players():
     return response, 400
 
 
+def already_started():
+    response = define_message("The game has already started.")
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 
