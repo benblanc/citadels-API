@@ -1,14 +1,14 @@
 import logging, traceback
 
 from api.models.game import Game as game_db
-from api.models.deck_districts import DeckDistricts as deck_districts_db
+from api.models.deck_discard_pile import DeckDiscardPile as deck_discard_pile_db
 
 import api.responses as responses
 
 from api.validation import query
 
 
-def get_deck_districts(game_uuid, sort_order, order_by, limit, offset):
+def get_deck_discard_pile(game_uuid, sort_order, order_by, limit, offset):
     try:
         game = game_db.query.get(game_uuid)  # get game from database
 
@@ -38,7 +38,7 @@ def get_deck_districts(game_uuid, sort_order, order_by, limit, offset):
             default_offset = offset
 
         if default_order_by == 'name':
-            sort = deck_districts_db.name
+            sort = deck_discard_pile_db.name
 
         if default_sort_order == 'asc':
             sort = sort.asc()
@@ -46,9 +46,9 @@ def get_deck_districts(game_uuid, sort_order, order_by, limit, offset):
             sort = sort.desc()
 
         if default_limit == 0:
-            districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).order_by(sort).offset(default_offset).all()
+            districts = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).order_by(sort).offset(default_offset).all()
         else:
-            districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
+            districts = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
 
         return responses.success_get_districts(districts)
 
