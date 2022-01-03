@@ -49,6 +49,12 @@ def success_get_cards(cards):
     return response, 200
 
 
+def success_get_characters(characters):
+    response = list(map(lambda card: define_character(card), characters))
+
+    return response, 200
+
+
 def success_uuid(uuid):
     response = define_uuid(uuid)
 

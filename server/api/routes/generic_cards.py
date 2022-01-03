@@ -22,7 +22,7 @@ class District(Resource):
         return get_district(str(name))
 
 
-class Characters(Resource):
+class Roles(Resource):
     @swag_from('../templates/index.yml', endpoint='/cards/characters')
     def get(self):
         parser = reqparse.RequestParser()
@@ -35,7 +35,7 @@ class Characters(Resource):
         return get_characters(args['sort_order'], args['order_by'], args['limit'], args['offset'])
 
 
-class Character(Resource):
+class Role(Resource):
     @swag_from('../templates/index.yml', endpoint='/cards/character/{name}')
     def get(self, name):
         return get_character(str(name))
@@ -43,5 +43,5 @@ class Character(Resource):
 
 api.add_resource(Districts, '/cards/districts')
 api.add_resource(District, '/cards/districts/<string:name>')
-api.add_resource(Characters, '/cards/characters')
-api.add_resource(Character, '/cards/characters/<string:name>')
+api.add_resource(Roles, '/cards/characters')
+api.add_resource(Role, '/cards/characters/<string:name>')
