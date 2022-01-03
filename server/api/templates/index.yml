@@ -580,9 +580,9 @@ paths:
           required: false
           type: string
         - description: Order by given value
-          default: index
+          default: created
           enum:
-            - index
+            - created
             - name
           in: query
           name: order_by
