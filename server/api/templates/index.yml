@@ -419,8 +419,8 @@ paths:
           minimum: 0
       responses:
         200:
-          description: Returns a list of district card objects
-      summary: Requests a list of district card objects
+          description: Returns a list of district card objects in the player's hands
+      summary: Requests a list of district card objects in the player's hands
       tags:
         - players
   '/game/{game_uuid}/players/{player_uuid}/characters':
@@ -472,7 +472,60 @@ paths:
           minimum: 0
       responses:
         200:
-          description: Returns a list of character card objects
-      summary: Requests a list of character card objects
+          description: Returns a list of character card objects in the player's hands
+      summary: Requests a list of character card objects in the player's hands
+      tags:
+        - players
+  '/game/{game_uuid}/players/{player_uuid}/buildings':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Sort order
+          default: asc
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - description: Order by given value
+          default: name
+          enum:
+            - name
+          in: query
+          name: order_by
+          required: false
+          type: string
+        - description: Return limited amount of items, 0 to return all items
+          default: 0
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 0
+        - description: Return items starting from this index position
+          default: 0
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of the player's built district card objects
+      summary: Requests a list of the player's built district card card objects
       tags:
         - players
