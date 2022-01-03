@@ -53,12 +53,10 @@ def get_players(game_uuid, sort_order, order_by, limit, offset):
         elif default_sort_order == 'desc':
             sort = sort.desc()
 
-        # TODO: update query to filter by game uuid; because current query will also show players of other games
-
         if default_limit == 0:
-            players = players_db.query.order_by(sort).offset(default_offset).all()
+            players = players_db.query.filter_by(game_uuid=game_uuid).order_by(sort).offset(default_offset).all()
         else:
-            players = players_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
+            players = players_db.query.filter_by(game_uuid=game_uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
 
         return responses.success_get_players(players)
 
