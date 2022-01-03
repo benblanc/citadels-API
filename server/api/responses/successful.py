@@ -31,6 +31,12 @@ def success_get_games(games):
     return response, 200
 
 
+def success_get_settings(settings):
+    response = list(map(lambda setting: define_setting(setting), settings))
+
+    return response, 200
+
+
 def success_get_player(player):
     response = define_player(player)
 
