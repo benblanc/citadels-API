@@ -50,7 +50,13 @@ def success_get_cards(cards):
 
 
 def success_get_characters(characters):
-    response = list(map(lambda card: define_character(card), characters))
+    response = list(map(lambda character: define_character(character), characters))
+
+    return response, 200
+
+
+def success_get_buildings(buildings):
+    response = list(map(lambda building: define_card(building), buildings))
 
     return response, 200
 
