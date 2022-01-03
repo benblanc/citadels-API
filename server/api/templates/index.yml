@@ -466,6 +466,53 @@ paths:
       summary: Requests a list of character objects in the deck of possible characters
       tags:
         - game
+  '/game/{game_uuid}/removed_characters':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Sort order
+          default: asc
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - description: Order by given value
+          default: name
+          enum:
+            - name
+          in: query
+          name: order_by
+          required: false
+          type: string
+        - description: Return limited amount of items, 0 to return all items
+          default: 0
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 0
+        - description: Return items starting from this index position
+          default: 0
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of character objects in the deck of removed characters
+      summary: Requests a list of character objects in the deck of removed characters
+      tags:
+        - game
   '/game/{game_uuid}/settings':
     get:
       description: ''
