@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid=None, name="", hosting=False, index=0, coins=0, character=None, cards=None, buildings=None, flag_king=False, flag_assassinated=False, flag_robbed=False, flag_protected=False, flag_built=False):
+    def __init__(self, uuid=None, created="", name="", hosting=False, index=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False):
         if character is None:
             character = []
 
@@ -10,6 +10,7 @@ class ClassPlayer:
             buildings = []
 
         self.__uuid = uuid  # uuid of the player
+        self.__created = created  # timestamp when player was created
         self.__name = name  # player name
         self.__hosting = hosting  # is player hosting the game
         self.__index = index  # player position
@@ -17,15 +18,16 @@ class ClassPlayer:
         self.__character = character  # character(s) for current round
         self.__cards = cards  # distracts in hand
         self.__buildings = buildings  # districts built
-        self.__flag_king = flag_king  # is player king
-        self.__flag_assassinated = flag_assassinated  # is player assassinated
-        self.__flag_robbed = flag_robbed  # is player robbed
-        self.__flag_protected = flag_protected  # is player protected from warlord
-        self.__flag_built = flag_built  # has the player built a district this turn
+        self.__king = king  # is player king
+        self.__protected = protected  # is player protected from warlord
 
     @property
     def uuid(self):
         return self.__uuid
+
+    @property
+    def created(self):
+        return self.__created
 
     @property
     def name(self):
@@ -80,44 +82,20 @@ class ClassPlayer:
         self.__buildings = value
 
     @property
-    def flag_king(self):
-        return self.__flag_king
+    def king(self):
+        return self.__king
 
-    @flag_king.setter
-    def flag_king(self, value):
-        self.__flag_king = value
-
-    @property
-    def flag_assassinated(self):
-        return self.__flag_assassinated
-
-    @flag_assassinated.setter
-    def flag_assassinated(self, value):
-        self.__flag_assassinated = value
+    @king.setter
+    def king(self, value):
+        self.__king = value
 
     @property
-    def flag_robbed(self):
-        return self.__flag_robbed
+    def protected(self):
+        return self.__protected
 
-    @flag_robbed.setter
-    def flag_robbed(self, value):
-        self.__flag_robbed = value
-
-    @property
-    def flag_protected(self):
-        return self.__flag_protected
-
-    @flag_protected.setter
-    def flag_protected(self, value):
-        self.__flag_protected = value
-
-    @property
-    def flag_built(self):
-        return self.__flag_built
-
-    @flag_built.setter
-    def flag_built(self, value):
-        self.__flag_built = value
+    @protected.setter
+    def protected(self, value):
+        self.__protected = value
 
     @property
     def info(self):
@@ -135,18 +113,17 @@ class ClassPlayer:
             buildings.append(item.info)
 
         info = {
+            "uuid": self.__uuid,
+            "created": self.__created,
+            "name": self.__name,
             "hosting": self.__hosting,
             "index": self.__index,
-            "name": self.__name,
             "coins": self.__coins,
             "character": character,
             "cards": cards,
             "buildings": buildings,
-            "flag_king": self.__flag_king,
-            "flag_assassinated": self.__flag_assassinated,
-            "flag_robbed": self.__flag_robbed,
-            "flag_protected": self.__flag_protected,
-            "flag_built": self.__flag_built
+            "king": self.__king,
+            "protected": self.__protected
         }
 
         return info

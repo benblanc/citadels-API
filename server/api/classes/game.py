@@ -247,7 +247,7 @@ class ClassGame:
 
     def set_starting_king(self):
         index_king = random.randint(0, self.__amount_players - 1)  # randomly choose a king
-        self.__players[index_king].flag_king = True  # set player is king flag
+        self.__players[index_king].king = True  # make a random player the king
 
     def set_character_division(self):
         if self.__amount_players == 2:
@@ -368,7 +368,7 @@ class ClassGame:
         print("=================================================================")
 
         # check who is king at the moment
-        current_king = list(filter(lambda x: x.flag_king == True, self.__players))[0]
+        current_king = list(filter(lambda x: x.king == True, self.__players))[0]
 
         # establish choosing order
         choosing_order_normal = list(range(0, self.__amount_players))

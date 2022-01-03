@@ -135,6 +135,9 @@ def create_game(name, description):
                 uuid=helpers.create_uuid(),
                 name=character.name,
                 open=character.open,
+                assassinated=character.assassinated,
+                robbed=character.robbed,
+                built=character.built,
                 game_uuid=new_game.uuid)))
 
         if False in success_write_deck_characters:
@@ -179,19 +182,17 @@ def join_game(game_uuid, name):
             if host:  # check if there is a host
                 hosting = False  # new player will not host the game
 
-        new_player = ClassPlayer(helpers.create_uuid(), name, hosting)
+        new_player = ClassPlayer(helpers.create_uuid(), helpers.create_timestamp(), name, hosting)
 
         success_write_player = database.write_row_to_db(players_db(
             uuid=new_player.uuid,
+            created=new_player.created,
             name=new_player.name,
             hosting=new_player.hosting,
             index=new_player.index,
             coins=new_player.coins,
-            flag_king=new_player.flag_king,
-            flag_assassinated=new_player.flag_assassinated,
-            flag_robbed=new_player.flag_robbed,
-            flag_protected=new_player.flag_protected,
-            flag_built=new_player.flag_built,
+            king=new_player.king,
+            protected=new_player.protected,
             game_uuid=game_uuid
         ))
 
@@ -258,20 +259,12 @@ def start_game(game_uuid, player_uuid):
 
         game.deck_districts = districts  # add districts to game object
 
-        deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of characters in game
-
-        characters = list(map(lambda character: ClassCharacter(uuid=character.uuid, name=character.name, open=character.open), deck_characters))  # get characters as class objects
-
-        random.shuffle(characters)  # shuffle district cards
-
-        game.deck_characters = characters  # add characters to game object
-
         players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
         if not players:  # check if there are no players
             return responses.not_found("players", True)
 
-        game.players = list(map(lambda player: ClassPlayer(uuid=player.uuid, name=player.name, hosting=player.hosting, index=player.index, coins=player.coins, flag_king=player.flag_king, flag_assassinated=player.flag_assassinated, flag_robbed=player.flag_robbed, flag_protected=player.flag_protected, flag_built=player.flag_built), players))  # add players to game object
+        game.players = list(map(lambda player: ClassPlayer(uuid=player.uuid, created=player.created, name=player.name, hosting=player.hosting, index=player.index, coins=player.coins, king=player.king, protected=player.protected), players))  # add players to game object
 
         game.set_starting_coins_per_player()  # give each player coins to start with
 
@@ -285,7 +278,7 @@ def start_game(game_uuid, player_uuid):
         deleted_districts = []  # to avoid deleting already deleted districts
 
         for player in game.players:  # go through each player
-            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, flag_king=player.flag_king))  # update amount of coins and king flag for player in database
+            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, king=player.king))  # update amount of coins and king flag for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")

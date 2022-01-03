@@ -22,11 +22,11 @@ def get_players(game_uuid, sort_order, order_by, limit, offset):
             return responses.not_found("game")
 
         default_sort_order = 'asc'
-        default_order_by = 'index'
+        default_order_by = 'created'
         default_limit = 0
         default_offset = 0
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['index', 'name'])
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created', 'name'])
 
         if invalid_query:
             return responses.conflict(invalid_query)
@@ -43,8 +43,8 @@ def get_players(game_uuid, sort_order, order_by, limit, offset):
         if offset:  # check if not none
             default_offset = offset
 
-        if default_order_by == 'index':
-            sort = players_db.index
+        if default_order_by == 'created':
+            sort = players_db.created
         elif default_order_by == 'name':
             sort = players_db.name
 
