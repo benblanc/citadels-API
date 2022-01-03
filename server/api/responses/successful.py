@@ -31,14 +31,14 @@ def success_get_games(games):
     return response, 200
 
 
-def success_get_settings(settings):
-    response = list(map(lambda setting: define_setting(setting), settings))
+def success_get_districts(districts):
+    response = list(map(lambda district: define_card(district), districts))
 
     return response, 200
 
 
-def success_get_deck_districts(districts):
-    response = list(map(lambda district: define_card(district), districts))
+def success_get_settings(settings):
+    response = list(map(lambda setting: define_setting(setting), settings))
 
     return response, 200
 
