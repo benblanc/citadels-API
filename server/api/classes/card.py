@@ -66,7 +66,7 @@ class ClassDistrict:
         self.__uuid = uuid
 
     def __eq__(self, other):  # override default equals behavior
-        return self.__name == other.__name and self.__color == other.__color and self.__coins == other.__coins and self.__value == other.__value and self.__effect == other.__effect
+        return self.__name == other.__name
 
     @property
     def uuid(self):
@@ -107,14 +107,15 @@ class ClassDistrict:
 
 
 class ClassCharacter:
-    def __init__(self, uuid=None, order=0, name="", effect=None):
+    def __init__(self, uuid=None, order=0, name="", effect=None, open=False):
         self.__uuid = uuid
         self.__order = order
         self.__name = name
         self.__effect = effect
+        self.__open = open
 
     def __eq__(self, other):  # override default equals behavior
-        return self.__order == other.__order and self.__name == other.__name and self.__effect == other.__effect
+        return self.__name == other.__name
 
     @property
     def uuid(self):
@@ -133,12 +134,17 @@ class ClassCharacter:
         return self.__effect
 
     @property
+    def open(self):
+        return self.__open
+
+    @property
     def info(self):
         info = {
             "uuid": self.__uuid,
             "order": self.__order,
             "name": self.__name,
-            "effect": self.__effect
+            "effect": self.__effect,
+            "open": self.__open
         }
 
         return info
