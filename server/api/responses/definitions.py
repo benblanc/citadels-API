@@ -32,6 +32,18 @@ def define_game(game):
     return response
 
 
+def define_setting(setting):
+    response = {
+        "uuid": setting.uuid,
+        "min_players": setting.min_players,
+        "max_players": setting.max_players,
+        "amount_starting_hand": setting.amount_starting_hand,
+        "amount_starting_coins": setting.amount_starting_coins
+    }
+
+    return response
+
+
 def define_player(player):
     response = {
         "uuid": player.uuid,
