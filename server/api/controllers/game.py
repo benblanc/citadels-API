@@ -134,6 +134,7 @@ def create_game(name, description):
             success_write_deck_characters.append(database.write_row_to_db(deck_characters_db(
                 uuid=helpers.create_uuid(),
                 name=character.name,
+                open=character.open,
                 game_uuid=new_game.uuid)))
 
         if False in success_write_deck_characters:
@@ -218,6 +219,9 @@ def start_game(game_uuid, player_uuid):
 
         game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, state=game.state, amount_players=game.amount_players, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
 
+        if game.state != ClassState.created.value:  # check if game has already started
+            return responses.already_started()
+
         player = players_db.query.get(player_uuid)  # get player from database
 
         if not player:  # check if player does not exist
@@ -256,7 +260,7 @@ def start_game(game_uuid, player_uuid):
 
         deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of characters in game
 
-        characters = list(map(lambda character: ClassCharacter(uuid=character.uuid, name=character.name), deck_characters))  # get characters as class objects
+        characters = list(map(lambda character: ClassCharacter(uuid=character.uuid, name=character.name, open=character.open), deck_characters))  # get characters as class objects
 
         random.shuffle(characters)  # shuffle district cards
 
