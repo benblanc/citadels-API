@@ -153,16 +153,19 @@ def join_game(game_uuid, name):
         if not game:  # check if game does not exist
             return responses.not_found("game")
 
-        amount_players = game.amount_players  # get amount of players before connection with database closes
+        game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, state=game.state, amount_players=game.amount_players, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
+
+        if game.state != ClassState.created.value:  # check if game has already started
+            return responses.already_started()
 
         settings = settings_db.query.filter_by(game_uuid=game_uuid).first()  # get settings from database
 
         if not settings:  # check if game settings do not exist
             return responses.not_found("settings", True)
 
-        # TODO: I could join when game was already busy, find out why and fix it
+        game.settings = ClassSettings(min_players=settings.min_players, max_players=settings.max_players, amount_starting_hand=settings.amount_starting_hand, amount_starting_coins=settings.amount_starting_coins)  # add settings to game object
 
-        if amount_players == settings.max_players:  # check if there are already enough players
+        if game.amount_players == game.settings.max_players:  # check if there are already enough players
             return responses.enough_players()
 
         hosting = True  # assume new player is hosting
