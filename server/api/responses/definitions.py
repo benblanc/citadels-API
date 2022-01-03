@@ -74,7 +74,8 @@ def define_card(card):
 def define_character(character):
     response = {
         "uuid": character.uuid,
-        "name": character.name
+        "name": character.name,
+        "open": character.open
     }
 
     return response
