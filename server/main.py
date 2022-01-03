@@ -2,7 +2,7 @@ import logging, traceback
 
 from api import app, db
 
-from api.routes import buildings, cards, characters, deck_characters, deck_discard_pile, deck_districts, game, players, possible_characters, settings, generic_cards, status
+from api.routes import buildings, cards, characters, deck_characters, deck_discard_pile, deck_districts, game, players, possible_characters, removed_characters, settings, generic_cards, status
 from api.models import buildings, cards, characters, deck_characters, deck_discard_pile, deck_districts, game, players, possible_characters, removed_characters, settings
 
 if __name__ == '__main__':
