@@ -1,10 +1,10 @@
 from api import api, Resource, swag_from, reqparse
 
-from api.controllers.cards import *
+from api.controllers.characters import *
 
 
-class Cards(Resource):
-    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/cards')
+class Characters(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/characters')
     def get(self, game_uuid, player_uuid):
         parser = reqparse.RequestParser()
         parser.add_argument('sort_order', type=str, help='sort order')
@@ -13,7 +13,7 @@ class Cards(Resource):
         parser.add_argument('offset', type=int, help='return items starting from this index position')
         args = parser.parse_args(strict=True)
 
-        return get_cards(str(game_uuid), str(player_uuid), args['sort_order'], args['order_by'], args['limit'], args['offset'])
+        return get_characters(str(game_uuid), str(player_uuid), args['sort_order'], args['order_by'], args['limit'], args['offset'])
 
 
-api.add_resource(Cards, '/game/<string:game_uuid>/players/<string:player_uuid>/cards')
+api.add_resource(Characters, '/game/<string:game_uuid>/players/<string:player_uuid>/characters')

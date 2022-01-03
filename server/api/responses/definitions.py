@@ -57,3 +57,12 @@ def define_card(card):
     }
 
     return response
+
+
+def define_character(character):
+    response = {
+        "uuid": character.uuid,
+        "name": character.name
+    }
+
+    return response
