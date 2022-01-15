@@ -107,7 +107,7 @@ class ClassDistrict:
 
 
 class ClassCharacter:
-    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1):
+    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1, database_object=None):
         self.__uuid = uuid
         self.__order = order
         self.__name = name
@@ -117,6 +117,14 @@ class ClassCharacter:
         self.__robbed = robbed
         self.__built = built
         self.__max_built = max_built
+
+        if database_object:  # check if parameters contain a database object
+            self.__uuid = database_object.uuid
+            self.__name = database_object.name
+            self.__open = database_object.open
+            self.__assassinated = database_object.assassinated
+            self.__robbed = database_object.robbed
+            self.__built = database_object.built
 
     def __eq__(self, other):  # override default equals behavior
         return self.__name == other.__name

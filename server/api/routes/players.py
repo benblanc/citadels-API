@@ -28,5 +28,16 @@ class Player(Resource):
         return get_player(str(game_uuid), str(player_uuid))
 
 
+class PlayerSelect(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.select')
+    @expects_json(read_json('api/schemas/player/select.json'))
+    def post(self, game_uuid, player_uuid):
+        body = json.loads(request.data)
+        name = body["name"]
+
+        return select_character(str(game_uuid), str(player_uuid), str(name))
+
+
 api.add_resource(Players, '/game/<string:game_uuid>/players')
 api.add_resource(Player, '/game/<string:game_uuid>/players/<string:player_uuid>')
+api.add_resource(PlayerSelect, '/game/<string:game_uuid>/players/<string:player_uuid>/action.select')
