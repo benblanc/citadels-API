@@ -7,7 +7,7 @@ class Players(db.Model):
     created = db.Column(db.DateTime)
     name = db.Column(db.String(100))
     hosting = db.Column(db.Boolean)
-    index = db.Column(db.Integer)
+    seat = db.Column(db.Integer)
     coins = db.Column(db.Integer)
     king = db.Column(db.Boolean)
     protected = db.Column(db.Boolean)

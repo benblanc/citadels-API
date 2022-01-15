@@ -315,6 +315,12 @@ class ClassGame:
         for player in self.__players:
             player.coins = self.__settings.amount_starting_coins
 
+    def set_seat_per_player(self):
+        self.__players = sorted(self.__players, key=lambda player: player.created, reverse=False)  # order players by created timestamp
+
+        for index in range(self.__amount_players):  # go through each player
+            self.__players[index].seat = index  # assign seat number
+
     def set_starting_hand_per_player(self):  # give each player a card for the amount of players there are
         for index in range(self.__settings.amount_starting_hand):
             for player in self.__players:
@@ -372,7 +378,7 @@ class ClassGame:
 
         # establish choosing order
         choosing_order_normal = list(range(0, self.__amount_players))
-        choosing_order = choosing_order_normal[current_king.index:] + choosing_order_normal[:current_king.index]
+        choosing_order = choosing_order_normal[current_king.seat:] + choosing_order_normal[:current_king.seat]
 
         # distribute character(s)
         for index in range(self.__characters_per_player):  # 2-3 players allows more characters per player

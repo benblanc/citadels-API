@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid=None, created="", name="", hosting=False, index=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False):
+    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False):
         if character is None:
             character = []
 
@@ -13,7 +13,7 @@ class ClassPlayer:
         self.__created = created  # timestamp when player was created
         self.__name = name  # player name
         self.__hosting = hosting  # is player hosting the game
-        self.__index = index  # player position
+        self.__seat = seat  # player position
         self.__coins = coins  # amount of coins player has
         self.__character = character  # character(s) for current round
         self.__cards = cards  # distracts in hand
@@ -46,8 +46,12 @@ class ClassPlayer:
         self.__hosting = value
 
     @property
-    def index(self):
-        return self.__index
+    def seat(self):
+        return self.__seat
+
+    @seat.setter
+    def seat(self, value):
+        self.__seat = value
 
     @property
     def coins(self):
@@ -117,7 +121,7 @@ class ClassPlayer:
             "created": self.__created,
             "name": self.__name,
             "hosting": self.__hosting,
-            "index": self.__index,
+            "seat": self.__seat,
             "coins": self.__coins,
             "character": character,
             "cards": cards,
