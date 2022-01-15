@@ -189,7 +189,7 @@ def join_game(game_uuid, name):
             created=new_player.created,
             name=new_player.name,
             hosting=new_player.hosting,
-            index=new_player.index,
+            seat=new_player.seat,
             coins=new_player.coins,
             king=new_player.king,
             protected=new_player.protected,
@@ -264,7 +264,9 @@ def start_game(game_uuid, player_uuid):
         if not players:  # check if there are no players
             return responses.not_found("players", True)
 
-        game.players = list(map(lambda player: ClassPlayer(uuid=player.uuid, created=player.created, name=player.name, hosting=player.hosting, index=player.index, coins=player.coins, king=player.king, protected=player.protected), players))  # add players to game object
+        game.players = list(map(lambda player: ClassPlayer(uuid=player.uuid, created=player.created, name=player.name, hosting=player.hosting, seat=player.seat, coins=player.coins, king=player.king, protected=player.protected), players))  # add players to game object
+
+        game.set_seat_per_player()  # define each player's position
 
         game.set_starting_coins_per_player()  # give each player coins to start with
 
@@ -278,7 +280,7 @@ def start_game(game_uuid, player_uuid):
         deleted_districts = []  # to avoid deleting already deleted districts
 
         for player in game.players:  # go through each player
-            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, king=player.king))  # update amount of coins and king flag for player in database
+            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(seat=player.seat, coins=player.coins, king=player.king))  # update seat, amount of coins and king flag for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")

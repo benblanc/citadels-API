@@ -50,7 +50,7 @@ def define_player(player):
         "created": player.created.strftime('%Y-%m-%d %H:%M:%S'),
         "name": player.name,
         "hosting": player.hosting,
-        "index": player.index,
+        "seat": player.seat,
         "coins": player.coins,
         "king": player.king,
         "protected": player.protected,
