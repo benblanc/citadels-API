@@ -17,11 +17,17 @@ class ClassState(enum.Enum):
 
 
 class ClassSettings:
-    def __init__(self, min_players=2, max_players=7, amount_starting_hand=4, amount_starting_coins=2):
+    def __init__(self, min_players=2, max_players=7, amount_starting_hand=4, amount_starting_coins=2, database_object=None):
         self.__min_players = min_players
         self.__max_players = max_players
         self.__amount_starting_hand = amount_starting_hand
         self.__amount_starting_coins = amount_starting_coins
+
+        if database_object:  # check if parameters contain a database object
+            self.__min_players = database_object.min_players
+            self.__max_players = database_object.max_players
+            self.__amount_starting_hand = database_object.amount_starting_hand
+            self.__amount_starting_coins = database_object.amount_starting_coins
 
     @property
     def min_players(self):
@@ -41,7 +47,7 @@ class ClassSettings:
 
 
 class ClassGame:
-    def __init__(self, uuid=None, created="", name="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, round=1, possible_characters=None, removed_characters=None, settings=None):
+    def __init__(self, uuid=None, created="", name="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
         if players is None:
             players = []
 
@@ -88,6 +94,19 @@ class ClassGame:
         self.__removed_characters = removed_characters
 
         self.__settings = settings
+
+        if database_object:  # check if parameters contain a database object
+            self.__uuid = database_object.uuid
+            self.__created = database_object.created
+            self.__name = database_object.name
+            self.__description = database_object.description
+            self.__state = database_object.state
+            self.__amount_players = database_object.amount_players
+            self.__characters_open = database_object.characters_open
+            self.__characters_closed = database_object.characters_closed
+            self.__characters_per_player = database_object.characters_per_player
+            self.__eight_districts_built = database_object.eight_districts_built
+            self.__round = database_object.round
 
     @property
     def uuid(self):
