@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False):
+    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False, database_object=None):
         if character is None:
             character = []
 
@@ -20,6 +20,16 @@ class ClassPlayer:
         self.__buildings = buildings  # districts built
         self.__king = king  # is player king
         self.__protected = protected  # is player protected from warlord
+
+        if database_object:  # check if parameters contain a database object
+            self.__uuid = database_object.uuid
+            self.__created = database_object.created
+            self.__name = database_object.name
+            self.__hosting = database_object.hosting
+            self.__seat = database_object.seat
+            self.__coins = database_object.coins
+            self.__king = database_object.king
+            self.__protected = database_object.protected
 
     @property
     def uuid(self):

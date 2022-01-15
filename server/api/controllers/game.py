@@ -157,7 +157,7 @@ def join_game(game_uuid, name):
         if not game:  # check if game does not exist
             return responses.not_found("game")
 
-        game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, state=game.state, amount_players=game.amount_players, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
+        game = ClassGame(database_object=game)  # initialize game object
 
         if game.state != ClassState.created.value:  # check if game has already started
             return responses.already_started()
@@ -167,7 +167,7 @@ def join_game(game_uuid, name):
         if not settings:  # check if game settings do not exist
             return responses.not_found("settings", True)
 
-        game.settings = ClassSettings(min_players=settings.min_players, max_players=settings.max_players, amount_starting_hand=settings.amount_starting_hand, amount_starting_coins=settings.amount_starting_coins)  # add settings to game object
+        game.settings = ClassSettings(database_object=settings)  # add settings to game object
 
         if game.amount_players == game.settings.max_players:  # check if there are already enough players
             return responses.enough_players()
@@ -218,7 +218,7 @@ def start_game(game_uuid, player_uuid):
         if not game:  # check if game does not exist
             return responses.not_found("game")
 
-        game = ClassGame(uuid=game_uuid, created=game.created, name=game.name, description=game.description, state=game.state, amount_players=game.amount_players, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player, eight_districts_built=game.eight_districts_built, round=game.round)  # initialize game object
+        game = ClassGame(database_object=game)  # initialize game object
 
         if game.state != ClassState.created.value:  # check if game has already started
             return responses.already_started()
@@ -236,7 +236,7 @@ def start_game(game_uuid, player_uuid):
         if not settings:  # check if game settings do not exist
             return responses.not_found("settings", True)
 
-        game.settings = ClassSettings(min_players=settings.min_players, max_players=settings.max_players, amount_starting_hand=settings.amount_starting_hand, amount_starting_coins=settings.amount_starting_coins)  # add settings to game object
+        game.settings = ClassSettings(database_object=settings)  # add settings to game object
 
         if game.amount_players < game.settings.min_players:  # check if there are not enough players
             return responses.not_enough_players()
@@ -264,7 +264,7 @@ def start_game(game_uuid, player_uuid):
         if not players:  # check if there are no players
             return responses.not_found("players", True)
 
-        game.players = list(map(lambda player: ClassPlayer(uuid=player.uuid, created=player.created, name=player.name, hosting=player.hosting, seat=player.seat, coins=player.coins, king=player.king, protected=player.protected), players))  # add players to game object
+        game.players = list(map(lambda player: ClassPlayer(database_object=player), players))  # add players to game object
 
         game.set_seat_per_player()  # define each player's position
 
