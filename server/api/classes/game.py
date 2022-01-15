@@ -11,8 +11,8 @@ from api.classes.card import ClassDeckDistrict
 class ClassState(enum.Enum):
     created = "created"
     started = "started"
-    dividing = "dividing"
-    summoning = "summoning"
+    selection_phase = "selection_phase"
+    turn_phase = "turn_phase"
     finished = "finished"
 
 

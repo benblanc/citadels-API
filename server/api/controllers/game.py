@@ -326,7 +326,7 @@ def start_game(game_uuid, player_uuid):
                     if not success_delete_district:  # check if failed to delete in database
                         return responses.error_deleting_database("district")
 
-        game.state = ClassState.dividing.value  # update game to say it is ready to divide characters per player
+        game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
         success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player))  # update database with the latest information about the game state
 
