@@ -19,6 +19,12 @@ def not_king():
     return response, 400
 
 
+def not_select_expected():
+    response = define_message("The player making the request is not expected to select a character.")
+
+    return response, 400
+
+
 def not_enough_players():
     response = define_message("The game does not have enough players to start.")
 
