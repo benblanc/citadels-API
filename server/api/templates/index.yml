@@ -652,6 +652,40 @@ paths:
       summary: Requests the building of a district
       tags:
         - players
+  '/game/{game_uuid}/players/{player_uuid}/action.select':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            required:
+              - name
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the character you want to pick.
+                example: 'Assassin'
+      responses:
+        204:
+          description: Selection successful
+      summary: Requests the selection of a character
+      tags:
+        - players
   '/game/{game_uuid}/players/{player_uuid}/cards':
     get:
       description: ''

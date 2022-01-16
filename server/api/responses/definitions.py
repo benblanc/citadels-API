@@ -54,6 +54,7 @@ def define_player(player):
         "coins": player.coins,
         "king": player.king,
         "protected": player.protected,
+        "select_expected": player.select_expected
     }
 
     return response

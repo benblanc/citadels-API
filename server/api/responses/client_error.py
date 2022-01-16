@@ -13,6 +13,18 @@ def not_host():
     return response, 400
 
 
+def not_king():
+    response = define_message("The player making the request is not the king.")
+
+    return response, 400
+
+
+def not_select_expected():
+    response = define_message("The player making the request is not expected to select a character.")
+
+    return response, 400
+
+
 def not_enough_players():
     response = define_message("The game does not have enough players to start.")
 
@@ -27,6 +39,12 @@ def enough_players():
 
 def already_started():
     response = define_message("The game has already started.")
+
+    return response, 400
+
+
+def not_selection_phase():
+    response = define_message("The game needs to be in the character selection phase.")
 
     return response, 400
 

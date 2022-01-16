@@ -11,6 +11,8 @@ from api.models.deck_districts import DeckDistricts as deck_districts_db
 from api.models.deck_characters import DeckCharacters as deck_characters_db
 from api.models.players import Players as players_db
 from api.models.cards import Cards as cards_db
+from api.models.possible_characters import PossibleCharacters as possible_characters_db
+from api.models.removed_characters import RemovedCharacters as removed_characters_db
 
 import api.responses as responses
 
@@ -193,6 +195,7 @@ def join_game(game_uuid, name):
             coins=new_player.coins,
             king=new_player.king,
             protected=new_player.protected,
+            select_expected=new_player.select_expected,
             game_uuid=game_uuid
         ))
 
@@ -280,7 +283,7 @@ def start_game(game_uuid, player_uuid):
         deleted_districts = []  # to avoid deleting already deleted districts
 
         for player in game.players:  # go through each player
-            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(seat=player.seat, coins=player.coins, king=player.king))  # update seat, amount of coins and king flag for player in database
+            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(seat=player.seat, coins=player.coins, king=player.king, select_expected=player.select_expected))  # update seat, amount of coins, king and select expected flag for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")
@@ -334,6 +337,40 @@ def start_game(game_uuid, player_uuid):
 
         if not success_update_game:  # check if database failed to update
             return responses.error_updating_database("game")
+
+        deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get characters in game
+
+        game.deck_characters = list(map(lambda character: ClassCharacter(database_object=character), deck_characters))  # add deck of characters to game object
+
+        game.set_initial_possible_and_removed_characters()  # set possible and removed characters which happens at the start of each round
+
+        success_write_possible_characters = []
+        for character in game.possible_characters:  # go through each possible character
+            success_write_possible_characters.append(database.write_row_to_db(possible_characters_db(  # write character to database
+                uuid=helpers.create_uuid(),
+                name=character.name,
+                open=character.open,
+                assassinated=character.assassinated,
+                robbed=character.robbed,
+                built=character.built,
+                game_uuid=game_uuid)))
+
+        if False in success_write_possible_characters:  # check if failed to write to database
+            return responses.error_writing_database("possible characters")
+
+        success_write_removed_characters = []
+        for character in game.removed_characters:  # go through each removed character
+            success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
+                uuid=helpers.create_uuid(),
+                name=character.name,
+                open=character.open,
+                assassinated=character.assassinated,
+                robbed=character.robbed,
+                built=character.built,
+                game_uuid=game_uuid)))
+
+        if False in success_write_removed_characters:  # check if failed to write to database
+            return responses.error_writing_database("removed characters")
 
         return responses.no_content()
 
