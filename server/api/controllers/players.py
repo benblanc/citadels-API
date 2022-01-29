@@ -367,8 +367,6 @@ def select_character(game_uuid, player_uuid, name, remove):
             selected_characters_count += len(characters)  # keep track of how many characters have already been selected
 
         if selection_phase_finished:  # check if the selection phase is finished
-            # TODO: add logic to set expected turn flag for required player
-
             for character in game.possible_characters:  # go through remaining possible characters
                 success_write_removed_character = database.write_row_to_db(removed_characters_db(  # write character to database
                     uuid=helpers.create_uuid(),
@@ -393,6 +391,28 @@ def select_character(game_uuid, player_uuid, name, remove):
 
             if not success_update_game:  # check if database failed to update
                 return responses.error_updating_database("game")
+
+            characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
+
+            lowest_order = len(characters_complete_info)  # keep track of character with the lowest order | start from the highest order number and work the way down
+            lowest_player = None  # keep track of player who has character with the lowest order
+
+            for player in players:  # go through each player
+                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hands
+
+                characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database object to class objects
+
+                for character in characters:  # go through player's characters
+                    character_complete_info = list(filter(lambda complete_character: complete_character.name == character.name, characters_complete_info))[0]  # get complete info on character
+
+                    if character_complete_info.order < lowest_order:  # check if player's character has a lower order than the current lowest order
+                        lowest_order = character_complete_info.order  # update the lowest order
+                        lowest_player = player  # update the lowest player
+
+            success_update_player = database.update_row_in_db(players_db, lowest_player.uuid, dict(turn_expected=True))  # update select expected flag for next player in database
+
+            if not success_update_player:  # check if failed to update database
+                return responses.error_updating_database("player")
 
         else:  # there are players who still need to select characters
             next_seat_select_expected = game.players[0].seat + 1  # decide which player needs to pick a character next
