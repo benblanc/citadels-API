@@ -69,11 +69,7 @@ def get_players(game_uuid):
 
 
 def start_game(game_uuid, player_uuid):
-    payload = {
-        "player_uuid": player_uuid
-    }
-
-    response = requests.post(url=BASE_URL + "/game/" + game_uuid + "/action.start", json=payload)
+    response = requests.post(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/action.start")
 
     log_response(response)
 
