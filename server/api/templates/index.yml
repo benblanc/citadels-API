@@ -250,34 +250,6 @@ paths:
       summary: Requests joining a game
       tags:
         - game
-  '/game/{game_uuid}/action.start':
-    post:
-      description: ''
-      parameters:
-        - description: Game UUID
-          in: path
-          name: game_uuid
-          required: true
-          type: string
-          format: uuid
-        - description: The request body
-          in: body
-          name: body
-          schema:
-            required:
-              - player_uuid
-            type: object
-            properties:
-              player_uuid:
-                type: string
-                description: The UUID of the player who wants to start the game.
-                example: '8c3f22f9-7959-47ec-8e28-ab586201cef9'
-      responses:
-        204:
-          description: Start successful
-      summary: Requests starting a game
-      tags:
-        - game
   '/game/{game_uuid}/deck_characters':
     get:
       description: ''
@@ -650,6 +622,28 @@ paths:
         204:
           description: Building succesful
       summary: Requests the building of a district
+      tags:
+        - players
+  '/game/{game_uuid}/players/{player_uuid}/action.start':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        204:
+          description: Start successful
+      summary: Requests starting a game
       tags:
         - players
   '/game/{game_uuid}/players/{player_uuid}/action.select':
