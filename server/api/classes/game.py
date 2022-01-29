@@ -382,12 +382,10 @@ class ClassGame:
         self.__possible_characters = possible_characters  # set possible characters
         self.__removed_characters = removed_characters  # set removed characters
 
-    def set_character(self, name):
-        # TODO: include logic to remove a character when 2 or 3 players
-
+    def remove_character_from_possible_characters(self, name):
         possible_characters = list(filter(lambda character: character.name != name, self.__possible_characters))  # remove selected character from possible characters
         selected_character = list(filter(lambda character: character.name == name, self.__possible_characters))[0]  # separate selected character
 
-        self.__players[0].character.append(selected_character)  # give selected charcter to player
-
         self.__possible_characters = possible_characters  # set possible characters
+
+        return selected_character

@@ -3,9 +3,13 @@
   "properties": {
     "name": {
       "type": "string"
+    },
+    "remove": {
+      "type": "string"
     }
   },
   "required": [
-    "name"
+    "name",
+    "remove"
   ]
 }

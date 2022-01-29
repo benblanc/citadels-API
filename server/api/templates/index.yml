@@ -674,12 +674,17 @@ paths:
           schema:
             required:
               - name
+              - remove
             type: object
             properties:
               name:
                 type: string
                 description: The name of the character you want to pick.
-                example: 'Assassin'
+                example: 'assassin'
+              remove:
+                type: string
+                description: The name of the character you want to remove. Only used when the game has 2 players, but always required to be in body. Use an empty string by default. In a 2 player game, player 2 is the first to remove a character.
+                example: 'thief'
       responses:
         204:
           description: Selection successful
