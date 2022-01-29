@@ -34,8 +34,9 @@ class PlayerSelect(Resource):
     def post(self, game_uuid, player_uuid):
         body = json.loads(request.data)
         name = body["name"]
+        remove = body["remove"]
 
-        return select_character(str(game_uuid), str(player_uuid), str(name))
+        return select_character(str(game_uuid), str(player_uuid), str(name).lower(), str(remove).lower())
 
 
 api.add_resource(Players, '/game/<string:game_uuid>/players')
