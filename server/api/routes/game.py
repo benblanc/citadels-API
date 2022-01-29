@@ -49,18 +49,7 @@ class GameJoin(Resource):
         return join_game(str(game_uuid), str(name))
 
 
-class GameStart(Resource):
-    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/action.start')
-    @expects_json(read_json('api/schemas/game/start.json'))
-    def post(self, game_uuid):
-        body = json.loads(request.data)
-        player_uuid = body["player_uuid"]
-
-        return start_game(str(game_uuid), str(player_uuid))
-
-
 api.add_resource(Games, '/game')
 api.add_resource(Game, '/game/<string:game_uuid>')
 api.add_resource(GameCreate, '/game/action.create')
 api.add_resource(GameJoin, '/game/<string:game_uuid>/action.join')
-api.add_resource(GameStart, '/game/<string:game_uuid>/action.start')
