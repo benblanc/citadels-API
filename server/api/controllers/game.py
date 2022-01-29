@@ -190,6 +190,7 @@ def join_game(game_uuid, name):
             king=new_player.king,
             protected=new_player.protected,
             select_expected=new_player.select_expected,
+            turn_expected=new_player.turn_expected,
             game_uuid=game_uuid
         ))
 

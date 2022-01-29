@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False, select_expected=False, database_object=None):
+    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False, select_expected=False, turn_expected=False, database_object=None):
         if character is None:
             character = []
 
@@ -21,6 +21,7 @@ class ClassPlayer:
         self.__king = king  # is player king
         self.__protected = protected  # is player protected from warlord
         self.__select_expected = select_expected  # is player expected to select a character
+        self.__turn_expected = turn_expected  # is it the player's turn
 
         if database_object:  # check if parameters contain a database object
             self.__uuid = database_object.uuid
@@ -32,6 +33,7 @@ class ClassPlayer:
             self.__king = database_object.king
             self.__protected = database_object.protected
             self.__select_expected = database_object.select_expected
+            self.__turn_expected = database_object.turn_expected
 
     @property
     def uuid(self):
@@ -122,6 +124,14 @@ class ClassPlayer:
         self.__select_expected = value
 
     @property
+    def turn_expected(self):
+        return self.__turn_expected
+
+    @turn_expected.setter
+    def turn_expected(self, value):
+        self.__turn_expected = value
+
+    @property
     def info(self):
 
         character = []
@@ -148,7 +158,8 @@ class ClassPlayer:
             "buildings": buildings,
             "king": self.__king,
             "protected": self.__protected,
-            "select_expected": self.__select_expected
+            "select_expected": self.__select_expected,
+            "turn_expected": self.__turn_expected
         }
 
         return info

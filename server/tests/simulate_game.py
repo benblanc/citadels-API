@@ -9,7 +9,7 @@ BASE_HEADERS = {
     "Content-Type": "application/json"
 }
 
-NUMBER_OF_PLAYERS = 7
+NUMBER_OF_PLAYERS = 4
 
 SLEEP_SECONDS = 0.10
 
