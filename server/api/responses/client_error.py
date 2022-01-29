@@ -49,6 +49,12 @@ def not_selection_phase():
     return response, 400
 
 
+def same_character():
+    response = define_message("The requested character cannot be the same as the character to remove.")
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 
