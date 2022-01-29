@@ -92,7 +92,7 @@ def get_player(game_uuid, player_uuid):
         return responses.error_handling_request()
 
 
-def select_character(game_uuid, player_uuid, name):
+def select_character(game_uuid, player_uuid, name, remove):
     try:
         game = game_db.query.get(game_uuid)  # get game from database
 
@@ -124,7 +124,7 @@ def select_character(game_uuid, player_uuid, name):
             if character:  # check if there is a character with the given name
                 character_possible = True  # character is in game
 
-        if not character_possible:  # check if character is not possible
+        if not character_possible:  # check if character cannot be picked
             return responses.not_found("character")
 
         game.possible_characters = list(map(lambda character: ClassCharacter(database_object=character), possible_characters))  # add deck of possible characters to game object
@@ -133,24 +133,46 @@ def select_character(game_uuid, player_uuid, name):
 
         game.removed_characters = list(map(lambda character: ClassCharacter(database_object=character), removed_characters))  # add deck of removed characters to game object
 
-        game.set_character(name)  # add character to player's hands and remove it from possible characters
+        if possible_characters and game.amount_players == 2 and len(game.removed_characters) > 1:  # check if there are possible characters, two player game and atleaset 2 removed characters
+            remove_character_possible = False
+
+            remove_character = list(filter(lambda character: character.name == remove, possible_characters))  # get character to remove
+
+            if remove_character:  # check if there is a character with given name
+                remove_character_possible = True  # character is in game
+
+            if not remove_character_possible:  # check if character cannot be removed
+                return responses.not_found("remove character")
+
+            if name == remove:  # check if character to pick is same as character to remove
+                return responses.same_character()
+
+        character = game.remove_character_from_possible_characters(name)  # remove character from possible characters for round
 
         success_write_character = database.write_row_to_db(characters_db(  # write character to database
             uuid=helpers.create_uuid(),
-            name=game.players[0].character[0].name,
-            open=game.players[0].character[0].open,
-            assassinated=game.players[0].character[0].assassinated,
-            robbed=game.players[0].character[0].robbed,
-            built=game.players[0].character[0].built,
+            name=character.name,
+            open=character.open,
+            assassinated=character.assassinated,
+            robbed=character.robbed,
+            built=character.built,
             player_uuid=player_uuid))
 
         if not success_write_character:  # check if failed to write to database
             return responses.error_writing_database("character")
 
-        success_delete_possible_character = database.delete_row_from_db(possible_characters_db, game.players[0].character[0].uuid)  # delete character from possible characters in database
+        success_delete_possible_character = database.delete_row_from_db(possible_characters_db, character.uuid)  # delete character from possible characters in database
 
         if not success_delete_possible_character:  # check if failed to delete in database
             return responses.error_deleting_database("possible character")
+
+        if game.amount_players == 2 and len(game.removed_characters) > 1:  # check if game has only 2 player and atleast 2 characters have been removed | game with 2 players requires each player to also remove a character for the round, where player two gets to remove the first character
+            character = game.remove_character_from_possible_characters(remove)  # remove character from possible characters for round
+
+            success_delete_possible_character = database.delete_row_from_db(possible_characters_db, character.uuid)  # delete character from possible characters in database
+
+            if not success_delete_possible_character:  # check if failed to delete in database
+                return responses.error_deleting_database("possible character")
 
         success_update_player = database.update_row_in_db(players_db, player_uuid, dict(select_expected=False))  # update select expected flag for current player in database
 
