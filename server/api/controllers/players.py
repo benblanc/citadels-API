@@ -95,6 +95,65 @@ def get_player(game_uuid, player_uuid):
         return responses.error_handling_request()
 
 
+def receive_coins(game_uuid, player_uuid):
+    try:
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found("game")
+
+        game = ClassGame(database_object=game)  # initialize game object
+
+        if game.state != ClassState.turn_phase.value:  # check if game is in turn phase
+            return responses.not_turn_phase()
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found("player")
+
+        game.players.append(ClassPlayer(database_object=player))  # add player to game object
+
+        characters = characters_db.query.filter_by(player_uuid=player_uuid).all()  # get characters in player's hand
+
+        if not characters:  # check if player has characters
+            return responses.not_found("characters", True)
+
+        character_in_hand = False
+
+        characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+
+        if character:  # check if there is a character with the given name
+            character = character[0]  # get character from list
+            character_in_hand = True  # character is in player's hand
+
+        if not character_in_hand:  # check if character is not in player's hand
+            return responses.not_character()
+
+        if character.income_received:  # check if the character has already received an income
+            return responses.already_income_received()
+
+        game.players[0].coins += 2  # increase coin amount
+
+        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
+
+        if not success_update_player:  # check if failed to update database
+            return responses.error_updating_database("player")
+
+        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(open=True, income_received=True))  # update open and income flags for character in database
+
+        if not success_update_character:  # check if failed to update database
+            return responses.error_updating_database("character")
+
+        return responses.no_content()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.error_handling_request()
+
+
 def start_game(game_uuid, player_uuid):
     try:
         game = game_db.query.get(game_uuid)  # get game from database
@@ -234,6 +293,7 @@ def start_game(game_uuid, player_uuid):
                 assassinated=character.assassinated,
                 robbed=character.robbed,
                 built=character.built,
+                income_received=character.income_received,
                 game_uuid=game_uuid)))
 
         if False in success_write_possible_characters:  # check if failed to write to database
@@ -248,6 +308,7 @@ def start_game(game_uuid, player_uuid):
                 assassinated=character.assassinated,
                 robbed=character.robbed,
                 built=character.built,
+                income_received=character.income_received,
                 game_uuid=game_uuid)))
 
         if False in success_write_removed_characters:  # check if failed to write to database
@@ -324,6 +385,7 @@ def select_character(game_uuid, player_uuid, name, remove):
             assassinated=character.assassinated,
             robbed=character.robbed,
             built=character.built,
+            income_received=character.income_received,
             player_uuid=player_uuid))
 
         if not success_write_character:  # check if failed to write to database
@@ -359,7 +421,7 @@ def select_character(game_uuid, player_uuid, name, remove):
         players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects | don't add to game object because it messes with how the next seat is calculated
 
         for player in players:  # go through each player
-            characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hands
+            characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
 
             if len(characters) != game.characters_per_player:  # check if player does not have the expected amount of characters
                 selection_phase_finished = False
@@ -375,6 +437,7 @@ def select_character(game_uuid, player_uuid, name, remove):
                     assassinated=character.assassinated,
                     robbed=character.robbed,
                     built=character.built,
+                    income_received=character.income_received,
                     game_uuid=game_uuid))
 
                 if not success_write_removed_character:  # check if failed to write to database
@@ -387,32 +450,26 @@ def select_character(game_uuid, player_uuid, name, remove):
 
             game.state = ClassState.turn_phase.value  # update game to say it is ready to let each character perform their turn
 
-            success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state))  # update database with the latest information about the game state
-
-            if not success_update_game:  # check if database failed to update
-                return responses.error_updating_database("game")
-
             characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
 
-            lowest_order = len(characters_complete_info)  # keep track of character with the lowest order | start from the highest order number and work the way down
-            lowest_player = None  # keep track of player who has character with the lowest order
+            lowest_character = ClassCharacter(order=8, name=ClassCharacterName.warlord.value)  # keep track of character with the lowest order | start from the highest order number and work the way down
 
             for player in players:  # go through each player
-                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hands
+                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
 
                 characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database object to class objects
 
                 for character in characters:  # go through player's characters
                     character_complete_info = list(filter(lambda complete_character: complete_character.name == character.name, characters_complete_info))[0]  # get complete info on character
 
-                    if character_complete_info.order < lowest_order:  # check if player's character has a lower order than the current lowest order
-                        lowest_order = character_complete_info.order  # update the lowest order
-                        lowest_player = player  # update the lowest player
+                    if character_complete_info.order < lowest_character.order:  # check if player's character has a lower order than the current lowest order
+                        lowest_character = character_complete_info  # update the lowest character
 
-            success_update_player = database.update_row_in_db(players_db, lowest_player.uuid, dict(turn_expected=True))  # update select expected flag for next player in database
+            success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=lowest_character.name))  # update database with the latest information about the game state
 
-            if not success_update_player:  # check if failed to update database
-                return responses.error_updating_database("player")
+            if not success_update_game:  # check if database failed to update
+                return responses.error_updating_database("game")
+
 
         else:  # there are players who still need to select characters
             next_seat_select_expected = game.players[0].seat + 1  # decide which player needs to pick a character next
@@ -443,6 +500,7 @@ def select_character(game_uuid, player_uuid, name, remove):
                         assassinated=character.assassinated,
                         robbed=character.robbed,
                         built=character.built,
+                        income_received=character.income_received,
                         game_uuid=game_uuid))
 
                     if not success_write_possible_character:  # check if failed to write to database

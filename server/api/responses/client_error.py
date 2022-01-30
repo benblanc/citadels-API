@@ -49,8 +49,26 @@ def not_selection_phase():
     return response, 400
 
 
+def not_turn_phase():
+    response = define_message("The game needs to be in the character turn phase.")
+
+    return response, 400
+
+
 def same_character():
     response = define_message("The requested character cannot be the same as the character to remove.")
+
+    return response, 400
+
+
+def not_character():
+    response = define_message("The player making the request does not have the expected character.")
+
+    return response, 400
+
+
+def already_income_received():
+    response = define_message("The player making the request has already received the income for this character.")
 
     return response, 400
 
