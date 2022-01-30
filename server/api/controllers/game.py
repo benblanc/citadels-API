@@ -94,6 +94,7 @@ def create_game(name, description):
             characters_closed=new_game.characters_closed,
             characters_per_player=new_game.characters_per_player,
             eight_districts_built=new_game.eight_districts_built,
+            character_turn=new_game.character_turn,
             round=new_game.round))
 
         if not success_write_game:
@@ -190,7 +191,6 @@ def join_game(game_uuid, name):
             king=new_player.king,
             protected=new_player.protected,
             select_expected=new_player.select_expected,
-            turn_expected=new_player.turn_expected,
             game_uuid=game_uuid
         ))
 

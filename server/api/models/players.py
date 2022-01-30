@@ -12,7 +12,6 @@ class Players(db.Model):
     king = db.Column(db.Boolean)
     protected = db.Column(db.Boolean)
     select_expected = db.Column(db.Boolean)
-    turn_expected = db.Column(db.Boolean)
     game_uuid = db.Column(db.String(150), db.ForeignKey("game.uuid"), nullable=False, index=True)
 
     child1 = db.relationship("Cards", cascade="all, delete-orphan")

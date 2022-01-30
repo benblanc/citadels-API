@@ -49,6 +49,12 @@ def not_selection_phase():
     return response, 400
 
 
+def not_turn_phase():
+    response = define_message("The game needs to be in the character turn phase.")
+
+    return response, 400
+
+
 def same_character():
     response = define_message("The requested character cannot be the same as the character to remove.")
 

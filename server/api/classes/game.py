@@ -47,7 +47,7 @@ class ClassSettings:
 
 
 class ClassGame:
-    def __init__(self, uuid=None, created="", name="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
+    def __init__(self, uuid=None, created="", name="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, character_turn="", round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
         if players is None:
             players = []
 
@@ -89,6 +89,7 @@ class ClassGame:
         self.__discard_pile = discard_pile
 
         self.__eight_districts_built = eight_districts_built
+        self.__character_turn = character_turn
         self.__round = round
         self.__possible_characters = possible_characters
         self.__removed_characters = removed_characters
@@ -106,6 +107,7 @@ class ClassGame:
             self.__characters_closed = database_object.characters_closed
             self.__characters_per_player = database_object.characters_per_player
             self.__eight_districts_built = database_object.eight_districts_built
+            self.__character_turn = character_turn
             self.__round = database_object.round
 
     @property
@@ -194,6 +196,14 @@ class ClassGame:
         self.__eight_districts_built = value
 
     @property
+    def character_turn(self):
+        return self.__character_turn
+
+    @character_turn.setter
+    def character_turn(self, value):
+        self.__character_turn = value
+
+    @property
     def round(self):
         return self.__round
 
@@ -256,6 +266,7 @@ class ClassGame:
             "deck_districts": self.__deck_districts,
             "discard_pile": self.__discard_pile,
             "eight_districts_built": self.__eight_districts_built,
+            "character_turn": self.__character_turn,
             "round": self.__round,
             "possible_characters": self.__possible_characters,
             "removed_characters": self.__removed_characters,

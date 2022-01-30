@@ -26,6 +26,7 @@ def define_game(game):
         "characters_closed": game.characters_closed,
         "characters_per_player": game.characters_per_player,
         "eight_districts_built": game.eight_districts_built,
+        "character_turn": game.character_turn,
         "round": game.round
     }
 
@@ -54,8 +55,7 @@ def define_player(player):
         "coins": player.coins,
         "king": player.king,
         "protected": player.protected,
-        "select_expected": player.select_expected,
-        "turn_expected": player.turn_expected
+        "select_expected": player.select_expected
     }
 
     return response
@@ -78,7 +78,8 @@ def define_character(character):
         "open": character.open,
         "assassinated": character.assassinated,
         "robbed": character.robbed,
-        "built": character.built
+        "built": character.built,
+        "income_received": character.income_received
     }
 
     return response

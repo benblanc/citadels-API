@@ -13,6 +13,7 @@ class Game(db.Model):
     characters_closed = db.Column(db.Integer)
     characters_per_player = db.Column(db.Integer)
     eight_districts_built = db.Column(db.Boolean)
+    character_turn = db.Column(db.String(100))
     round = db.Column(db.Integer)
 
     child1 = db.relationship("Settings", cascade="all, delete-orphan")
