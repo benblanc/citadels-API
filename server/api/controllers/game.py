@@ -135,6 +135,7 @@ def create_game(name, description):
                 assassinated=character.assassinated,
                 robbed=character.robbed,
                 built=character.built,
+                income_received=character.income_received,
                 game_uuid=new_game.uuid)))
 
         if False in success_write_deck_characters:

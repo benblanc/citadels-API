@@ -107,7 +107,7 @@ class ClassGame:
             self.__characters_closed = database_object.characters_closed
             self.__characters_per_player = database_object.characters_per_player
             self.__eight_districts_built = database_object.eight_districts_built
-            self.__character_turn = character_turn
+            self.__character_turn = database_object.character_turn
             self.__round = database_object.round
 
     @property

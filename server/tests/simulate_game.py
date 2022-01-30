@@ -214,7 +214,7 @@ if __name__ == '__main__':
                 time.sleep(SLEEP_SECONDS)
 
         if game["state"] == "turn_phase":
-            game["state"] = "finished"
+            # game["state"] = "finished"
             break
 
         response_get_game = get_game(game_uuid)

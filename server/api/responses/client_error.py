@@ -61,6 +61,18 @@ def same_character():
     return response, 400
 
 
+def not_character():
+    response = define_message("The player making the request does not have the expected character.")
+
+    return response, 400
+
+
+def already_income_received():
+    response = define_message("The player making the request has already received the income for this character.")
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 
