@@ -237,17 +237,7 @@ class ClassGame:
 
     @property
     def deck_districts_by_amount(self):
-        districts = {}
-
-        for district in self.__deck_districts:
-            if district.name not in districts.keys():
-                districts[district.name] = ClassDeckDistrict(1, district)
-            else:
-                new_deck_district = districts[district.name]
-                new_deck_district.amount += 1
-                districts[district.name] = new_deck_district
-
-        return list(map(lambda district: district[1], districts.items()))  # index 0 is key, index 1 is value
+        return self.aggregate_cards_by_name(self.__deck_districts)
 
     @property
     def info(self):
@@ -400,3 +390,16 @@ class ClassGame:
         self.__possible_characters = possible_characters  # set possible characters
 
         return selected_character
+
+    def aggregate_cards_by_name(self, cards):
+        aggregation = {}
+
+        for card in cards:  # go through cards
+            if card.name not in aggregation.keys():  # check if card is not in aggregation obejct
+                aggregation[card.name] = ClassDeckDistrict(1, card)  # add card by amount to aggregation
+            else:  # card is in aggregation
+                new_deck_district = aggregation[card.name]  # get card from aggregation
+                new_deck_district.amount += 1  # increase amount
+                aggregation[card.name] = new_deck_district  # update card in aggregation
+
+        return list(map(lambda district: district, aggregation.values()))  # return deck of cards with updated card amount
