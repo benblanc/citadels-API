@@ -296,6 +296,11 @@ def draw_cards(game_uuid, player_uuid):
 
         __update_districts_in_database(from_table=deck_districts_db, to_table=drawn_cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
 
+        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(open=True))  # update open flag for character in database
+
+        if not success_update_character:  # check if failed to update database
+            return responses.error_updating_database("character")
+
         return responses.no_content()
 
     except Exception:
@@ -732,6 +737,11 @@ def keep_card(game_uuid, player_uuid, name):
         __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
 
         __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=cards_for_hand, uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
+
+        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(income_received=True))  # update income flag for character in database
+
+        if not success_update_character:  # check if failed to update database
+            return responses.error_updating_database("character")
 
         return responses.no_content()
 
