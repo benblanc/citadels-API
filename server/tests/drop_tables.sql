@@ -2,6 +2,7 @@ use citadels;
 
 drop table buildings;
 drop table cards;
+drop table drawn_cards;
 drop table characters;
 drop table deck_characters;
 drop table deck_discard_pile;

@@ -73,6 +73,17 @@ def already_income_received():
     return response, 400
 
 
+def already_cards_drawn():
+    response = define_message("The player making the request has already drawn the district cards for this character.")
+
+    return response, 400
+
+def no_cards_drawn():
+    response = define_message("The player making the request has not yet drawn the district cards for this character.")
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 

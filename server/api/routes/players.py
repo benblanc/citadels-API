@@ -34,6 +34,12 @@ class PlayerReceiveCoins(Resource):
         return receive_coins(str(game_uuid), str(player_uuid))
 
 
+class PlayerDrawCards(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.draw_cards')
+    def post(self, game_uuid, player_uuid):
+        return draw_cards(str(game_uuid), str(player_uuid))
+
+
 class PlayerStart(Resource):
     @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.start')
     def post(self, game_uuid, player_uuid):
@@ -51,8 +57,20 @@ class PlayerSelect(Resource):
         return select_character(str(game_uuid), str(player_uuid), str(name).lower(), str(remove).lower())
 
 
+class PlayerKeepCard(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.keep_card')
+    @expects_json(read_json('api/schemas/player/keep_card.json'))
+    def post(self, game_uuid, player_uuid):
+        body = json.loads(request.data)
+        name = body["name"]
+
+        return keep_card(str(game_uuid), str(player_uuid), str(name).lower())
+
+
 api.add_resource(Players, '/game/<string:game_uuid>/players')
 api.add_resource(Player, '/game/<string:game_uuid>/players/<string:player_uuid>')
 api.add_resource(PlayerReceiveCoins, '/game/<string:game_uuid>/players/<string:player_uuid>/action.receive_coins')
+api.add_resource(PlayerDrawCards, '/game/<string:game_uuid>/players/<string:player_uuid>/action.draw_cards')
 api.add_resource(PlayerStart, '/game/<string:game_uuid>/players/<string:player_uuid>/action.start')
 api.add_resource(PlayerSelect, '/game/<string:game_uuid>/players/<string:player_uuid>/action.select')
+api.add_resource(PlayerKeepCard, '/game/<string:game_uuid>/players/<string:player_uuid>/action.keep_card')

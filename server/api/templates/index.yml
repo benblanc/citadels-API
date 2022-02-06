@@ -624,6 +624,62 @@ paths:
       summary: Requests the building of a district
       tags:
         - players
+  '/game/{game_uuid}/players/{player_uuid}/action.draw_cards':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        204:
+          description: Drawing cards successful
+      summary: Requests drawing 2 cards from deck of districts
+      tags:
+        - players
+  '/game/{game_uuid}/players/{player_uuid}/action.keep_card':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            required:
+              - name
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the district you want to keep.
+                example: 'castle'
+      responses:
+        204:
+          description: Keeping card successful
+      summary: Requests keeping 1 drawn card from deck of districts
+      tags:
+        - players
   '/game/{game_uuid}/players/{player_uuid}/action.receive_coins':
     post:
       description: ''
@@ -864,5 +920,58 @@ paths:
         200:
           description: Returns a list of the player's built district card objects
       summary: Requests a list of the player's built district card card objects
+      tags:
+        - players
+  '/game/{game_uuid}/players/{player_uuid}/drawn_cards':
+    get:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Sort order
+          default: asc
+          enum:
+            - asc
+            - desc
+          in: query
+          name: sort_order
+          required: false
+          type: string
+        - description: Order by given value
+          default: name
+          enum:
+            - name
+          in: query
+          name: order_by
+          required: false
+          type: string
+        - description: Return limited amount of items, 0 to return all items
+          default: 0
+          in: query
+          name: limit
+          required: false
+          type: integer
+          minimum: 0
+        - description: Return items starting from this index position
+          default: 0
+          in: query
+          name: offset
+          required: false
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: Returns a list of district card objects which the player has drawn
+      summary: Requests a list of district card objects which the player has drawn
       tags:
         - players
