@@ -646,6 +646,28 @@ paths:
       summary: Requests drawing 2 cards from deck of districts
       tags:
         - players
+  '/game/{game_uuid}/players/{player_uuid}/action.end_turn':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+      responses:
+        204:
+          description: Ending turn successful
+      summary: Requests ending turn for current character
+      tags:
+        - players
   '/game/{game_uuid}/players/{player_uuid}/action.keep_card':
     post:
       description: ''

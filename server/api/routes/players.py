@@ -67,6 +67,12 @@ class PlayerKeepCard(Resource):
         return keep_card(str(game_uuid), str(player_uuid), str(name).lower())
 
 
+class PlayerEndTurn(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.end_turn')
+    def post(self, game_uuid, player_uuid):
+        return end_turn(str(game_uuid), str(player_uuid))
+
+
 api.add_resource(Players, '/game/<string:game_uuid>/players')
 api.add_resource(Player, '/game/<string:game_uuid>/players/<string:player_uuid>')
 api.add_resource(PlayerReceiveCoins, '/game/<string:game_uuid>/players/<string:player_uuid>/action.receive_coins')
@@ -74,3 +80,4 @@ api.add_resource(PlayerDrawCards, '/game/<string:game_uuid>/players/<string:play
 api.add_resource(PlayerStart, '/game/<string:game_uuid>/players/<string:player_uuid>/action.start')
 api.add_resource(PlayerSelect, '/game/<string:game_uuid>/players/<string:player_uuid>/action.select')
 api.add_resource(PlayerKeepCard, '/game/<string:game_uuid>/players/<string:player_uuid>/action.keep_card')
+api.add_resource(PlayerEndTurn, '/game/<string:game_uuid>/players/<string:player_uuid>/action.end_turn')
