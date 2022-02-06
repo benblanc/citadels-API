@@ -113,6 +113,58 @@ def get_removed_characters(game_uuid):
     return response
 
 
+def get_player_characters(game_uuid, player_uuid):
+    response = requests.get(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/characters")
+
+    log_response(response)
+
+    return response
+
+
+def receive_coins(game_uuid, player_uuid):
+    response = requests.post(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/action.receive_coins")
+
+    log_response(response)
+
+    return response
+
+
+def draw_cards(game_uuid, player_uuid):
+    response = requests.post(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/action.draw_cards")
+
+    log_response(response)
+
+    return response
+
+
+def keep_card(game_uuid, player_uuid, name):
+    payload = {
+        "name": name,
+    }
+
+    response = requests.post(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/action.keep_card", json=payload)
+
+    log_response(response)
+
+    return response
+
+
+def get_drawn_cards(game_uuid, player_uuid):
+    response = requests.get(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/drawn_cards")
+
+    log_response(response)
+
+    return response
+
+
+def end_turn(game_uuid, player_uuid):
+    response = requests.post(url=BASE_URL + "/game/" + game_uuid + "/players/" + player_uuid + "/action.end_turn")
+
+    log_response(response)
+
+    return response
+
+
 if __name__ == '__main__':
     game_description = "Test to simulate game and see how far it gets before breaking"
     game_name = "Testing application"
@@ -177,7 +229,6 @@ if __name__ == '__main__':
             expected_to_select = list(filter(lambda player: player["select_expected"] == True, players))
 
             if expected_to_select:  # check if someone still needs to pick a character
-
                 player_expected_to_select = expected_to_select[0]
 
                 response_get_possible_characters = get_possible_characters(game_uuid)
@@ -214,8 +265,74 @@ if __name__ == '__main__':
                 time.sleep(SLEEP_SECONDS)
 
         if game["state"] == "turn_phase":
-            game["state"] = "finished"
-            break
+            if game["round"] == 10:
+                game["state"] = "finished"
+                break
+
+            response_get_players = get_players(game_uuid)
+
+            if response_get_players.status_code != 200:
+                exit(1)
+
+            time.sleep(SLEEP_SECONDS)
+
+            players = response_get_players.json()
+
+            for player in players:
+                response_get_player_characters = get_player_characters(game_uuid, player["uuid"])
+
+                if response_get_player_characters.status_code != 200:
+                    exit(1)
+
+                time.sleep(SLEEP_SECONDS)
+
+                player_characters = response_get_player_characters.json()
+
+                character_turn = list(filter(lambda character: character["name"] == game["character_turn"], player_characters))
+
+                if character_turn:  # check if player has the character who is expected to play a turn
+                    character_expected_to_play = character_turn[0]
+
+                    if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
+                        if player["coins"] < 12:  # check if player has less than 6 coins
+                            response_receive_coins = receive_coins(game_uuid, player["uuid"])
+
+                            if response_receive_coins.status_code != 204:
+                                exit(1)
+
+                            time.sleep(SLEEP_SECONDS)
+
+                        else:  # player has more than 6 coins
+                            response_draw_cards = draw_cards(game_uuid, player["uuid"])
+
+                            if response_draw_cards.status_code != 204:
+                                exit(1)
+
+                            time.sleep(SLEEP_SECONDS)
+
+                            response_get_drawn_cards = get_drawn_cards(game_uuid, player["uuid"])
+
+                            if response_get_drawn_cards.status_code != 200:
+                                exit(1)
+
+                            time.sleep(SLEEP_SECONDS)
+
+                            drawn_cards = response_get_drawn_cards.json()
+
+                            response_keep_card = keep_card(game_uuid, player["uuid"], drawn_cards[0]["name"])
+
+                            if response_keep_card.status_code != 204:
+                                exit(1)
+
+                            time.sleep(SLEEP_SECONDS)
+
+                    else:  # character has already received an income
+                        response_end_turn = end_turn(game_uuid, player["uuid"])
+
+                        if response_end_turn.status_code != 204:
+                            exit(1)
+
+                        time.sleep(SLEEP_SECONDS)
 
         response_get_game = get_game(game_uuid)
 

@@ -73,10 +73,17 @@ def already_income_received():
     return response, 400
 
 
+def must_receive_income():
+    response = define_message("The player making the request must receive an income before ending the turn of this character.")
+
+    return response, 400
+
+
 def already_cards_drawn():
     response = define_message("The player making the request has already drawn the district cards for this character.")
 
     return response, 400
+
 
 def no_cards_drawn():
     response = define_message("The player making the request has not yet drawn the district cards for this character.")

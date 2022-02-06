@@ -329,7 +329,7 @@ class ClassGame:
         return drawn_card
 
     def draw_card_deck_districts(self):
-        self.__deck_districts, drawn_card = self.__draw_card(self.__deck_districts)
+        self.__deck_districts, drawn_card = self.__draw_card(self.__deck_districts, -1)  # -1 to draw card on top of deck
         return drawn_card
 
     def set_starting_coins_per_player(self):

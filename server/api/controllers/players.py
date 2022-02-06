@@ -27,6 +27,27 @@ from api.validation import query
 from pprint import pprint
 
 
+def __define_next_character_turn(players, current_character_name):
+    characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
+
+    current_character = list(filter(lambda complete_character: complete_character.name == current_character_name, characters_complete_info))[0]  # get complete info on current character
+
+    lowest_character = ClassCharacter(order=10, name=None)  # keep track of character with the lowest order | start from the highest order number and work the way down
+
+    for player in players:  # go through each player
+        characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+
+        characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database object to class objects
+
+        for character in characters:  # go through player's characters
+            character_complete_info = list(filter(lambda complete_character: complete_character.name == character.name, characters_complete_info))[0]  # get complete info on character
+
+            if current_character.order < character_complete_info.order < lowest_character.order and not character_complete_info.assassinated:  # check if the order of the player's character is between the current one and the lowest one AND the character is not assassinated
+                lowest_character = character_complete_info  # update the lowest character
+
+    return lowest_character
+
+
 def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_cards_by_amount=None, player_table=False, from_table_name="deck of districts", to_table_name="deck of districts"):  # write districts to new database table and update/delete from old database table
     updated_districts = []  # to avoid updating already updated districts (with the same value)
     deleted_districts = []  # to avoid deleting already deleted districts
@@ -53,7 +74,7 @@ def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_
                 ))
 
                 if not success_write_card:  # check if failed to write to database
-                    return responses.error_writing_database("card")
+                    return responses.error_writing_database(to_table_name)
 
         else:  # card needs to be written to a game related database table
             cards_in_table = to_table.query.filter_by(name=deck_district.card.name, game_uuid=uuid).first()  # get cards
@@ -76,7 +97,7 @@ def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_
                 ))
 
                 if not success_write_card:  # check if failed to write to database
-                    return responses.error_writing_database("card")
+                    return responses.error_writing_database(to_table_name)
 
         amount = 0  # amount by default
 
@@ -100,7 +121,7 @@ def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_
             success_delete_district = database.delete_row_from_db(from_table, deck_district.card.uuid)  # delete district from deck of districts in database
 
             if not success_delete_district:  # check if failed to delete in database
-                return responses.error_deleting_database("district")
+                return responses.error_deleting_database(from_table_name)
 
 
 def get_players(game_uuid, sort_order, order_by, limit, offset):
@@ -290,6 +311,24 @@ def draw_cards(game_uuid, player_uuid):
 
         drawn_cards = []
         for index in range(2):  # do it twice
+            if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
+                discard_pile = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).all()  # get discard pile in game
+
+                cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
+
+                __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
+
+                districts = []
+                for district in deck_districts:  # go through each district in the deck of districts
+                    for _index in range(district.amount):  # add the separated district to a new list as class objects
+                        districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+                random.shuffle(districts)  # shuffle district cards
+
+                game.deck_districts = districts  # add districts to game object
+
             drawn_cards.append(game.draw_card_deck_districts())  # draw a card from the deck of districts and add it to the list
 
         drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
@@ -373,57 +412,15 @@ def start_game(game_uuid, player_uuid):
 
         game.set_character_division()  # define how many characters per player and how many are open or closed on the field
 
-        updated_districts = []  # to avoid updating already updated districts (with the same value)
-        deleted_districts = []  # to avoid deleting already deleted districts
-
         for player in game.players:  # go through each player
             success_update_player = database.update_row_in_db(players_db, player.uuid, dict(seat=player.seat, coins=player.coins, king=player.king, select_expected=player.select_expected))  # update seat, amount of coins, king and select expected flag for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")
 
-            cards = {}
-            for card in player.cards:  # go through each card in the player's hand
-                if card.name not in cards.keys():  # check if card is not on new object
-                    cards[card.name] = ClassDeckDistrict(1, card)  # add card by amount to object
-                else:  # card is in object
-                    new_deck_district = cards[card.name]  # get card from object
-                    new_deck_district.amount += 1  # increase amount
-                    cards[card.name] = new_deck_district  # update card in object
+            cards = game.aggregate_cards_by_name(player.cards)  # update the amount per card
 
-            for _, deck_district in cards.items():  # go through each card in object
-                success_write_card = database.write_row_to_db(cards_db(  # write card to database
-                    uuid=helpers.create_uuid(),
-                    name=deck_district.card.name,
-                    amount=deck_district.amount,
-                    player_uuid=player.uuid
-                ))
-
-                if not success_write_card:  # check if failed to write to database
-                    return responses.error_writing_database("card")
-
-                amount = 0  # amount by default
-
-                district_by_amount = list(filter(lambda item: item.card.name.lower() == deck_district.card.name.lower(), game.deck_districts_by_amount))  # get current district from deck
-
-                if district_by_amount:  # check if there is a district
-                    amount = district_by_amount[0].amount  # get amount
-
-                if amount and deck_district.card.name not in updated_districts:  # check if district still in deck of districts and not yet updated in database
-                    updated_districts.append(deck_district.card.name)  # add district name to already updated districts
-
-                    success_update_deck_districts = database.update_row_in_db(deck_districts_db, deck_district.card.uuid, dict(amount=amount))  # update card amount in deck of districts in database
-
-                    if not success_update_deck_districts:  # check if failed to update database
-                        return responses.error_updating_database("deck of districts")
-
-                elif not amount and deck_district.card.name not in deleted_districts:  # district no longer in deck of districts and not yet deleted in database
-                    deleted_districts.append(deck_district.card.name)  # add district name to already deleted districts
-
-                    success_delete_district = database.delete_row_from_db(deck_districts_db, deck_district.card.uuid)  # delete district from deck of districts in database
-
-                    if not success_delete_district:  # check if failed to delete in database
-                        return responses.error_deleting_database("district")
+            __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=cards, uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
 
         game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
@@ -742,6 +739,124 @@ def keep_card(game_uuid, player_uuid, name):
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("character")
+
+        return responses.no_content()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.error_handling_request()
+
+
+def end_turn(game_uuid, player_uuid):
+    try:
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found("game")
+
+        game = ClassGame(database_object=game)  # initialize game object
+
+        if game.state != ClassState.turn_phase.value:  # check if game is in turn phase
+            return responses.not_turn_phase()
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found("player")
+
+        game.players.append(ClassPlayer(database_object=player))  # add player to game object
+
+        characters = characters_db.query.filter_by(player_uuid=player_uuid).all()  # get characters in player's hand
+
+        if not characters:  # check if player has characters
+            return responses.not_found("characters", True)
+
+        character_in_hand = False
+
+        characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+
+        if character:  # check if there is a character with the given name
+            character = character[0]  # get character from list
+            character_in_hand = True  # character is in player's hand
+
+        if not character_in_hand:  # check if character is not in player's hand
+            return responses.not_character()
+
+        if not character.income_received:  # check if the character has received an income
+            return responses.must_receive_income()
+
+        players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+
+        if not players:  # check if player does not exist
+            return responses.not_found("players", True)
+
+        players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects | don't add to game object because it messes with how the next seat is calculated
+
+        next_character = __define_next_character_turn(players, game.character_turn)  # get the name of the next character
+
+        if not next_character.name:  # check if there is no next character
+            game.round += 1  # increase counter
+            game.state = ClassState.selection_phase.value  # update game state
+
+            success_delete_removed_characters = database.delete_rows_from_db(removed_characters_db, game_uuid=game_uuid)  # delete character from removed characters in database
+
+            if not success_delete_removed_characters:  # check if failed to delete in database
+                return responses.error_deleting_database("removed characters")
+
+            success_delete_characters = []
+            success_update_players = []
+            for player in players:  # go through players
+                success_delete_characters.append(database.delete_row_from_db_where(characters_db, player_uuid=player.uuid))  # delete character from player characters in database
+                success_update_players.append(database.update_row_in_db(players_db, player.uuid, dict(protected=False, select_expected=player.king)))  # reset certain player flags
+
+            if False in success_delete_characters:  # check if failed to delete in database
+                return responses.error_deleting_database("character")
+
+            if False in success_update_players:  # check if database failed to update
+                return responses.error_updating_database("player")
+
+            deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get characters in game
+
+            game.deck_characters = list(map(lambda character: ClassCharacter(database_object=character), deck_characters))  # add deck of characters to game object
+
+            game.set_initial_possible_and_removed_characters()  # set possible and removed characters which happens at the start of each round
+
+            success_write_possible_characters = []
+            for character in game.possible_characters:  # go through each possible character
+                success_write_possible_characters.append(database.write_row_to_db(possible_characters_db(  # write character to database
+                    uuid=helpers.create_uuid(),
+                    name=character.name,
+                    open=character.open,
+                    assassinated=character.assassinated,
+                    robbed=character.robbed,
+                    built=character.built,
+                    income_received=character.income_received,
+                    game_uuid=game_uuid)))
+
+            if False in success_write_possible_characters:  # check if failed to write to database
+                return responses.error_writing_database("possible characters")
+
+            success_write_removed_characters = []
+            for character in game.removed_characters:  # go through each removed character
+                success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
+                    uuid=helpers.create_uuid(),
+                    name=character.name,
+                    open=character.open,
+                    assassinated=character.assassinated,
+                    robbed=character.robbed,
+                    built=character.built,
+                    income_received=character.income_received,
+                    game_uuid=game_uuid)))
+
+            if False in success_write_removed_characters:  # check if failed to write to database
+                return responses.error_writing_database("removed characters")
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=next_character.name, round=game.round))  # update database with the latest information about the game state
+
+        if not success_update_game:  # check if database failed to update
+            return responses.error_updating_database("game")
 
         return responses.no_content()
 
