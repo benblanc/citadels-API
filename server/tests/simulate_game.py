@@ -294,7 +294,7 @@ if __name__ == '__main__':
                     character_expected_to_play = character_turn[0]
 
                     if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
-                        if player["coins"] < 6:  # check if player has less than 6 coins
+                        if player["coins"] < 12:  # check if player has less than 6 coins
                             response_receive_coins = receive_coins(game_uuid, player["uuid"])
 
                             if response_receive_coins.status_code != 204:
