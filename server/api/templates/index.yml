@@ -618,6 +618,18 @@ paths:
           required: true
           type: string
           format: uuid
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            required:
+              - name
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the district you want to build.
+                example: 'castle'
       responses:
         204:
           description: Building succesful
