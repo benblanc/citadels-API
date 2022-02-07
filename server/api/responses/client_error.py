@@ -73,8 +73,14 @@ def already_income_received():
     return response, 400
 
 
-def must_receive_income():
+def must_receive_income_to_end_turn():
     response = define_message("The player making the request must receive an income before ending the turn of this character.")
+
+    return response, 400
+
+
+def must_receive_income_to_build():
+    response = define_message("The player making the request must receive an income before building a district.")
 
     return response, 400
 
@@ -87,6 +93,36 @@ def already_cards_drawn():
 
 def no_cards_drawn():
     response = define_message("The player making the request has not yet drawn the district cards for this character.")
+
+    return response, 400
+
+
+def no_cards_in_hand():
+    response = define_message("The player making the request has no district cards their hand.")
+
+    return response, 400
+
+
+def already_in_city():
+    response = define_message("The player making the request already has the same district in their city.")
+
+    return response, 400
+
+
+def already_completed_city():
+    response = define_message("The player making the request already has a completed city.")
+
+    return response, 400
+
+
+def building_limit():
+    response = define_message("The player making the request has reached the building limit for this character.")
+
+    return response, 400
+
+
+def not_enough_coins():
+    response = define_message("The player making the request does not have enough coins to build the district.")
 
     return response, 400
 

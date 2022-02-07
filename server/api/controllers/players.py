@@ -15,6 +15,7 @@ from api.models.possible_characters import PossibleCharacters as possible_charac
 from api.models.removed_characters import RemovedCharacters as removed_characters_db
 from api.models.drawn_cards import DrawnCards as drawn_cards_db
 from api.models.deck_discard_pile import DeckDiscardPile as deck_discard_pile_db
+from api.models.buildings import Buildings as buildings_db
 
 import api.responses as responses
 
@@ -188,6 +189,109 @@ def get_player(game_uuid, player_uuid):
             return responses.success_get_player(player)
 
         return responses.not_found()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.error_handling_request()
+
+
+def build(game_uuid, player_uuid, name):
+    try:
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found("game")
+
+        game = ClassGame(database_object=game)  # initialize game object
+
+        if game.state != ClassState.turn_phase.value:  # check if game is in turn phase
+            return responses.not_turn_phase()
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found("player")
+
+        player = ClassPlayer(database_object=player)  # convert player to class object
+
+        characters = characters_db.query.filter_by(player_uuid=player_uuid).all()  # get characters in player's hand
+
+        if not characters:  # check if player has characters
+            return responses.not_found("characters", True)
+
+        character_in_hand = False
+
+        characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+
+        if character:  # check if there is a character with the given name
+            character = character[0]  # get character from list
+            character_in_hand = True  # character is in player's hand
+
+        if not character_in_hand:  # check if character is not in player's hand
+            return responses.not_character()
+
+        if not character.income_received:  # check if the character has already received an income
+            return responses.must_receive_income_to_build()
+
+        characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
+
+        character_complete_info = list(filter(lambda character_complete_info: character_complete_info.name == character.name, characters_complete_info))[0]  # get full info on charcter | extra validation before getting index 0 is not necessary because game knows player has the character
+
+        if character.built >= character_complete_info.max_built:  # check if the player's character has not reached the building limit
+            return responses.building_limit()
+
+        cards = cards_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's hand
+
+        if not cards:  # check if the player has no district cards in their hand
+            return responses.no_cards_in_hand()
+
+        cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), cards))  # convert database objects to class objects
+
+        card_to_build = list(filter(lambda district: district.card.name == name, cards))  # get district for to build from player's hand
+
+        if not card_to_build:  # check if district cannot be built
+            return responses.not_found("district")
+
+        cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
+
+        card_complete_info = list(filter(lambda card: card.name == card_to_build[0].card.name, cards_complete_info))[0]  # get full info on charcter | extra validation before getting index 0 is not necessary because game knows player has the card
+
+        buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
+
+        buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
+
+        buildings_amount = 0
+        for building in buildings:  # go through buildings
+            buildings_amount += building.amount  # increase amount
+
+        if buildings_amount == 8:  # check if player already has a completed city
+            return responses.already_completed_city()
+
+        building_names = list(map(lambda building: building.card.name, buildings))  # get building names
+
+        if card_complete_info.name in building_names:  # check if player already has the district in their city
+            return responses.already_in_city()
+
+        if player.coins < card_complete_info.coins:  # check if the player does not have enough coins
+            return responses.not_enough_coins()
+
+        player.coins -= card_complete_info.coins  # decrease coin amount
+
+        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+
+        if not success_update_player:  # check if failed to update database
+            return responses.error_updating_database("player")
+
+        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(built=character.built + 1))  # update amount of districts built for character in database
+
+        if not success_update_character:  # check if failed to update database
+            return responses.error_updating_database("player")
+
+        __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, from_deck_cards_by_amount=cards, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
+
+        return responses.no_content()
 
     except Exception:
         logging.error(traceback.format_exc())
@@ -785,7 +889,7 @@ def end_turn(game_uuid, player_uuid):
             return responses.not_character()
 
         if not character.income_received:  # check if the character has received an income
-            return responses.must_receive_income()
+            return responses.must_receive_income_to_end_turn()
 
         players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 

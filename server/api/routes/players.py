@@ -28,6 +28,16 @@ class Player(Resource):
         return get_player(str(game_uuid), str(player_uuid))
 
 
+class PlayerBuild(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.build')
+    @expects_json(read_json('api/schemas/player/build.json'))
+    def post(self, game_uuid, player_uuid):
+        body = json.loads(request.data)
+        name = body["name"]
+
+        return build(str(game_uuid), str(player_uuid), str(name).lower())
+
+
 class PlayerReceiveCoins(Resource):
     @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.receive_coins')
     def post(self, game_uuid, player_uuid):
@@ -75,6 +85,7 @@ class PlayerEndTurn(Resource):
 
 api.add_resource(Players, '/game/<string:game_uuid>/players')
 api.add_resource(Player, '/game/<string:game_uuid>/players/<string:player_uuid>')
+api.add_resource(PlayerBuild, '/game/<string:game_uuid>/players/<string:player_uuid>/action.build')
 api.add_resource(PlayerReceiveCoins, '/game/<string:game_uuid>/players/<string:player_uuid>/action.receive_coins')
 api.add_resource(PlayerDrawCards, '/game/<string:game_uuid>/players/<string:player_uuid>/action.draw_cards')
 api.add_resource(PlayerStart, '/game/<string:game_uuid>/players/<string:player_uuid>/action.start')
