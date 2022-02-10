@@ -266,7 +266,7 @@ def build(game_uuid, player_uuid, name):
         for building in buildings:  # go through buildings
             buildings_amount += building.amount  # increase amount
 
-        if buildings_amount == 8:  # check if player already has a completed city
+        if buildings_amount == 8 and character_complete_info.name != ClassCharacterName.architect.value:  # check if player already has a completed city and character is not the architect
             return responses.already_completed_city()
 
         building_names = list(map(lambda building: building.card.name, buildings))  # get building names
@@ -279,7 +279,34 @@ def build(game_uuid, player_uuid, name):
 
         player.coins -= card_complete_info.coins  # decrease coin amount
 
-        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+        player.score += card_complete_info.value  # increase score
+
+        buildings_full_info = list(filter(lambda card: card.name in building_names, cards_complete_info))  # get complete info on buildings
+
+        building_colors = list(set(map(lambda building: building.color, buildings_full_info)))  # get colors of buildings
+
+        if len(building_colors) == 4 and card_complete_info.color not in building_colors:  # check if city is about to have one building in each of the five colors for the first time
+            player.score += 3  # add bonus points
+
+        if buildings_amount == 7:  # check if player is about to complete their city
+            players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+
+            if not players:  # check if there are no players
+                return responses.not_found("players", True)
+
+            players = list(map(lambda player: ClassPlayer(database_object=player), players))  # add players to class object
+
+            player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
+
+            completion_bonus = 2  # player who completes their city gain two point
+
+            if not player_city_first_completed:  # check if there is no other player who has already completed their city first
+                player.city_first_completed = True  # this player is the first to complete their city
+                completion_bonus = 4  # first player to complete a city gains four points
+
+            player.score += completion_bonus  # add the completion bonus
+
+        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, city_first_completed=player.city_first_completed, score=player.score))  # update amount of coins, first to complete city flag and score for player in database
 
         if not success_update_player:  # check if failed to update database
             return responses.error_updating_database("player")
@@ -901,8 +928,13 @@ def end_turn(game_uuid, player_uuid):
         next_character = __define_next_character_turn(players, game.character_turn)  # get the name of the next character
 
         if not next_character.name:  # check if there is no next character
-            game.round += 1  # increase counter
-            game.state = ClassState.selection_phase.value  # update game state
+            game.state = ClassState.finished.value  # update game state assuming game has ended
+
+            player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
+
+            if not player_city_first_completed:  # check if there is no player yet with a completed city | the game ends at the end of the round when a player has a completed city
+                game.round += 1  # increase counter
+                game.state = ClassState.selection_phase.value  # update game state
 
             success_delete_removed_characters = database.delete_rows_from_db(removed_characters_db, game_uuid=game_uuid)  # delete character from removed characters in database
 
