@@ -377,37 +377,38 @@ if __name__ == '__main__':
                             if player["coins"] >= card_full_info["coins"]:  # check if affordable
                                 cards_player_can_build.append(card["name"])
 
-                    if not character_expected_to_play["income_received"] and player["coins"] < 8:  # check if character has not yet received an income and player has less than 8 coins
-                        response_receive_coins = receive_coins(game_uuid, player["uuid"])
+                    if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
+                        if player["coins"] < 8:
+                            response_receive_coins = receive_coins(game_uuid, player["uuid"])
 
-                        if response_receive_coins.status_code != 204:
-                            exit(1)
+                            if response_receive_coins.status_code != 204:
+                                exit(1)
 
-                        time.sleep(SLEEP_SECONDS)
+                            time.sleep(SLEEP_SECONDS)
 
-                    elif not not character_expected_to_play["income_received"] and player["coins"] > 7:  # check if character has not yet received an income and player has more than 7 coins
-                        response_draw_cards = draw_cards(game_uuid, player["uuid"])
+                        else:
+                            response_draw_cards = draw_cards(game_uuid, player["uuid"])
 
-                        if response_draw_cards.status_code != 204:
-                            exit(1)
+                            if response_draw_cards.status_code != 204:
+                                exit(1)
 
-                        time.sleep(SLEEP_SECONDS)
+                            time.sleep(SLEEP_SECONDS)
 
-                        response_get_drawn_cards = get_drawn_cards(game_uuid, player["uuid"])
+                            response_get_drawn_cards = get_drawn_cards(game_uuid, player["uuid"])
 
-                        if response_get_drawn_cards.status_code != 200:
-                            exit(1)
+                            if response_get_drawn_cards.status_code != 200:
+                                exit(1)
 
-                        time.sleep(SLEEP_SECONDS)
+                            time.sleep(SLEEP_SECONDS)
 
-                        drawn_cards = response_get_drawn_cards.json()
+                            drawn_cards = response_get_drawn_cards.json()
 
-                        response_keep_card = keep_card(game_uuid, player["uuid"], drawn_cards[0]["name"])
+                            response_keep_card = keep_card(game_uuid, player["uuid"], drawn_cards[0]["name"])
 
-                        if response_keep_card.status_code != 204:
-                            exit(1)
+                            if response_keep_card.status_code != 204:
+                                exit(1)
 
-                        time.sleep(SLEEP_SECONDS)
+                            time.sleep(SLEEP_SECONDS)
 
                     elif character_expected_to_play["income_received"] and character_expected_to_play["built"] < character["max_built"] and cards_player_can_build:  # check if character has received an income, building limit not yet reached and there are districts the player can actually build
                         response_build = build(game_uuid, player["uuid"], cards_player_can_build[0])
