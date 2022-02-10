@@ -197,6 +197,10 @@ def get_player(game_uuid, player_uuid):
 
 def build(game_uuid, player_uuid, name):
     try:
+        # TODO: fix issue where player doesn't get bonus points on 8th building
+        # TODO: fix issue where district remains in hand after building it
+        # TODO: Add missing haven (green) to card pool, but look-up english name first
+
         game = game_db.query.get(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
