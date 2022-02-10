@@ -309,10 +309,6 @@ if __name__ == '__main__':
                 time.sleep(SLEEP_SECONDS)
 
         if game["state"] == "turn_phase":
-            if game["round"] == 10:
-                game["state"] = "finished"
-                break
-
             response_get_players = get_players(game_uuid)
 
             if response_get_players.status_code != 200:
