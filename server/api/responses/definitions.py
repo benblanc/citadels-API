@@ -55,7 +55,9 @@ def define_player(player):
         "coins": player.coins,
         "king": player.king,
         "protected": player.protected,
-        "select_expected": player.select_expected
+        "select_expected": player.select_expected,
+        "city_first_completed": player.city_first_completed,
+        "score": player.score
     }
 
     return response

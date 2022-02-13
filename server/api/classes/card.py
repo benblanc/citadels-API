@@ -28,6 +28,7 @@ class ClassDistrictName(enum.Enum):
     marketplace = "marketplace"
     shop = "shop"
     company = "company"
+    port = "port"
     town_hall = "town hall"
 
     court_of_miracles = "court of miracles"
@@ -272,6 +273,7 @@ class ClassCard:
             ClassDeckDistrict(4, ClassDistrict(name=ClassDistrictName.marketplace.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
             ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.shop.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
             ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.company.value, color=ClassColor.green.value, coins=3, value=3, effect=None)),
+            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.port.value, color=ClassColor.green.value, coins=4, value=4, effect=None)),
             ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.town_hall.value, color=ClassColor.green.value, coins=5, value=5, effect=None))
         ]
 

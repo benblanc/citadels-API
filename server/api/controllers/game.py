@@ -192,6 +192,8 @@ def join_game(game_uuid, name):
             king=new_player.king,
             protected=new_player.protected,
             select_expected=new_player.select_expected,
+            city_first_completed=new_player.city_first_completed,
+            score=new_player.score,
             game_uuid=game_uuid
         ))
 
