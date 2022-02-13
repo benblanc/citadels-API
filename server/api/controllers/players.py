@@ -125,6 +125,39 @@ def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_
                 return responses.error_deleting_database(from_table_name)
 
 
+def __calculate_score(player_uuid, city_first_completed):
+    player_buildings_complete_info = []
+    score = 0
+
+    cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
+
+    buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
+
+    buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
+
+    for building in buildings:  # go through buildings in city
+        card_complete_info = list(filter(lambda card: card.name == building.card.name, cards_complete_info))[0]  # get complete info on buildings
+
+        for index in range(building.amount):  # go through amount
+            player_buildings_complete_info.append(card_complete_info)  # add card to list
+
+    all_colors = list(set(map(lambda building: building.color, player_buildings_complete_info)))  # get colors of buildings
+
+    for building in player_buildings_complete_info:  # go through buildings with full info
+        score += building.value  # add building value to score
+
+    if len(all_colors) == 5:  # check if city has districts of all colors
+        score += 3  # add bonus
+
+    if len(player_buildings_complete_info) >= 8:  # check if city is completed
+        score += 2  # add bonus
+
+    if city_first_completed:  # check if player is the first to have a completed city
+        score += 2  # add bonus
+
+    return score
+
+
 def get_players(game_uuid, sort_order, order_by, limit, offset):
     try:
         game = game_db.query.get(game_uuid)  # get game from database
@@ -197,10 +230,6 @@ def get_player(game_uuid, player_uuid):
 
 def build(game_uuid, player_uuid, name):
     try:
-        # TODO: fix issue where player doesn't get bonus points on 8th building
-        # TODO: fix issue where district remains in hand after building it
-        # TODO: Add missing haven (green) to card pool, but look-up english name first
-
         game = game_db.query.get(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
@@ -260,7 +289,7 @@ def build(game_uuid, player_uuid, name):
 
         cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
-        card_complete_info = list(filter(lambda card: card.name == card_to_build[0].card.name, cards_complete_info))[0]  # get full info on charcter | extra validation before getting index 0 is not necessary because game knows player has the card
+        card_complete_info = list(filter(lambda card: card.name == card_to_build[0].card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
 
         buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
 
@@ -283,16 +312,17 @@ def build(game_uuid, player_uuid, name):
 
         player.coins -= card_complete_info.coins  # decrease coin amount
 
-        player.score += card_complete_info.value  # increase score
+        __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
 
-        buildings_full_info = list(filter(lambda card: card.name in building_names, cards_complete_info))  # get complete info on buildings
+        buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
 
-        building_colors = list(set(map(lambda building: building.color, buildings_full_info)))  # get colors of buildings
+        buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
 
-        if len(building_colors) == 4 and card_complete_info.color not in building_colors:  # check if city is about to have one building in each of the five colors for the first time
-            player.score += 3  # add bonus points
+        buildings_amount = 0
+        for building in buildings:  # go through buildings
+            buildings_amount += building.amount  # increase amount
 
-        if buildings_amount == 7:  # check if player is about to complete their city
+        if buildings_amount == 8:  # check if player has a completed city
             players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
             if not players:  # check if there are no players
@@ -302,13 +332,10 @@ def build(game_uuid, player_uuid, name):
 
             player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
 
-            completion_bonus = 2  # player who completes their city gain two point
-
             if not player_city_first_completed:  # check if there is no other player who has already completed their city first
                 player.city_first_completed = True  # this player is the first to complete their city
-                completion_bonus = 4  # first player to complete a city gains four points
 
-            player.score += completion_bonus  # add the completion bonus
+        player.score = __calculate_score(player_uuid, player.city_first_completed)  # calculate score
 
         success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, city_first_completed=player.city_first_completed, score=player.score))  # update amount of coins, first to complete city flag and score for player in database
 
@@ -319,8 +346,6 @@ def build(game_uuid, player_uuid, name):
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("player")
-
-        __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, from_deck_cards_by_amount=cards, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
 
         return responses.no_content()
 
