@@ -71,12 +71,13 @@ class ClassCharacterName(enum.Enum):
 
 
 class ClassAbility():
-    def __init__(self, active=False, description="", used=False, used_by=None):
+    def __init__(self, active=False, description="", main=False, used=False, used_by=None):
         if used_by is None:
             used_by = []
 
         self.__active = active  # is it an ability the player needs to activate (active) or does it happen automatically (passive)
         self.__description = description  # description of the ability
+        self.__main = main  # is it the character's main ability | false if it's the ability to receive aditional income per district of a certain or if it's a district ability
         self.__used = used  # has the ability been used this turn
         self.__used_by = used_by  # list of cards which use this ability
 
@@ -87,6 +88,10 @@ class ClassAbility():
     @property
     def description(self):
         return self.__description
+
+    @property
+    def main(self):
+        return self.__main
 
     @property
     def used(self):
@@ -101,6 +106,7 @@ class ClassAbility():
         info = {
             "active": self.__active,
             "description": self.__description,
+            "main": self.__main,
             "used": self.__used,
             "used_by": self.__used_by
         }
@@ -318,46 +324,55 @@ class ClassCard:
                          ]),
             ClassAbility(active=True,
                          description="Pick a character you wish to kill. The killed character's turn is skipped.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.assassin.value
                          ]),
             ClassAbility(active=True,
                          description="Pick a character you wish to rob. Take all of the robbed character's coins at the beginning of their turn.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.thief.value
                          ]),
             ClassAbility(active=True,
                          description="Trade all districts in your hand with another player or discard districts in your hand to draw the same amount from the deck of districts.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.magician.value
                          ]),
             ClassAbility(active=False,
                          description="Receive the crown. You are the first player to choose your character during the next round. If you are killed, you will receive the crown at the end of the round.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.king.value
                          ]),
             ClassAbility(active=False,
                          description="The districts in your city cannot be destroyed by the warlord until the end of this round.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.bishop.value
                          ]),
             ClassAbility(active=False,
                          description="Receive one additional coin after receiving your character's income.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.merchant.value
                          ]),
             ClassAbility(active=False,
                          description="Draw two additional cards from the deck of districts after receiving your character's income.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.architect.value
                          ]),
             ClassAbility(active=False,
                          description="Your building limit is three this turn.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.architect.value
                          ]),
             ClassAbility(active=True,
                          description="Destroy one district in your or another player's city by paying one less coin than the cost of the district.",
+                         main=True,
                          used_by=[
                              ClassCharacterName.warlord.value
                          ])

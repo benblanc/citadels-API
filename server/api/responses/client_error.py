@@ -127,6 +127,17 @@ def not_enough_coins():
     return response, 400
 
 
+def already_used_ability(main=True):
+    item = "main"
+
+    if not main:  # check if not a main ability
+        item = "additional income"
+
+    response = define_message("The player making the request has already used the character's {item} ability this turn.".format(item=item))
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 

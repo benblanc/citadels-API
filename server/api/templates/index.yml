@@ -797,6 +797,60 @@ paths:
       summary: Requests the selection of a character
       tags:
         - players
+  '/game/{game_uuid}/players/{player_uuid}/action.use_ability':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            required:
+              - main
+              - name
+              - character
+              - districts
+            type: object
+            properties:
+              main:
+                type: boolean
+                description: Whether you want to use the character's main ability or the generic ability to receive additional income per district of a certain color.
+                example: true
+              name:
+                type: object
+                properties:
+                  character:
+                    type: string
+                    description: The name of the character you want to use your character's ability on.
+                    example: thief
+                  districts:
+                    type: array
+                    items:
+                      type: string
+                    description: The names of the district cards in your hand or on the field you want to use your character's ability on.
+                    example: "['castle', 'market']"
+              player_uuid:
+                type: string
+                description: The uuid of the player you want to use your character's ability on.
+                example: df3ae3d0-c019-4873-8442-ac5fb82b6e29
+      responses:
+        204:
+          description: Using ability successful
+      summary: Requests using the ability of a character
+      tags:
+        - players
   '/game/{game_uuid}/players/{player_uuid}/cards':
     get:
       description: ''

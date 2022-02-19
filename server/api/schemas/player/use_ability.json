@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "properties": {
+    "main": {
+      "type": "boolean"
+    },
+    "name": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "string"
+        },
+        "districts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "player_uuid": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "main",
+    "name",
+    "character",
+    "districts",
+    "player_uuid"
+  ]
+}

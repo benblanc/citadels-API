@@ -605,6 +605,8 @@ def start_game(game_uuid, player_uuid):
                 robbed=character.robbed,
                 built=character.built,
                 income_received=character.income_received,
+                ability_used=character.ability_used,
+                ability_additional_income_used=character.ability_additional_income_used,
                 game_uuid=game_uuid)))
 
         if False in success_write_possible_characters:  # check if failed to write to database
@@ -620,6 +622,8 @@ def start_game(game_uuid, player_uuid):
                 robbed=character.robbed,
                 built=character.built,
                 income_received=character.income_received,
+                ability_used=character.ability_used,
+                ability_additional_income_used=character.ability_additional_income_used,
                 game_uuid=game_uuid)))
 
         if False in success_write_removed_characters:  # check if failed to write to database
@@ -697,6 +701,8 @@ def select_character(game_uuid, player_uuid, name, remove):
             robbed=character.robbed,
             built=character.built,
             income_received=character.income_received,
+            ability_used=character.ability_used,
+            ability_additional_income_used=character.ability_additional_income_used,
             player_uuid=player_uuid))
 
         if not success_write_character:  # check if failed to write to database
@@ -749,6 +755,8 @@ def select_character(game_uuid, player_uuid, name, remove):
                     robbed=character.robbed,
                     built=character.built,
                     income_received=character.income_received,
+                    ability_used=character.ability_used,
+                    ability_additional_income_used=character.ability_additional_income_used,
                     game_uuid=game_uuid))
 
                 if not success_write_removed_character:  # check if failed to write to database
@@ -812,6 +820,8 @@ def select_character(game_uuid, player_uuid, name, remove):
                         robbed=character.robbed,
                         built=character.built,
                         income_received=character.income_received,
+                        ability_used=character.ability_used,
+                        ability_additional_income_used=character.ability_additional_income_used,
                         game_uuid=game_uuid))
 
                     if not success_write_possible_character:  # check if failed to write to database
@@ -907,6 +917,92 @@ def keep_card(game_uuid, player_uuid, name):
         return responses.error_handling_request()
 
 
+def use_ability(game_uuid, player_uuid, main, name_character, name_districts, other_player_uuid):
+    try:
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found("game")
+
+        game = ClassGame(database_object=game)  # initialize game object
+
+        if game.state != ClassState.turn_phase.value:  # check if game is in turn phase
+            return responses.not_turn_phase()
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found("player")
+
+        game.players.append(ClassPlayer(database_object=player))  # add player to game object
+
+        characters = characters_db.query.filter_by(player_uuid=player_uuid).all()  # get characters in player's hand
+
+        if not characters:  # check if player has characters
+            return responses.not_found("characters", True)
+
+        character_in_hand = False
+
+        characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+
+        if character:  # check if there is a character with the given name
+            character = character[0]  # get character from list
+            character_in_hand = True  # character is in player's hand
+
+        if not character_in_hand:  # check if character is not in player's hand
+            return responses.not_character()
+
+        characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
+
+        character_complete_info = list(filter(lambda character_complete_info: character_complete_info.name == character.name, characters_complete_info))[0]  # get full info on current character
+
+        ability = list(filter(lambda effect: effect.main == main, character_complete_info.effect))  # get character
+
+        if not ability:  # check if character does not have the ability
+            return responses.not_found("ability")
+
+        if main and character.ability_used:  # check if the player has already used the character's main ability
+            return responses.already_used_ability()
+
+        if not main and character.ability_additional_income_used:  # check if the player has already used the character's second ability
+            return responses.already_used_ability(main=False)
+
+        if character.name == ClassCharacterName.assassin.value:  # check if the character is the assassin
+            pass
+
+        elif character.name == ClassCharacterName.thief.value:  # check if the character is the thief
+            pass
+
+        elif character.name == ClassCharacterName.magician.value:  # check if the character is the magician
+            pass
+
+        elif character.name == ClassCharacterName.warlord.value:  # check if the character is the warlord
+            pass
+
+        # if character.income_received:  # check if the character has already received an income
+        #     return responses.already_income_received()
+        #
+        # game.players[0].coins += 2  # increase coin amount
+        #
+        # success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
+        #
+        # if not success_update_player:  # check if failed to update database
+        #     return responses.error_updating_database("player")
+        #
+        # success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(open=True, income_received=True))  # update open and income flags for character in database
+        #
+        # if not success_update_character:  # check if failed to update database
+        #     return responses.error_updating_database("character")
+
+        return responses.no_content()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.error_handling_request()
+
+
 def end_turn(game_uuid, player_uuid):
     try:
         game = game_db.query.get(game_uuid)  # get game from database
@@ -956,6 +1052,12 @@ def end_turn(game_uuid, player_uuid):
 
         next_character = __define_next_character_turn(players, game.character_turn)  # get the name of the next character
 
+        if next_character.name == ClassCharacterName.king.value:  # check if the next character is the king
+            pass
+
+        elif next_character.name == ClassCharacterName.bishop.value:  # check if the next character is the bishop
+            pass
+
         if not next_character.name:  # check if there is no next character
             game.state = ClassState.finished.value  # update game state assuming game has ended
 
@@ -998,6 +1100,8 @@ def end_turn(game_uuid, player_uuid):
                     robbed=character.robbed,
                     built=character.built,
                     income_received=character.income_received,
+                    ability_used=character.ability_used,
+                    ability_additional_income_used=character.ability_additional_income_used,
                     game_uuid=game_uuid)))
 
             if False in success_write_possible_characters:  # check if failed to write to database
@@ -1013,6 +1117,8 @@ def end_turn(game_uuid, player_uuid):
                     robbed=character.robbed,
                     built=character.built,
                     income_received=character.income_received,
+                    ability_used=character.ability_used,
+                    ability_additional_income_used=character.ability_additional_income_used,
                     game_uuid=game_uuid)))
 
             if False in success_write_removed_characters:  # check if failed to write to database

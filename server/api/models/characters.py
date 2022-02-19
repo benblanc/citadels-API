@@ -10,4 +10,6 @@ class Characters(db.Model):
     robbed = db.Column(db.Boolean)
     built = db.Column(db.Integer)
     income_received = db.Column(db.Boolean)
+    ability_used = db.Column(db.Boolean)
+    ability_additional_income_used = db.Column(db.Boolean)
     player_uuid = db.Column(db.String(150), db.ForeignKey("players.uuid"), nullable=False, index=True)
