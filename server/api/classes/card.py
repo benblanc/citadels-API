@@ -10,12 +10,12 @@ class ClassColor(enum.Enum):
 
 
 class ClassDistrictName(enum.Enum):
-    tower = "tower"
+    watchtower = "watchtower"
     prison = "prison"
-    tournament_field = "tournament field"
-    stronghold = "stronghold"
+    barracks = "barracks"
+    fortress = "fortress"
 
-    domain = "domain"
+    manor = "manor"
     castle = "castle"
     palace = "palace"
 
@@ -25,25 +25,39 @@ class ClassDistrictName(enum.Enum):
     cathedral = "cathedral"
 
     tavern = "tavern"
-    marketplace = "marketplace"
-    shop = "shop"
-    company = "company"
-    port = "port"
+    market = "market"
+    trading_post = "trading post"
+    docks = "docks"
+    harbor = "harbor"
     town_hall = "town hall"
 
-    court_of_miracles = "court of miracles"
-    dungeon = "dungeon"
-    powder_tower = "powder tower"
-    lighthouse = "lighthouse"
-    museum = "museum"
-    treasury = "treasury"
-    casino = "casino"
+    haunted_quarter = "haunted quarter"
+    keep = "keep"
+    observatory = "observatory"
     laboratory = "laboratory"
     graveyard = "graveyard"
+    smithy = "smithy"
     library = "library"
-    magicians_school = "magicians' school"
+    school_of_magic = "school of magic"
     dragon_gate = "dragon gate"
     university = "university"
+
+    # the dark city expansion
+    great_wall = "great wall"
+    quarry = "quarry"
+    wishing_well = "wishing well"
+    imperial_treasury = "imperial treasury"
+    map_room = "map room"
+    hospital = "hsopital"
+    poor_house = "poor house"
+    lighthouse = "lighthouse"
+    park = "park"
+    powder_tower = "powder tower"
+    ballroom = "ballroom"
+    factory = "factory"
+    museum = "museum"
+    clock_tower = "clock tower"
+    throne_room = "throne room"
 
 
 class ClassCharacterName(enum.Enum):
@@ -249,14 +263,14 @@ class ClassDeckDistrict:
 class ClassCard:
     def __init__(self, ):
         self.__districts_red = [
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.tower.value, color=ClassColor.red.value, coins=1, value=1, effect=None)),
+            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.watchtower.value, color=ClassColor.red.value, coins=1, value=1, effect=None)),
             ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.prison.value, color=ClassColor.red.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.tournament_field.value, color=ClassColor.red.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.stronghold.value, color=ClassColor.red.value, coins=5, value=5, effect=None))
+            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.barracks.value, color=ClassColor.red.value, coins=3, value=3, effect=None)),
+            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.fortress.value, color=ClassColor.red.value, coins=5, value=5, effect=None))
         ]
 
         self.__districts_yellow = [
-            ClassDeckDistrict(5, ClassDistrict(name=ClassDistrictName.domain.value, color=ClassColor.yellow.value, coins=3, value=3, effect=None)),
+            ClassDeckDistrict(5, ClassDistrict(name=ClassDistrictName.manor.value, color=ClassColor.yellow.value, coins=3, value=3, effect=None)),
             ClassDeckDistrict(4, ClassDistrict(name=ClassDistrictName.castle.value, color=ClassColor.yellow.value, coins=4, value=4, effect=None)),
             ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.palace.value, color=ClassColor.yellow.value, coins=5, value=5, effect=None))
         ]
@@ -270,25 +284,22 @@ class ClassCard:
 
         self.__districts_green = [
             ClassDeckDistrict(5, ClassDistrict(name=ClassDistrictName.tavern.value, color=ClassColor.green.value, coins=1, value=1, effect=None)),
-            ClassDeckDistrict(4, ClassDistrict(name=ClassDistrictName.marketplace.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.shop.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.company.value, color=ClassColor.green.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.port.value, color=ClassColor.green.value, coins=4, value=4, effect=None)),
+            ClassDeckDistrict(4, ClassDistrict(name=ClassDistrictName.market.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
+            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.trading_post.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
+            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.docks.value, color=ClassColor.green.value, coins=3, value=3, effect=None)),
+            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.harbor.value, color=ClassColor.green.value, coins=4, value=4, effect=None)),
             ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.town_hall.value, color=ClassColor.green.value, coins=5, value=5, effect=None))
         ]
 
         self.__districts_purple = [
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.court_of_miracles.value, color=ClassColor.purple.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.dungeon.value, color=ClassColor.purple.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.powder_tower.value, color=ClassColor.purple.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.lighthouse.value, color=ClassColor.purple.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.museum.value, color=ClassColor.purple.value, coins=4, value=4, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.treasury.value, color=ClassColor.purple.value, coins=4, value=4, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.casino.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
+            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.haunted_quarter.value, color=ClassColor.purple.value, coins=2, value=2, effect=None)),
+            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.keep.value, color=ClassColor.purple.value, coins=3, value=3, effect=None)),
+            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.observatory.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
             ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.laboratory.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
             ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.graveyard.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
+            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.smithy.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
             ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.library.value, color=ClassColor.purple.value, coins=6, value=6, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.magicians_school.value, color=ClassColor.purple.value, coins=6, value=6, effect=None)),
+            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.school_of_magic.value, color=ClassColor.purple.value, coins=6, value=6, effect=None)),
             ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.dragon_gate.value, color=ClassColor.purple.value, coins=6, value=8, effect=None)),
             ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.university.value, color=ClassColor.purple.value, coins=6, value=8, effect=None))
         ]
