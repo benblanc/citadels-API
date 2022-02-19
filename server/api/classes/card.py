@@ -42,7 +42,6 @@ class ClassDistrictName(enum.Enum):
     dragon_gate = "dragon gate"
     university = "university"
 
-    # the dark city expansion
     great_wall = "great wall"
     quarry = "quarry"
     wishing_well = "wishing well"
