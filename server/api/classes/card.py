@@ -165,7 +165,7 @@ class ClassDistrict:
 
 
 class ClassCharacter:
-    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1, income_received=False, database_object=None):
+    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1, income_received=False, ability_used=False, ability_additional_income_used=False, database_object=None):
         self.__uuid = uuid
         self.__order = order
         self.__name = name
@@ -176,6 +176,8 @@ class ClassCharacter:
         self.__built = built
         self.__max_built = max_built
         self.__income_received = income_received
+        self.__ability_used = ability_used
+        self.__ability_additional_income_used = ability_additional_income_used
 
         if database_object:  # check if parameters contain a database object
             self.__uuid = database_object.uuid
@@ -185,6 +187,8 @@ class ClassCharacter:
             self.__robbed = database_object.robbed
             self.__built = database_object.built
             self.__income_received = database_object.income_received
+            self.__ability_used = database_object.ability_used
+            self.__ability_additional_income_used = database_object.ability_additional_income_used
 
     def __eq__(self, other):  # override default equals behavior
         return self.__name == other.__name
@@ -254,6 +258,14 @@ class ClassCharacter:
         self.__income_received = value
 
     @property
+    def ability_used(self):
+        return self.__ability_used
+
+    @property
+    def ability_additional_income_used(self):
+        return self.__ability_additional_income_used
+
+    @property
     def info(self):
         effects = []
         for effect in self.__effect:
@@ -269,7 +281,9 @@ class ClassCharacter:
             "robbed": self.__robbed,
             "built": self.__built,
             "max_built": self.__max_built,
-            "income_received": self.__income_received
+            "income_received": self.__income_received,
+            "ability_used": self.__ability_used,
+            "ability_additional_income_used": self.__ability_additional_income_used
         }
 
         return info
