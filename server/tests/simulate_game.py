@@ -1,4 +1,4 @@
-import requests, json, time
+import requests, json, time, random
 
 from tests.endpoints import *
 
@@ -9,11 +9,14 @@ BASE_URL = "http://127.0.0.1:8080"
 GAME_DESCRIPTION = "Test to simulate game and see how far it gets before breaking"
 GAME_NAME = "Testing application"
 
-NUMBER_OF_PLAYERS = 4
+NUMBER_OF_PLAYERS = 7
 
 COINS_INCOME_LIMIT = 6
 
 SLEEP_SECONDS = 0.10
+
+EXIT_AFTER_GAME_CREATION = False
+EXIT_AFTER_CHARACTER_SELECTION = True
 
 
 def perform_selection(base_url, sleep_seconds, game_uuid):
@@ -40,7 +43,9 @@ def perform_selection(base_url, sleep_seconds, game_uuid):
 
         possible_characters = response_get_possible_characters.json()
 
-        keep_character = possible_characters[0]["name"]
+        random_index = random.randint(0, len(possible_characters) - 1)
+
+        keep_character = possible_characters[random_index]["name"]
 
         remove_character = ""
 
@@ -231,11 +236,19 @@ if __name__ == '__main__':
 
     game = response_get_game.json()
 
+    if EXIT_AFTER_GAME_CREATION:
+        print("EXIT_AFTER_GAME_CREATION")
+        exit(0)
+
     while game["state"] != "finished":
         if game["state"] == "selection_phase":
             perform_selection(BASE_URL, SLEEP_SECONDS, game_uuid)
 
         if game["state"] == "turn_phase":
+            if EXIT_AFTER_CHARACTER_SELECTION:
+                print("EXIT_AFTER_CHARACTER_SELECTION")
+                exit(0)
+
             perform_turn(BASE_URL, SLEEP_SECONDS, game_uuid)
 
         response_get_game = get_game(BASE_URL, game_uuid)

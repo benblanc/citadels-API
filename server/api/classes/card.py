@@ -166,6 +166,9 @@ class ClassDistrict:
 
 class ClassCharacter:
     def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1, income_received=False, ability_used=False, ability_additional_income_used=False, database_object=None):
+        if effect is None:
+            effect = []
+
         self.__uuid = uuid
         self.__order = order
         self.__name = name
@@ -261,9 +264,17 @@ class ClassCharacter:
     def ability_used(self):
         return self.__ability_used
 
+    @ability_used.setter
+    def ability_used(self, value):
+        self.__ability_used = value
+
     @property
     def ability_additional_income_used(self):
         return self.__ability_additional_income_used
+
+    @ability_additional_income_used.setter
+    def ability_additional_income_used(self, value):
+        self.__ability_additional_income_used = value
 
     @property
     def info(self):

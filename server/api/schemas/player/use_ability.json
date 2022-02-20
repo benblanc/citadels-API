@@ -25,8 +25,6 @@
   "required": [
     "main",
     "name",
-    "character",
-    "districts",
     "player_uuid"
   ]
 }

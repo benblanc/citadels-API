@@ -820,8 +820,7 @@ paths:
             required:
               - main
               - name
-              - character
-              - districts
+              - player_uuid
             type: object
             properties:
               main:
@@ -840,7 +839,7 @@ paths:
                     items:
                       type: string
                     description: The names of the district cards in your hand or on the field you want to use your character's ability on.
-                    example: "['castle', 'market']"
+                    example: ["castle", "market"]
               player_uuid:
                 type: string
                 description: The uuid of the player you want to use your character's ability on.
