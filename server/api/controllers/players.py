@@ -607,6 +607,8 @@ def start_game(game_uuid, player_uuid):
 
         game.set_starting_hand_per_player()  # give each player district cards to start with
 
+        # TODO: something funcky is happening. Some characters start/players start with less than 4 cards
+
         game.set_starting_king()  # let a random player start as the king
 
         game.set_character_division()  # define how many characters per player and how many are open or closed on the field
