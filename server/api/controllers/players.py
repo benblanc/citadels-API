@@ -312,7 +312,10 @@ def build(game_uuid, player_uuid, name):
 
         player.coins -= card_complete_info.coins  # decrease coin amount
 
-        __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
+        error = __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
+
+        if error:  # check if something went wrong when updating the database
+            return error
 
         buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
 
@@ -421,7 +424,10 @@ def receive_coins(game_uuid, player_uuid):
 
                     cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
 
-                    __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+                    error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
 
                     deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
 
@@ -438,7 +444,10 @@ def receive_coins(game_uuid, player_uuid):
 
             drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
 
-            __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+            if error:  # check if something went wrong when updating the database
+                return error
 
         success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
 
@@ -520,7 +529,10 @@ def draw_cards(game_uuid, player_uuid):
 
                 cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
 
-                __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+                error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                if error:  # check if something went wrong when updating the database
+                    return error
 
                 deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
 
@@ -537,7 +549,10 @@ def draw_cards(game_uuid, player_uuid):
 
         drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
 
-        __update_districts_in_database(from_table=deck_districts_db, to_table=drawn_cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+        error = __update_districts_in_database(from_table=deck_districts_db, to_table=drawn_cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+        if error:  # check if something went wrong when updating the database
+            return error
 
         return responses.no_content()
 
@@ -607,8 +622,6 @@ def start_game(game_uuid, player_uuid):
 
         game.set_starting_hand_per_player()  # give each player district cards to start with
 
-        # TODO: something funcky is happening. Some characters start/players start with less than 4 cards
-
         game.set_starting_king()  # let a random player start as the king
 
         game.set_character_division()  # define how many characters per player and how many are open or closed on the field
@@ -621,7 +634,10 @@ def start_game(game_uuid, player_uuid):
 
             cards = game.aggregate_cards_by_name(player.cards)  # update the amount per card
 
-            __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=cards, uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=cards, uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
+
+            if error:  # check if something went wrong when updating the database
+                return error
 
         game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
@@ -953,9 +969,15 @@ def keep_card(game_uuid, player_uuid, name):
 
             cards_for_hand[0].amount = 1  # set right amount
 
-        __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
+        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
 
-        __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=cards_for_hand, uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
+        if error:  # check if something went wrong when updating the database
+            return error
+
+        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=cards_for_hand, uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
+
+        if error:  # check if something went wrong when updating the database
+            return error
 
         if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
             character.ability_used = True
@@ -982,7 +1004,10 @@ def keep_card(game_uuid, player_uuid, name):
 
                     cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
 
-                    __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+                    error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
 
                     deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
 
@@ -999,7 +1024,10 @@ def keep_card(game_uuid, player_uuid, name):
 
             drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
 
-            __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+            if error:  # check if something went wrong when updating the database
+                return error
 
         success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
 
@@ -1172,9 +1200,15 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                     other_player_cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), other_player_cards))  # convert database objects to class objects
 
-                    __update_districts_in_database(from_table=cards_db, to_table=cards_db, cards=cards, uuid=other_player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="cards in other player's hand")  # write cards from magician's hand to other player's hand
+                    error = __update_districts_in_database(from_table=cards_db, to_table=cards_db, cards=cards, uuid=other_player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="cards in other player's hand")  # write cards from magician's hand to other player's hand
 
-                    __update_districts_in_database(from_table=cards_db, to_table=cards_db, cards=other_player_cards, uuid=player_uuid, player_table=True, from_table_name="cards in other player's hand", to_table_name="cards in player's hand")  # write cards from other player's hand to magician's hand
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                    error = __update_districts_in_database(from_table=cards_db, to_table=cards_db, cards=other_player_cards, uuid=player_uuid, player_table=True, from_table_name="cards in other player's hand", to_table_name="cards in player's hand")  # write cards from other player's hand to magician's hand
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
 
                 elif name_districts:  # check if district names were provided | the magician wants to discard districts to draw new ones
                     name_count = {}
@@ -1210,7 +1244,10 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                         cards_for_discard_pile.append(card_to_discard)  # add card to list
 
-                    __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
+                    error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
 
                     deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
 
@@ -1230,7 +1267,10 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                             cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
 
-                            __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+                            error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                            if error:  # check if something went wrong when updating the database
+                                return error
 
                             deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
 
@@ -1247,7 +1287,10 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                     drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
 
-                    __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="cards in player's hand")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+                    error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="cards in player's hand")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
 
                 else:  # the required input was not provided
                     return responses.bad_request("other_player_uuid or name_districts")
@@ -1296,7 +1339,10 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 if not success_update_player:  # check if failed to update database
                     return responses.error_updating_database("player")
 
-                __update_districts_in_database(from_table=buildings_db, to_table=deck_discard_pile_db, cards=building_to_destroy, uuid=game_uuid, from_table_name="buildings", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the buildings table
+                error = __update_districts_in_database(from_table=buildings_db, to_table=deck_discard_pile_db, cards=building_to_destroy, uuid=game_uuid, from_table_name="buildings", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the buildings table
+
+                if error:  # check if something went wrong when updating the database
+                    return error
 
                 other_player.score = __calculate_score(other_player.uuid, other_player.city_first_completed)  # calculate score
 

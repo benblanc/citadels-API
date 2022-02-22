@@ -9,14 +9,14 @@ BASE_URL = "http://127.0.0.1:8080"
 GAME_DESCRIPTION = "Test to simulate game and see how far it gets before breaking"
 GAME_NAME = "Testing application"
 
-NUMBER_OF_PLAYERS = 7
+NUMBER_OF_PLAYERS = 4
 
 COINS_INCOME_LIMIT = 6
 
 SLEEP_SECONDS = 0.10
 
 EXIT_AFTER_GAME_CREATION = False
-EXIT_AFTER_CHARACTER_SELECTION = True
+EXIT_AFTER_CHARACTER_SELECTION = False
 
 
 def perform_selection(base_url, sleep_seconds, game_uuid):

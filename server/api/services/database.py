@@ -2,6 +2,8 @@ import logging, traceback
 
 from api import db
 
+from pprint import pprint
+
 
 def write_row_to_db(row):
     try:
@@ -29,9 +31,13 @@ def update_row_in_db(table, uuid, dict_update):
 
 def delete_row_from_db_where(table, **kwargs):
     try:
-        db.session.delete(table.query.filter_by(**kwargs).first())
-        db.session.commit()
-        db.session.close()
+        row = table.query.filter_by(**kwargs).first()
+
+        if row:
+            db.session.delete(row)
+            db.session.commit()
+            db.session.close()
+
         return True
 
     except Exception:
