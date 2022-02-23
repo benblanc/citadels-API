@@ -181,7 +181,6 @@ def __perform_turn(game_uuid):
     # loop over the characters
     # while character has not ended its turn, keep on playing its turn | while game["current_character"] == player_character: keep looping
 
-
     players = get_players(game_uuid)
 
     for player in players:
