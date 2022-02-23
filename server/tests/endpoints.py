@@ -1,4 +1,4 @@
-import requests, json, time
+import requests, json
 
 from pprint import pprint
 
@@ -200,6 +200,36 @@ def get_player_buildings(base_url, game_uuid, player_uuid):
 
 def get_card(base_url, name):
     response = requests.get(url=base_url + "/cards/districts/" + name)
+
+    log_response(response)
+
+    return response
+
+
+def use_ability(base_url, game_uuid, player_uuid, main=False, character_name=None, districts_name=None, other_player_uuid=None):
+    payload = {
+        "main": main,
+        "name": {
+            "character": character_name,
+            "districts": districts_name
+        },
+        "player_uuid": other_player_uuid
+    }
+
+    response = requests.post(url=base_url + "/game/" + game_uuid + "/players/" + player_uuid + "/action.use_ability", json=payload)
+
+    log_response(response)
+
+    return response
+
+
+def get_characters(base_url):
+    query_params = {
+        "sort_order": "asc",
+        "order_by": "order"
+    }
+
+    response = requests.get(url=base_url + "/cards/characters", params=query_params)
 
     log_response(response)
 
