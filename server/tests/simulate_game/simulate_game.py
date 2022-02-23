@@ -176,6 +176,12 @@ def __perform_turn(game_uuid):
     skip_main_ability = False
     skip_secondary_ability = False
 
+    # go through all players
+    # find out which player has which character
+    # loop over the characters
+    # while character has not ended its turn, keep on playing its turn | while game["current_character"] == player_character: keep looping
+
+
     players = get_players(game_uuid)
 
     for player in players:
