@@ -1,5 +1,7 @@
 aniso8601==9.0.1
 attrs==21.2.0
+certifi==2021.10.8
+charset-normalizer==2.0.12
 click==8.0.3
 colorama==0.4.4
 flasgger==0.9.5
@@ -8,6 +10,7 @@ flask-expects-json==1.7.0
 Flask-RESTful==0.3.9
 Flask-SQLAlchemy==2.5.1
 greenlet==1.1.2
+idna==3.3
 importlib-metadata==4.8.2
 importlib-resources==5.4.0
 itsdangerous==2.0.1
@@ -19,8 +22,10 @@ mysqlclient==2.1.0
 pyrsistent==0.18.0
 pytz==2021.3
 PyYAML==6.0
+requests==2.27.1
 six==1.16.0
 SQLAlchemy==1.4.28
 typing-extensions==4.0.1
+urllib3==1.26.8
 Werkzeug==2.0.2
 zipp==3.6.0
