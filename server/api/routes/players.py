@@ -77,6 +77,22 @@ class PlayerKeepCard(Resource):
         return keep_card(str(game_uuid), str(player_uuid), str(name).lower())
 
 
+class PlayerCharacterUseAbility(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.use_ability')
+    @expects_json(read_json('api/schemas/player/use_ability.json'))
+    def post(self, game_uuid, player_uuid):
+        body = json.loads(request.data)
+        main = body["main"]
+        name_character = body["name"]["character"]
+        name_districts = body["name"]["districts"]
+        other_player_uuid = body["player_uuid"]
+
+        if name_districts:  # check if not none
+            name_districts = list(name_districts)
+
+        return use_ability(str(game_uuid), str(player_uuid), bool(main), str(name_character), name_districts, str(other_player_uuid))
+
+
 class PlayerEndTurn(Resource):
     @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/action.end_turn')
     def post(self, game_uuid, player_uuid):
@@ -91,4 +107,5 @@ api.add_resource(PlayerDrawCards, '/game/<string:game_uuid>/players/<string:play
 api.add_resource(PlayerStart, '/game/<string:game_uuid>/players/<string:player_uuid>/action.start')
 api.add_resource(PlayerSelect, '/game/<string:game_uuid>/players/<string:player_uuid>/action.select')
 api.add_resource(PlayerKeepCard, '/game/<string:game_uuid>/players/<string:player_uuid>/action.keep_card')
+api.add_resource(PlayerCharacterUseAbility, '/game/<string:game_uuid>/players/<string:player_uuid>/action.use_ability')
 api.add_resource(PlayerEndTurn, '/game/<string:game_uuid>/players/<string:player_uuid>/action.end_turn')

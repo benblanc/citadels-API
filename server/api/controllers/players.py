@@ -43,7 +43,7 @@ def __define_next_character_turn(players, current_character_name):
         for character in characters:  # go through player's characters
             character_complete_info = list(filter(lambda complete_character: complete_character.name == character.name, characters_complete_info))[0]  # get complete info on character
 
-            if current_character.order < character_complete_info.order < lowest_character.order and not character_complete_info.assassinated:  # check if the order of the player's character is between the current one and the lowest one AND the character is not assassinated
+            if current_character.order < character_complete_info.order < lowest_character.order and not character.assassinated:  # check if the order of the player's character is between the current one and the lowest one AND the character is not assassinated
                 lowest_character = character_complete_info  # update the lowest character
 
     return lowest_character
@@ -312,7 +312,10 @@ def build(game_uuid, player_uuid, name):
 
         player.coins -= card_complete_info.coins  # decrease coin amount
 
-        __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
+        error = __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
+
+        if error:  # check if something went wrong when updating the database
+            return error
 
         buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
 
@@ -396,12 +399,62 @@ def receive_coins(game_uuid, player_uuid):
 
         game.players[0].coins += 2  # increase coin amount
 
-        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
+        if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
+            character.ability_used = True
+            game.players[0].coins += 1  # gain an additional coin
+
+        elif character.name == ClassCharacterName.architect.value and not character.ability_used:  # check if character is the architect
+            character.ability_used = True
+
+            deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
+
+            districts = []
+            for district in deck_districts:  # go through each district in the deck of districts
+                for index in range(district.amount):  # add the separated district to a new list as class objects
+                    districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+            random.shuffle(districts)  # shuffle district cards
+
+            game.deck_districts = districts  # add districts to game object
+
+            drawn_cards = []
+            for index in range(2):  # do it twice
+                if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
+                    discard_pile = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).all()  # get discard pile in game
+
+                    cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
+
+                    error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                    deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
+
+                    districts = []
+                    for district in deck_districts:  # go through each district in the deck of districts
+                        for _index in range(district.amount):  # add the separated district to a new list as class objects
+                            districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+                    random.shuffle(districts)  # shuffle district cards
+
+                    game.deck_districts = districts  # add districts to game object
+
+                drawn_cards.append(game.draw_card_deck_districts())  # draw a card from the deck of districts and add it to the list
+
+            drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
+
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+            if error:  # check if something went wrong when updating the database
+                return error
+
+        success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
 
         if not success_update_player:  # check if failed to update database
             return responses.error_updating_database("player")
 
-        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(open=True, income_received=True))  # update open and income flags for character in database
+        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(income_received=True, ability_used=character.ability_used))  # update income and ability used flags for character in database
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("character")
@@ -476,7 +529,10 @@ def draw_cards(game_uuid, player_uuid):
 
                 cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
 
-                __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+                error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                if error:  # check if something went wrong when updating the database
+                    return error
 
                 deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
 
@@ -493,12 +549,10 @@ def draw_cards(game_uuid, player_uuid):
 
         drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
 
-        __update_districts_in_database(from_table=deck_districts_db, to_table=drawn_cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+        error = __update_districts_in_database(from_table=deck_districts_db, to_table=drawn_cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
 
-        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(open=True))  # update open flag for character in database
-
-        if not success_update_character:  # check if failed to update database
-            return responses.error_updating_database("character")
+        if error:  # check if something went wrong when updating the database
+            return error
 
         return responses.no_content()
 
@@ -580,7 +634,10 @@ def start_game(game_uuid, player_uuid):
 
             cards = game.aggregate_cards_by_name(player.cards)  # update the amount per card
 
-            __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=cards, uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=cards, uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
+
+            if error:  # check if something went wrong when updating the database
+                return error
 
         game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
@@ -605,6 +662,8 @@ def start_game(game_uuid, player_uuid):
                 robbed=character.robbed,
                 built=character.built,
                 income_received=character.income_received,
+                ability_used=character.ability_used,
+                ability_additional_income_used=character.ability_additional_income_used,
                 game_uuid=game_uuid)))
 
         if False in success_write_possible_characters:  # check if failed to write to database
@@ -620,6 +679,8 @@ def start_game(game_uuid, player_uuid):
                 robbed=character.robbed,
                 built=character.built,
                 income_received=character.income_received,
+                ability_used=character.ability_used,
+                ability_additional_income_used=character.ability_additional_income_used,
                 game_uuid=game_uuid)))
 
         if False in success_write_removed_characters:  # check if failed to write to database
@@ -697,6 +758,8 @@ def select_character(game_uuid, player_uuid, name, remove):
             robbed=character.robbed,
             built=character.built,
             income_received=character.income_received,
+            ability_used=character.ability_used,
+            ability_additional_income_used=character.ability_additional_income_used,
             player_uuid=player_uuid))
 
         if not success_write_character:  # check if failed to write to database
@@ -749,6 +812,8 @@ def select_character(game_uuid, player_uuid, name, remove):
                     robbed=character.robbed,
                     built=character.built,
                     income_received=character.income_received,
+                    ability_used=character.ability_used,
+                    ability_additional_income_used=character.ability_additional_income_used,
                     game_uuid=game_uuid))
 
                 if not success_write_removed_character:  # check if failed to write to database
@@ -781,6 +846,17 @@ def select_character(game_uuid, player_uuid, name, remove):
             if not success_update_game:  # check if database failed to update
                 return responses.error_updating_database("game")
 
+            for player in players:  # go through each player
+                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+
+                characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database object to class objects
+
+                for character in characters:  # go through player's characters
+                    if character.name == lowest_character.name:  # check if player's character is the first character in the next round to play a turn
+                        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(open=True))  # update open flag for character in database
+
+                        if not success_update_character:  # check if failed to update database
+                            return responses.error_updating_database("character")
 
         else:  # there are players who still need to select characters
             next_seat_select_expected = game.players[0].seat + 1  # decide which player needs to pick a character next
@@ -812,6 +888,8 @@ def select_character(game_uuid, player_uuid, name, remove):
                         robbed=character.robbed,
                         built=character.built,
                         income_received=character.income_received,
+                        ability_used=character.ability_used,
+                        ability_additional_income_used=character.ability_additional_income_used,
                         game_uuid=game_uuid))
 
                     if not success_write_possible_character:  # check if failed to write to database
@@ -891,11 +969,428 @@ def keep_card(game_uuid, player_uuid, name):
 
             cards_for_hand[0].amount = 1  # set right amount
 
-        __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
+        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
 
-        __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=cards_for_hand, uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
+        if error:  # check if something went wrong when updating the database
+            return error
 
-        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(income_received=True))  # update income flag for character in database
+        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=cards_for_hand, uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
+
+        if error:  # check if something went wrong when updating the database
+            return error
+
+        if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
+            character.ability_used = True
+            game.players[0].coins += 1  # gain an additional coin
+
+        elif character.name == ClassCharacterName.architect.value and not character.ability_used:  # check if character is the architect
+            character.ability_used = True
+
+            deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
+
+            districts = []
+            for district in deck_districts:  # go through each district in the deck of districts
+                for index in range(district.amount):  # add the separated district to a new list as class objects
+                    districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+            random.shuffle(districts)  # shuffle district cards
+
+            game.deck_districts = districts  # add districts to game object
+
+            drawn_cards = []
+            for index in range(2):  # do it twice
+                if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
+                    discard_pile = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).all()  # get discard pile in game
+
+                    cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
+
+                    error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                    deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
+
+                    districts = []
+                    for district in deck_districts:  # go through each district in the deck of districts
+                        for _index in range(district.amount):  # add the separated district to a new list as class objects
+                            districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+                    random.shuffle(districts)  # shuffle district cards
+
+                    game.deck_districts = districts  # add districts to game object
+
+                drawn_cards.append(game.draw_card_deck_districts())  # draw a card from the deck of districts and add it to the list
+
+            drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
+
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+            if error:  # check if something went wrong when updating the database
+                return error
+
+        success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
+
+        if not success_update_player:  # check if failed to update database
+            return responses.error_updating_database("player")
+
+        success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(income_received=True, ability_used=character.ability_used))  # update open income and ability used flags for character in database
+
+        if not success_update_character:  # check if failed to update database
+            return responses.error_updating_database("character")
+
+        return responses.no_content()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.error_handling_request()
+
+
+def use_ability(game_uuid, player_uuid, main, name_character, name_districts, other_player_uuid):
+    try:
+        game = game_db.query.get(game_uuid)  # get game from database
+
+        if not game:  # check if game does not exist
+            return responses.not_found("game")
+
+        game = ClassGame(database_object=game)  # initialize game object
+
+        if game.state != ClassState.turn_phase.value:  # check if game is in turn phase
+            return responses.not_turn_phase()
+
+        player = players_db.query.get(player_uuid)  # get player from database
+
+        if not player:  # check if player does not exist
+            return responses.not_found("player")
+
+        player = ClassPlayer(database_object=player)  # convert database object to class objects
+
+        characters = characters_db.query.filter_by(player_uuid=player_uuid).all()  # get characters in player's hand
+
+        if not characters:  # check if player has characters
+            return responses.not_found("characters", True)
+
+        character_in_hand = False
+
+        characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+
+        if character:  # check if there is a character with the given name
+            character = character[0]  # get character from list
+            character_in_hand = True  # character is in player's hand
+
+        if not character_in_hand:  # check if character is not in player's hand
+            return responses.not_character()
+
+        characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
+
+        character_complete_info = list(filter(lambda character_complete_info: character_complete_info.name == character.name, characters_complete_info))[0]  # get full info on current character
+
+        ability = list(filter(lambda effect: effect.main == main, character_complete_info.effect))  # get character
+
+        if not ability:  # check if character does not have the ability
+            return responses.not_found("ability")
+
+        if main and character.ability_used:  # check if the player has already used the character's main ability
+            return responses.already_used_ability()
+
+        if not main and character.ability_additional_income_used:  # check if the player has already used the character's second ability
+            return responses.already_used_ability(main=False)
+
+        if main:  # check if character ability was the main ability
+            if character.name == ClassCharacterName.assassin.value:  # check if the character is the assassin
+                character_possible = False
+
+                characters_in_game = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get all characters in game
+
+                if characters_in_game:  # check if there are characters in the game
+                    character_in_game = list(filter(lambda character: character.name == name_character, characters_in_game))  # get character
+
+                    if character_in_game:  # check if there is a character with the given name
+                        character_possible = True  # character is in game
+
+                if not character_possible:  # check if character cannot be picked
+                    return responses.not_found("character")
+
+                players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+
+                if not players:  # check if player does not exist
+                    return responses.not_found("players", True)
+
+                players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects
+
+                for player in players:  # go through players
+                    characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+
+                    if not characters:  # check if player has characters
+                        return responses.not_found("characters", True)
+
+                    characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+                    character_to_assassinate = list(filter(lambda character: character.name == name_character, characters))  # get character to assassinate
+
+                    if character_to_assassinate:  # check if there is a character with the given name
+                        character_to_assassinate = character_to_assassinate[0]  # get character from list
+
+                        success_update_character = database.update_row_in_db(characters_db, character_to_assassinate.uuid, dict(assassinated=True))  # update assassinated flag for character in database
+
+                        if not success_update_character:  # check if failed to update database
+                            return responses.error_updating_database("character")
+
+            elif character.name == ClassCharacterName.thief.value:  # check if the character is the thief
+                character_possible = False
+
+                characters_in_game = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get all characters in game
+
+                if characters_in_game:  # check if there are characters in the game
+                    character_in_game = list(filter(lambda character: character.name == name_character, characters_in_game))  # get character
+
+                    if character_in_game:  # check if there is a character with the given name
+                        character_possible = True  # character is in game
+
+                if not character_possible:  # check if character cannot be picked
+                    return responses.not_found("character")
+
+                players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+
+                if not players:  # check if player does not exist
+                    return responses.not_found("players", True)
+
+                players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects
+
+                for player in players:  # go through players
+                    characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+
+                    if not characters:  # check if player has characters
+                        return responses.not_found("characters", True)
+
+                    characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+                    character_to_rob = list(filter(lambda character: character.name == name_character, characters))  # get character to assassinate
+
+                    if character_to_rob:  # check if there is a character with the given name
+                        character_to_rob = character_to_rob[0]  # get character from list
+
+                        cannot_rob = [  # character which cannot be robbed
+                            ClassCharacterName.assassin,
+                            ClassCharacterName.thief
+                        ]
+
+                        if character_to_rob.name in cannot_rob or character_to_rob.assassinated:  # check if thief can actually rob the character
+                            return responses.cannot_rob()
+
+                        success_update_character = database.update_row_in_db(characters_db, character_to_rob.uuid, dict(robbed=True))  # update assassinated flag for character in database
+
+                        if not success_update_character:  # check if failed to update database
+                            return responses.error_updating_database("character")
+
+            elif character.name == ClassCharacterName.magician.value:  # check if the character is the magician
+                if other_player_uuid:  # check if uuid of another player was provided | the magician wants to swap cards with another player
+                    other_player = players_db.query.get(other_player_uuid)  # get player from database
+
+                    if not other_player:  # check if player does not exist
+                        return responses.not_found("player")
+
+                    cards = cards_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's hand
+
+                    cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), cards))  # convert database objects to class objects
+
+                    other_player_cards = cards_db.query.filter_by(player_uuid=other_player_uuid).all()  # get cards in other player's hand
+
+                    other_player_cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), other_player_cards))  # convert database objects to class objects
+
+                    error = __update_districts_in_database(from_table=cards_db, to_table=cards_db, cards=cards, uuid=other_player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="cards in other player's hand")  # write cards from magician's hand to other player's hand
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                    error = __update_districts_in_database(from_table=cards_db, to_table=cards_db, cards=other_player_cards, uuid=player_uuid, player_table=True, from_table_name="cards in other player's hand", to_table_name="cards in player's hand")  # write cards from other player's hand to magician's hand
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                elif name_districts:  # check if district names were provided | the magician wants to discard districts to draw new ones
+                    name_count = {}
+                    amount = 0
+
+                    for name in name_districts:  # go through names
+                        if name not in name_count.keys():  # check if name not yet in object
+                            name_count[name] = 0  # add name to count object
+
+                        name_count[name] += 1  # increase count
+                        amount += 1  # increase amount
+
+                    cards = cards_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's hand
+
+                    if not cards:  # check if the player has no district cards in their hand
+                        return responses.no_cards_in_hand()
+
+                    cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), cards))  # convert database objects to class objects
+
+                    cards_for_discard_pile = []
+                    for name, count in name_count.items():  # go through the cards the magician wants to discard
+                        card_to_discard = list(filter(lambda district: district.card.name == name, cards))
+
+                        if not card_to_discard:  # check if district cannot be built
+                            return responses.not_found("district")
+
+                        card_to_discard = card_to_discard[0]  # get card object from list
+
+                        if card_to_discard.amount < count:  # check if the magician does not have enough to discard
+                            return responses.not_enough_cards_to_discard(card_to_discard.card.name)
+
+                        card_to_discard.amount = count  # set the amount the magician wants to discard
+
+                        cards_for_discard_pile.append(card_to_discard)  # add card to list
+
+                    error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                    deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
+
+                    districts = []
+                    for district in deck_districts:  # go through each district in the deck of districts
+                        for index in range(district.amount):  # add the separated district to a new list as class objects
+                            districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+                    random.shuffle(districts)  # shuffle district cards
+
+                    game.deck_districts = districts  # add districts to game object
+
+                    drawn_cards = []
+                    for index in range(amount):  # do it for the amount of discarded districts
+                        if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
+                            discard_pile = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).all()  # get discard pile in game
+
+                            cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), discard_pile))  # convert database objects to class objects
+
+                            error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=cards, uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+                            if error:  # check if something went wrong when updating the database
+                                return error
+
+                            deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game which now has the cards from the discard pile
+
+                            districts = []
+                            for district in deck_districts:  # go through each district in the deck of districts
+                                for _index in range(district.amount):  # add the separated district to a new list as class objects
+                                    districts.append(ClassDistrict(uuid=district.uuid, name=district.name))
+
+                            random.shuffle(districts)  # shuffle district cards
+
+                            game.deck_districts = districts  # add districts to game object
+
+                        drawn_cards.append(game.draw_card_deck_districts())  # draw a card from the deck of districts and add it to the list
+
+                    drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
+
+                    error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=drawn_cards, uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="cards in player's hand")  # write the drawn cards to the drawn_cards table and update/remove the drawn cards from the deck_districts table
+
+                    if error:  # check if something went wrong when updating the database
+                        return error
+
+                else:  # the required input was not provided
+                    return responses.bad_request("other_player_uuid or name_districts")
+
+            elif character.name == ClassCharacterName.warlord.value:  # check if the character is the warlord
+                other_player = players_db.query.get(other_player_uuid)  # get player from database
+
+                if not other_player:  # check if player does not exist
+                    return responses.not_found("player")
+
+                other_player = ClassPlayer(database_object=other_player)  # convert database object to class objects
+
+                if other_player.protected:  # check if targeted player is protected from the warlord
+                    return responses.player_protected()
+
+                if not name_districts:  # check if district to destroy is missing
+                    return responses.bad_request("name_districts")
+
+                buildings = buildings_db.query.filter_by(player_uuid=other_player_uuid).all()  # get cards in player's city
+
+                buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
+
+                amount = 0
+                for building in buildings:  # go through buidlings
+                    amount += building.amount  # add amount
+
+                if amount == 8:  # check if completed city
+                    return responses.completed_city()
+
+                building_to_destroy = list(filter(lambda district: district.card.name == name_districts[0], buildings))  # get district to destroy
+
+                if not building_to_destroy:  # check if district cannot be destroyed
+                    return responses.not_found("district")
+
+                cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
+
+                card_complete_info = list(filter(lambda card: card.name == building_to_destroy[0].card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+
+                if player.coins < card_complete_info.coins - 1:  # check if player does not have enough coins to destroy the district
+                    return responses.not_enough_coins()
+
+                player.coins -= card_complete_info.coins - 1  # decrease coins for player
+
+                success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+
+                if not success_update_player:  # check if failed to update database
+                    return responses.error_updating_database("player")
+
+                error = __update_districts_in_database(from_table=buildings_db, to_table=deck_discard_pile_db, cards=building_to_destroy, uuid=game_uuid, from_table_name="buildings", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the buildings table
+
+                if error:  # check if something went wrong when updating the database
+                    return error
+
+                other_player.score = __calculate_score(other_player.uuid, other_player.city_first_completed)  # calculate score
+
+                success_update_player = database.update_row_in_db(players_db, other_player.uuid, dict(score=other_player.score))  # update score for player in database
+
+                if not success_update_player:  # check if failed to update database
+                    return responses.error_updating_database("player")
+
+            success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(ability_used=True))  # update ability used flag for character in database
+
+        else:  # not main ability
+            buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
+
+            buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
+
+            cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
+
+            color_count = {}
+            for building in buildings:  # go through buildings
+                card_complete_info = list(filter(lambda card: card.name == building.card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+
+                if card_complete_info.color not in color_count.keys():  # check if color not yet in object
+                    color_count[card_complete_info.color] = 0  # add color to count object
+
+                color_count[card_complete_info.color] += 1  # increase count
+
+            coins = 0
+
+            if character.name == ClassCharacterName.king.value and ClassColor.yellow.value in color_count.keys():  # check if the character is the king
+                coins = color_count[ClassColor.yellow.value]  # player gains coins for yellow districts in their city
+
+            elif character.name == ClassCharacterName.bishop.value and ClassColor.blue.value in color_count.keys():  # check if the character is the bishop
+                coins = color_count[ClassColor.blue.value]  # player gains coins for blue districts in their city
+
+            elif character.name == ClassCharacterName.merchant.value and ClassColor.green.value in color_count.keys():  # check if the character is the merchant
+                coins = color_count[ClassColor.green.value]  # player gains coins for green districts in their city
+
+            elif character.name == ClassCharacterName.warlord.value and ClassColor.red.value in color_count.keys():  # check if the character is the warlord
+                coins = color_count[ClassColor.red.value]  # player gains coins for red districts in their city
+
+            player.coins += coins  # add coins
+
+            success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=player.coins))  # update amount of coins for player in database
+
+            if not success_update_player:  # check if failed to update database
+                return responses.error_updating_database("player")
+
+            success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(ability_additional_income_used=True))  # update ability for additional income used flags for character in database
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("character")
@@ -956,7 +1451,82 @@ def end_turn(game_uuid, player_uuid):
 
         next_character = __define_next_character_turn(players, game.character_turn)  # get the name of the next character
 
-        if not next_character.name:  # check if there is no next character
+        if next_character.name:  # check if there is a next character
+            for player in players:  # go through players
+                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+
+                if not characters:  # check if player has characters
+                    return responses.not_found("characters", True)
+
+                characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+                character_next = list(filter(lambda character: character.name == next_character.name, characters))  # get next character from characters
+
+                if character_next:  # check if player has the next character
+                    ability_used = character_next[0].ability_used  # get ability used flag
+
+                    if character_next[0].name == ClassCharacterName.king.value:  # check if the next character is the king
+                        ability_used = True  # update flag
+
+                        for _player in players:  # go through players
+                            if _player.king:  # check if player is the current king
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(king=False))  # update king flag for player in database | old king needs to be reset so the new king can be set
+
+                                if not success_update_player:  # check if failed to update database
+                                    return responses.error_updating_database("player")
+
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(king=True))  # update king flag for player in database | set the new king
+
+                        if not success_update_player:  # check if failed to update database
+                            return responses.error_updating_database("player")
+
+                    if character_next[0].name == ClassCharacterName.bishop.value:  # check if the next character is the bishop
+                        ability_used = True  # update flag
+
+                        for _player in players:  # go through players
+                            if _player.protected:  # check if player is the current king
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(protected=False))  # update protected flag for previous player in database
+
+                                if not success_update_player:  # check if failed to update database
+                                    return responses.error_updating_database("player")
+
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(protected=True))  # update protected flag for player in database
+
+                        if not success_update_player:  # check if failed to update database
+                            return responses.error_updating_database("player")
+
+                    if character_next[0].robbed:  # check if character is robbed
+                        coins = player.coins  # get coins from the player with the robbed character
+
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=0))  # update amount of coins for player in database
+
+                        if not success_update_player:  # check if failed to update database
+                            return responses.error_updating_database("player")
+
+                        for _player in players:  # go through players again
+                            _characters = characters_db.query.filter_by(player_uuid=_player.uuid).all()  # get characters in player's hand
+
+                            if not _characters:  # check if player has characters
+                                return responses.not_found("characters", True)
+
+                            _characters = list(map(lambda character: ClassCharacter(database_object=character), _characters))  # convert database objects to class objects
+
+                            character_thief = list(filter(lambda character: character.name == ClassCharacterName.thief.value, _characters))  # get thief from characters
+
+                            if character_thief:  # check if player has the thief
+                                _player.coins += coins  # add coins
+
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(coins=_player.coins))  # update amount of coins for player in database
+
+                                if not success_update_player:  # check if failed to update database
+                                    return responses.error_updating_database("player")
+
+                    success_update_character = database.update_row_in_db(characters_db, character_next[0].uuid, dict(open=True, ability_used=ability_used))  # update open and ability used flags for character in database
+
+                    if not success_update_character:  # check if failed to update database
+                        return responses.error_updating_database("character")
+
+        elif not next_character.name:  # check if there is no next character
             game.state = ClassState.finished.value  # update game state assuming game has ended
 
             player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
@@ -969,6 +1539,36 @@ def end_turn(game_uuid, player_uuid):
 
             if not success_delete_removed_characters:  # check if failed to delete in database
                 return responses.error_deleting_database("removed characters")
+
+            for player in players:  # go through players
+                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+
+                if not characters:  # check if player has characters
+                    return responses.not_found("characters", True)
+
+                characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+
+                character_king = list(filter(lambda character: character.name == ClassCharacterName.king.value, characters))  # get king from characters
+
+                if character_king:  # check if player has the king | player becomes king at the of the round if the character was assassinated during the round
+                    for _player in players:  # go through players
+                        if _player.king:  # check if player is the current king
+                            success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(king=False))  # update king flag for player in database | old king needs to be reset so the new king can be set
+
+                            if not success_update_player:  # check if failed to update database
+                                return responses.error_updating_database("player")
+
+                    success_update_player = database.update_row_in_db(players_db, player.uuid, dict(king=True))  # update king flag for player in database | set the new king
+
+                    if not success_update_player:  # check if failed to update database
+                        return responses.error_updating_database("player")
+
+            players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game again since we just updated the database
+
+            if not players:  # check if player does not exist
+                return responses.not_found("players", True)
+
+            players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects | don't add to game object because it messes with how the next seat is calculated
 
             success_delete_characters = []
             success_update_players = []
@@ -998,6 +1598,8 @@ def end_turn(game_uuid, player_uuid):
                     robbed=character.robbed,
                     built=character.built,
                     income_received=character.income_received,
+                    ability_used=character.ability_used,
+                    ability_additional_income_used=character.ability_additional_income_used,
                     game_uuid=game_uuid)))
 
             if False in success_write_possible_characters:  # check if failed to write to database
@@ -1013,6 +1615,8 @@ def end_turn(game_uuid, player_uuid):
                     robbed=character.robbed,
                     built=character.built,
                     income_received=character.income_received,
+                    ability_used=character.ability_used,
+                    ability_additional_income_used=character.ability_additional_income_used,
                     game_uuid=game_uuid)))
 
             if False in success_write_removed_characters:  # check if failed to write to database

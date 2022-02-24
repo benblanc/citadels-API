@@ -70,6 +70,50 @@ class ClassCharacterName(enum.Enum):
     warlord = "warlord"
 
 
+class ClassAbility():
+    def __init__(self, active=False, description="", main=False, used=False, used_by=None):
+        if used_by is None:
+            used_by = []
+
+        self.__active = active  # is it an ability the player needs to activate (active) or does it happen automatically (passive)
+        self.__description = description  # description of the ability
+        self.__main = main  # is it the character's main ability | false if it's the ability to receive aditional income per district of a certain or if it's a district ability
+        self.__used = used  # has the ability been used this turn
+        self.__used_by = used_by  # list of cards which use this ability
+
+    @property
+    def active(self):
+        return self.__active
+
+    @property
+    def description(self):
+        return self.__description
+
+    @property
+    def main(self):
+        return self.__main
+
+    @property
+    def used(self):
+        return self.__used
+
+    @property
+    def used_by(self):
+        return self.__used_by
+
+    @property
+    def info(self):
+        info = {
+            "active": self.__active,
+            "description": self.__description,
+            "main": self.__main,
+            "used": self.__used,
+            "used_by": self.__used_by
+        }
+
+        return info
+
+
 class ClassDistrict:
     def __init__(self, uuid=None, name="", color="", coins=0, value=0, effect=None):
         self.__name = name
@@ -121,7 +165,10 @@ class ClassDistrict:
 
 
 class ClassCharacter:
-    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1, income_received=False, database_object=None):
+    def __init__(self, uuid=None, order=0, name="", effect=None, open=False, assassinated=False, robbed=False, built=0, max_built=1, income_received=False, ability_used=False, ability_additional_income_used=False, database_object=None):
+        if effect is None:
+            effect = []
+
         self.__uuid = uuid
         self.__order = order
         self.__name = name
@@ -132,6 +179,8 @@ class ClassCharacter:
         self.__built = built
         self.__max_built = max_built
         self.__income_received = income_received
+        self.__ability_used = ability_used
+        self.__ability_additional_income_used = ability_additional_income_used
 
         if database_object:  # check if parameters contain a database object
             self.__uuid = database_object.uuid
@@ -141,6 +190,8 @@ class ClassCharacter:
             self.__robbed = database_object.robbed
             self.__built = database_object.built
             self.__income_received = database_object.income_received
+            self.__ability_used = database_object.ability_used
+            self.__ability_additional_income_used = database_object.ability_additional_income_used
 
     def __eq__(self, other):  # override default equals behavior
         return self.__name == other.__name
@@ -160,6 +211,10 @@ class ClassCharacter:
     @property
     def effect(self):
         return self.__effect
+
+    @effect.setter
+    def effect(self, value):
+        self.__effect = value
 
     @property
     def open(self):
@@ -206,18 +261,40 @@ class ClassCharacter:
         self.__income_received = value
 
     @property
+    def ability_used(self):
+        return self.__ability_used
+
+    @ability_used.setter
+    def ability_used(self, value):
+        self.__ability_used = value
+
+    @property
+    def ability_additional_income_used(self):
+        return self.__ability_additional_income_used
+
+    @ability_additional_income_used.setter
+    def ability_additional_income_used(self, value):
+        self.__ability_additional_income_used = value
+
+    @property
     def info(self):
+        effects = []
+        for effect in self.__effect:
+            effects.append(effect.info)
+
         info = {
             "uuid": self.__uuid,
             "order": self.__order,
             "name": self.__name,
-            "effect": self.__effect,
+            "effect": effects,
             "open": self.__open,
             "assassinated": self.__assassinated,
             "robbed": self.__robbed,
             "built": self.__built,
             "max_built": self.__max_built,
-            "income_received": self.__income_received
+            "income_received": self.__income_received,
+            "ability_used": self.__ability_used,
+            "ability_additional_income_used": self.__ability_additional_income_used
         }
 
         return info
@@ -261,6 +338,71 @@ class ClassDeckDistrict:
 
 class ClassCard:
     def __init__(self, ):
+        self.__character_abilities = [
+            ClassAbility(active=True,
+                         description="You receive one coin for each district in your city with the same color as this card.",
+                         used_by=[
+                             ClassCharacterName.king.value,
+                             ClassCharacterName.bishop.value,
+                             ClassCharacterName.merchant.value,
+                             ClassCharacterName.warlord.value
+                         ]),
+            ClassAbility(active=True,
+                         description="Pick a character you wish to kill. The killed character's turn is skipped.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.assassin.value
+                         ]),
+            ClassAbility(active=True,
+                         description="Pick a character you wish to rob. Take all of the robbed character's coins at the beginning of their turn.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.thief.value
+                         ]),
+            ClassAbility(active=True,
+                         description="Trade all districts in your hand with another player or discard districts in your hand to draw the same amount from the deck of districts.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.magician.value
+                         ]),
+            ClassAbility(active=False,
+                         description="Receive the crown. You are the first player to choose your character during the next round. If you are killed, you will receive the crown at the end of the round.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.king.value
+                         ]),
+            ClassAbility(active=False,
+                         description="The districts in your city cannot be destroyed by the warlord until the end of this round.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.bishop.value
+                         ]),
+            ClassAbility(active=False,
+                         description="Receive one additional coin after receiving your character's income.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.merchant.value
+                         ]),
+            ClassAbility(active=False,
+                         description="Draw two additional cards from the deck of districts after receiving your character's income.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.architect.value
+                         ]),
+            ClassAbility(active=False,
+                         description="Your building limit is three this turn.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.architect.value
+                         ]),
+            ClassAbility(active=True,
+                         description="Destroy one district in your or another player's city by paying one less coin than the cost of the district.",
+                         main=True,
+                         used_by=[
+                             ClassCharacterName.warlord.value
+                         ])
+        ]
+
         self.__districts_red = [
             ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.watchtower.value, color=ClassColor.red.value, coins=1, value=1, effect=None)),
             ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.prison.value, color=ClassColor.red.value, coins=2, value=2, effect=None)),
@@ -326,14 +468,17 @@ class ClassCard:
 
     def get_characters(self):
         characters = [
-            ClassCharacter(order=1, name=ClassCharacterName.assassin.value, effect="Kill another character. The killed character's turn is skipped."),
-            ClassCharacter(order=2, name=ClassCharacterName.thief.value, effect="Steal all coins from another character at the beginning the turn."),
-            ClassCharacter(order=3, name=ClassCharacterName.magician.value, effect="Trade all district in your hand with another player or discard districts in your hand and draw the same amount."),
-            ClassCharacter(order=4, name=ClassCharacterName.king.value, effect="Get king status. Start choosing a character next round. Get coins for each yellow district you have built."),
-            ClassCharacter(order=5, name=ClassCharacterName.bishop.value, effect="Warlord cannot destroy your buildings. Get coins for each blue district you have built."),
-            ClassCharacter(order=6, name=ClassCharacterName.merchant.value, effect="Get one coin. Get coins for each green district you have built."),
-            ClassCharacter(order=7, name=ClassCharacterName.architect.value, effect="Can build up to three districts. Draw two district cards.", max_built=3),
-            ClassCharacter(order=8, name=ClassCharacterName.warlord.value, effect="Destroy one building of another character by paying one less coin than what was paid. Get coins for each red district you have built.")
+            ClassCharacter(order=1, name=ClassCharacterName.assassin.value),
+            ClassCharacter(order=2, name=ClassCharacterName.thief.value),
+            ClassCharacter(order=3, name=ClassCharacterName.magician.value),
+            ClassCharacter(order=4, name=ClassCharacterName.king.value),
+            ClassCharacter(order=5, name=ClassCharacterName.bishop.value),
+            ClassCharacter(order=6, name=ClassCharacterName.merchant.value),
+            ClassCharacter(order=7, name=ClassCharacterName.architect.value, max_built=3),
+            ClassCharacter(order=8, name=ClassCharacterName.warlord.value)
         ]
+
+        for character in characters:  # go through characters
+            character.effect = list(filter(lambda ability: character.name in ability.used_by, self.__character_abilities))  # add abilities used by the character
 
         return characters

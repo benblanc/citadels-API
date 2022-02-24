@@ -81,7 +81,9 @@ def define_character(character):
         "assassinated": character.assassinated,
         "robbed": character.robbed,
         "built": character.built,
-        "income_received": character.income_received
+        "income_received": character.income_received,
+        "ability_used": character.ability_used,
+        "ability_additional_income_used": character.ability_additional_income_used
     }
 
     return response

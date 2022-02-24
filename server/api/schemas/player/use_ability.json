@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "main": {
+      "type": "boolean"
+    },
+    "name": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "districts": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "player_uuid": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "main",
+    "name",
+    "player_uuid"
+  ]
+}

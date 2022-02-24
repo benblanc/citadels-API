@@ -122,7 +122,42 @@ def building_limit():
 
 
 def not_enough_coins():
-    response = define_message("The player making the request does not have enough coins to build the district.")
+    response = define_message("The player making the request does not have enough coins to perform the action.")
+
+    return response, 400
+
+
+def completed_city():
+    response = define_message("The warlord cannot destroy a district in a completed city.")
+
+    return response, 400
+
+
+def already_used_ability(main=True):
+    item = "main"
+
+    if not main:  # check if not a main ability
+        item = "additional income"
+
+    response = define_message("The player making the request has already used the character's {item} ability this turn.".format(item=item))
+
+    return response, 400
+
+
+def not_enough_cards_to_discard(name):
+    response = define_message("The player making the request does not have enough districts with the name {name} to discard.".format(name=name))
+
+    return response, 400
+
+
+def player_protected():
+    response = define_message("The targeted player is protected from the warlord.")
+
+    return response, 400
+
+
+def cannot_rob():
+    response = define_message("The assassin, thief or assassinated character cannot be robbed.")
 
     return response, 400
 
