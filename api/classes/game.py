@@ -103,10 +103,6 @@ class ClassGame:
             self.__description = database_object.description
             self.__state = database_object.state
             self.__amount_players = database_object.amount_players
-            self.__characters_open = database_object.characters_open
-            self.__characters_closed = database_object.characters_closed
-            self.__characters_per_player = database_object.characters_per_player
-            self.__eight_districts_built = database_object.eight_districts_built
             self.__character_turn = database_object.character_turn
             self.__round = database_object.round
 

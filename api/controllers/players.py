@@ -641,7 +641,7 @@ def start_game(game_uuid, player_uuid):
 
         game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
-        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, characters_open=game.characters_open, characters_closed=game.characters_closed, characters_per_player=game.characters_per_player))  # update database with the latest information about the game state
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state))  # update database with the latest information about the game state
 
         if not success_update_game:  # check if database failed to update
             return responses.error_updating_database("game")
@@ -704,6 +704,8 @@ def select_character(game_uuid, player_uuid, name, remove):
 
         if game.state != ClassState.selection_phase.value:  # check if game is in selection phase
             return responses.not_selection_phase()
+
+        game.set_character_division()  # define how many characters per player and how many are open or closed on the field
 
         player = players_db.query.get(player_uuid)  # get player from database
 
