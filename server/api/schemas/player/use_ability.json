@@ -8,10 +8,16 @@
       "type": "object",
       "properties": {
         "character": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "districts": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "type": "string"
           }
@@ -19,7 +25,10 @@
       }
     },
     "player_uuid": {
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "required": [

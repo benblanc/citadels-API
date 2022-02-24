@@ -87,7 +87,10 @@ class PlayerCharacterUseAbility(Resource):
         name_districts = body["name"]["districts"]
         other_player_uuid = body["player_uuid"]
 
-        return use_ability(str(game_uuid), str(player_uuid), bool(main), str(name_character), list(name_districts), str(other_player_uuid))
+        if name_districts:  # check if not none
+            name_districts = list(name_districts)
+
+        return use_ability(str(game_uuid), str(player_uuid), bool(main), str(name_character), name_districts, str(other_player_uuid))
 
 
 class PlayerEndTurn(Resource):

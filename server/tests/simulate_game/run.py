@@ -15,13 +15,26 @@ SKIP_MAIN_ABILITY = False
 SKIP_SECONDARY_ABILITY = False
 
 
+def __get_filtered_item(items, check_property, required_value):
+    response = None
+
+    filtered_items = list(filter(lambda item: item[check_property] == required_value, items))  # filter through items
+
+    if filtered_items:  # check if there are items after filtering
+        response = filtered_items[0]  # get the first filtered item
+
+    return response
+
+
 def __perform_selection(game_uuid):
     players = get_players(game_uuid)
 
-    expected_to_select = list(filter(lambda player: player["select_expected"] == True, players))
+    # expected_to_select = list(filter(lambda player: player["select_expected"] == True, players))
 
-    if expected_to_select:  # check if someone still needs to pick a character
-        player_expected_to_select = expected_to_select[0]
+    player_expected_to_select = __get_filtered_item(players, "select_expected", True)
+
+    if player_expected_to_select:  # check if someone still needs to pick a character
+        # player_expected_to_select = expected_to_select[0]
 
         possible_characters = get_possible_characters(game_uuid)
 
@@ -62,7 +75,9 @@ def __receive_income(game_uuid, player_uuid, player_coins):
 
         drawn_cards = get_drawn_cards(game_uuid, player_uuid)
 
-        keep_card(game_uuid, player_uuid, drawn_cards[0]["name"])
+        random_index = random.randint(0, len(drawn_cards) - 1)
+
+        keep_card(game_uuid, player_uuid, drawn_cards[random_index]["name"])
 
 
 def __build_district(game_uuid, player_uuid, district):
@@ -112,10 +127,12 @@ def __use_thief_ability(game_uuid):
 
         can_be_robbed = True  # temporarily assume character can be robbed
 
-        character_to_rob = list(filter(lambda character: character["name"] == character_name, characters_in_round))  # get character to be robbed | as long as character is not assassinated it's okay if it's not in round
+        # character_to_rob = list(filter(lambda character: character["name"] == character_name, characters_in_round))  # get character to be robbed | as long as character is not assassinated it's okay if it's not in round
+
+        character_to_rob = __get_filtered_item(characters_in_round, "name", character_name)  # get character to be robbed | as long as character is not assassinated it's okay if it's not in round
 
         if character_to_rob:  # check if character is in round
-            if character_to_rob[0]["assassinated"]:  # check if character is assassinated
+            if character_to_rob["assassinated"]:  # check if character is assassinated
                 can_be_robbed = False
 
     return character_name
@@ -169,7 +186,7 @@ def __use_main_ability(game_uuid, player_uuid, character_expected_to_play):
         use_character_ability = __use_warlord_ability()
 
     if use_character_ability:  # check if player changed their mind and doesn't want to activate ability
-        use_ability(game_uuid, player["uuid"], main=True, character_name=character_name, districts_name=districts_name, other_player_uuid=other_player_uuid)
+        use_ability(game_uuid, player_uuid, main=True, character_name=character_name, districts_name=districts_name, other_player_uuid=other_player_uuid)
 
 
 def __perform_turn(game_uuid):
@@ -181,44 +198,60 @@ def __perform_turn(game_uuid):
     # loop over the characters
     # while character has not ended its turn, keep on playing its turn | while game["current_character"] == player_character: keep looping
 
+    game = get_game(game_uuid)
+
     players = get_players(game_uuid)
 
     for player in players:
         player_characters = get_player_characters(game_uuid, player["uuid"])
 
-        character_turn = list(filter(lambda character: character["name"] == game["character_turn"], player_characters))
+        character_turn = __get_filtered_item(player_characters, "name", game["character_turn"])
 
         if character_turn:  # check if player has the character who is expected to play a turn
-            character_expected_to_play = character_turn[0]
+            character_expected_to_play = character_turn
+            player_character_turn_name = character_expected_to_play["name"]
 
-            character = get_character(character_expected_to_play["name"])
+            while player_character_turn_name == game["character_turn"]:
+                _player = get_player(game_uuid, player["uuid"])
 
-            player_cards = get_player_cards(game_uuid, player["uuid"])
+                character = get_character(player_character_turn_name)
 
-            player_buildings = get_player_buildings(game_uuid, player["uuid"])
+                player_cards = get_player_cards(game_uuid, player["uuid"])
 
-            player_building_names = list(map(lambda building: building["name"], player_buildings))
+                player_buildings = get_player_buildings(game_uuid, player["uuid"])
 
-            cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, player["coins"])
+                player_building_names = list(map(lambda building: building["name"], player_buildings))
 
-            if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
-                __receive_income(game_uuid, player["uuid"], player["coins"])
+                cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, _player["coins"])
 
-            elif character_expected_to_play["income_received"] and character_expected_to_play["built"] < character["max_built"] and cards_player_can_build:  # check if character has received an income, building limit not yet reached and there are districts the player can actually build
-                __build_district(game_uuid, player["uuid"], cards_player_can_build[0])
+                if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
+                    __receive_income(game_uuid, player["uuid"], _player["coins"])
 
-            # elif not character_expected_to_play["ability_additional_income_used"] and not skip_secondary_ability:  # check if character has not yet used its second ability to gain income per colored district
-            #     skip_secondary_ability = True  # skip using the ability next time the script wants to try
-            #      __use_secondary_ability(game_uuid, player["uuid"], character_expected_to_play["name"])
+                elif character_expected_to_play["income_received"] and character_expected_to_play["built"] < character["max_built"] and cards_player_can_build:  # check if character has received an income, building limit not yet reached and there are districts the player can actually build
+                    __build_district(game_uuid, player["uuid"], cards_player_can_build[0])
 
-            # elif not character_expected_to_play["ability_used"] and not skip_main_ability:  # check if character has not yet used its main ability
-            #     __use_main_ability(game_uuid, player_uuid, character_expected_to_play["name"])
+                elif not character_expected_to_play["ability_additional_income_used"] and not skip_secondary_ability:  # check if character has not yet used its second ability to gain income per colored district
+                    skip_secondary_ability = True  # skip using the ability next time the script wants to try
+                    __use_secondary_ability(game_uuid, player["uuid"], player_character_turn_name)
 
-            else:  # nothing else to do so end turn
-                skip_main_ability = False  # reset flag
-                skip_secondary_ability = False  # reset flag
+                elif not character_expected_to_play["ability_used"] and not skip_main_ability:  # check if character has not yet used its main ability
+                    skip_main_ability = True  # skip using the ability next time the script wants to try
+                    __use_main_ability(game_uuid, player["uuid"], player_character_turn_name)
 
-                end_turn(game_uuid, player["uuid"])
+                else:  # nothing else to do so end turn
+                    skip_main_ability = False  # reset flag
+                    skip_secondary_ability = False  # reset flag
+
+                    end_turn(game_uuid, player["uuid"])
+
+                game = get_game(game_uuid)
+
+                player_characters = get_player_characters(game_uuid, player["uuid"])
+
+                character_expected_to_play = __get_filtered_item(player_characters, "name", game["character_turn"])
+
+                if not character_expected_to_play:  # check if not none
+                    break  # exit while loop to enter the loop as a new character
 
 
 if __name__ == '__main__':

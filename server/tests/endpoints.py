@@ -234,3 +234,11 @@ def get_characters(base_url):
     log_response(response)
 
     return response
+
+
+def get_player(base_url, game_uuid, player_uuid):
+    response = requests.get(url=base_url + "/game/" + game_uuid + "/players/" + player_uuid)
+
+    log_response(response)
+
+    return response

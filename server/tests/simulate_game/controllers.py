@@ -220,3 +220,14 @@ def end_turn(game_uuid, player_uuid):
         exit(1)
 
     time.sleep(SLEEP_SECONDS)
+
+
+def get_player(game_uuid, player_uuid):
+    response_get_player = endpoints.get_player(BASE_URL, game_uuid, player_uuid)
+
+    if response_get_player.status_code != 200:
+        exit(1)
+
+    time.sleep(SLEEP_SECONDS)
+
+    return response_get_player.json()
