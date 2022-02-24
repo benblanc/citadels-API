@@ -9,10 +9,6 @@ class Game(db.Model):
     description = db.Column(db.String(100))
     state = db.Column(db.String(100))
     amount_players = db.Column(db.Integer)
-    characters_open = db.Column(db.Integer)
-    characters_closed = db.Column(db.Integer)
-    characters_per_player = db.Column(db.Integer)
-    eight_districts_built = db.Column(db.Boolean)
     character_turn = db.Column(db.String(100))
     round = db.Column(db.Integer)
 

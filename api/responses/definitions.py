@@ -22,10 +22,6 @@ def define_game(game):
         "description": game.description,
         "state": game.state,
         "amount_players": game.amount_players,
-        "characters_open": game.characters_open,
-        "characters_closed": game.characters_closed,
-        "characters_per_player": game.characters_per_player,
-        "eight_districts_built": game.eight_districts_built,
         "character_turn": game.character_turn,
         "round": game.round
     }

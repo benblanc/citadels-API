@@ -90,10 +90,6 @@ def create_game(name, description):
             description=new_game.description,
             state=new_game.state,
             amount_players=new_game.amount_players,
-            characters_open=new_game.characters_open,
-            characters_closed=new_game.characters_closed,
-            characters_per_player=new_game.characters_per_player,
-            eight_districts_built=new_game.eight_districts_built,
             character_turn=new_game.character_turn,
             round=new_game.round))
 
