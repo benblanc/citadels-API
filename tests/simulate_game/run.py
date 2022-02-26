@@ -14,6 +14,8 @@ EXIT_AFTER_CHARACTER_SELECTION = False
 SKIP_MAIN_ABILITY = False
 SKIP_SECONDARY_ABILITY = False
 
+EXIT_ON_ROUND = 100
+
 
 def __get_filtered_item(items, check_property, required_value):
     response = None
@@ -281,6 +283,10 @@ if __name__ == '__main__':
         if game["state"] == "turn_phase":
             if EXIT_AFTER_CHARACTER_SELECTION:
                 print("EXIT_AFTER_CHARACTER_SELECTION")
+                exit(0)
+
+            if EXIT_ON_ROUND == game["round"]:
+                print("EXIT_ON_ROUND")
                 exit(0)
 
             __perform_turn(game_uuid)
