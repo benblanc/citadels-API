@@ -1590,9 +1590,6 @@ def end_turn(game_uuid, player_uuid):
 
             game.set_character_division()  # define how many characters per player and how many are open or closed on the field
 
-
-
-
             game.set_initial_possible_and_removed_characters()  # set possible and removed characters which happens at the start of each round
 
             success_write_possible_characters = []
