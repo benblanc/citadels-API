@@ -12,3 +12,8 @@ if __name__ == '__main__':
 
     except Exception:
         logging.error(traceback.format_exc())
+
+# TODO: add order by character order option for removed characters endpoint
+# TODO: at end of game, don't clean up chaaracters etc, so players can observe game state at end of game
+# TODO: removed characters are all closed when 4 players -> 2 should remain open
+# TODO: add order by seat for players
