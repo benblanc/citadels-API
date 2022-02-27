@@ -14,3 +14,4 @@ if __name__ == '__main__':
         logging.error(traceback.format_exc())
 
 # TODO: at end of game, don't clean up chaaracters etc, so players can observe game state at end of game
+# TODO: fix issue where 2 cards built at same time
