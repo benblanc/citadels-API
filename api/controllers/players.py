@@ -1563,7 +1563,6 @@ def end_turn(game_uuid, player_uuid):
                 game.round += 1  # increase counter
                 game.state = ClassState.selection_phase.value  # update game state
 
-            if game.state == ClassState.selection_phase.value:  # check if game goes into selection phase
                 success_delete_removed_characters = database.delete_rows_from_db(removed_characters_db, game_uuid=game_uuid)  # delete character from removed characters in database
 
                 if not success_delete_removed_characters:  # check if failed to delete in database
@@ -1602,7 +1601,7 @@ def end_turn(game_uuid, player_uuid):
                 success_delete_characters = []
                 success_update_players = []
                 for player in players:  # go through players
-                    success_delete_characters.append(database.delete_row_from_db_where(characters_db, player_uuid=player.uuid))  # delete character from player characters in database
+                    success_delete_characters.append(database.delete_rows_from_db(characters_db, player_uuid=player.uuid))  # delete character from player characters in database
                     success_update_players.append(database.update_row_in_db(players_db, player.uuid, dict(protected=False, select_expected=player.king)))  # reset certain player flags
 
                 if False in success_delete_characters:  # check if failed to delete in database

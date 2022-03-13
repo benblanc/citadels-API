@@ -12,3 +12,5 @@ if __name__ == '__main__':
 
     except Exception:
         logging.error(traceback.format_exc())
+
+# TODO: fix bug where if you have church twice and use magician to trade with deck you loose both and only get 1 card
