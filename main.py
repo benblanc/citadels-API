@@ -13,5 +13,4 @@ if __name__ == '__main__':
     except Exception:
         logging.error(traceback.format_exc())
 
-# TODO: at end of game, don't clean up chaaracters etc, so players can observe game state at end of game
 # TODO: fix issue where in a 2 player game character to remove doesn't get removed
