@@ -1,5 +1,7 @@
 import logging, traceback, random
 
+from copy import deepcopy
+
 from api.classes.card import *
 from api.classes.game import *
 from api.classes.player import *
@@ -24,8 +26,6 @@ from api.services import database
 from api.utils import helpers
 
 from api.validation import query
-
-from pprint import pprint
 
 
 def __define_next_character_turn(players, current_character_name):
@@ -312,7 +312,18 @@ def build(game_uuid, player_uuid, name):
 
         player.coins -= card_complete_info.coins  # decrease coin amount
 
-        error = __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
+        _cards = deepcopy(cards)  # take a deepcopy of cards| database will be updated in __update_districts_in_database function so it will manipulate the values which we don't want
+
+        card_to_build[0].amount = 1  # build 1 district (not more)
+
+        for card in _cards:  # go through deep copy of cards in hand
+            if card.card.name == card_to_build[0].card.name:  # find card to build
+                card.amount -= 1  # reduce amount of copies of card in hand by 1
+
+                if card.amount < 0:  # check if negative value
+                    card.amount = 0  # set proper null value
+
+        error = __update_districts_in_database(from_table=cards_db, to_table=buildings_db, cards=card_to_build, uuid=player_uuid, from_deck_cards_by_amount=_cards, player_table=True, from_table_name="cards in player's hand", to_table_name="buildings")  # write the district card to the buildings table and update/remove the district card from the cards table
 
         if error:  # check if something went wrong when updating the database
             return error
