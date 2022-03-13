@@ -1,4 +1,3 @@
-# from tests.endpoints import *
 from tests.simulate_game.controllers import *
 
 GAME_DESCRIPTION = "Test to simulate game and see how far it gets before breaking"
