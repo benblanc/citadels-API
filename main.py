@@ -12,5 +12,3 @@ if __name__ == '__main__':
 
     except Exception:
         logging.error(traceback.format_exc())
-
-# TODO: fix issue where in a 2 player game character to remove doesn't get removed
