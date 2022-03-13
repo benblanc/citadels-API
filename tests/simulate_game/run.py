@@ -30,13 +30,9 @@ def __get_filtered_item(items, check_property, required_value):
 def __perform_selection(game_uuid):
     players = get_players(game_uuid)
 
-    # expected_to_select = list(filter(lambda player: player["select_expected"] == True, players))
-
     player_expected_to_select = __get_filtered_item(players, "select_expected", True)
 
     if player_expected_to_select:  # check if someone still needs to pick a character
-        # player_expected_to_select = expected_to_select[0]
-
         possible_characters = get_possible_characters(game_uuid)
 
         random_index = random.randint(0, len(possible_characters) - 1)
@@ -127,8 +123,6 @@ def __use_thief_ability(game_uuid):
             characters_in_round += player_characters  # add characters to the rest of characters of this round
 
         can_be_robbed = True  # temporarily assume character can be robbed
-
-        # character_to_rob = list(filter(lambda character: character["name"] == character_name, characters_in_round))  # get character to be robbed | as long as character is not assassinated it's okay if it's not in round
 
         character_to_rob = __get_filtered_item(characters_in_round, "name", character_name)  # get character to be robbed | as long as character is not assassinated it's okay if it's not in round
 
