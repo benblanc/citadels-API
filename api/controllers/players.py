@@ -1548,94 +1548,95 @@ def end_turn(game_uuid, player_uuid):
                 game.round += 1  # increase counter
                 game.state = ClassState.selection_phase.value  # update game state
 
-            success_delete_removed_characters = database.delete_rows_from_db(removed_characters_db, game_uuid=game_uuid)  # delete character from removed characters in database
+            if game.state == ClassState.selection_phase.value:  # check if game goes into selection phase
+                success_delete_removed_characters = database.delete_rows_from_db(removed_characters_db, game_uuid=game_uuid)  # delete character from removed characters in database
 
-            if not success_delete_removed_characters:  # check if failed to delete in database
-                return responses.error_deleting_database("removed characters")
+                if not success_delete_removed_characters:  # check if failed to delete in database
+                    return responses.error_deleting_database("removed characters")
 
-            for player in players:  # go through players
-                characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
+                for player in players:  # go through players
+                    characters = characters_db.query.filter_by(player_uuid=player.uuid).all()  # get characters in player's hand
 
-                if not characters:  # check if player has characters
-                    return responses.not_found("characters", True)
+                    if not characters:  # check if player has characters
+                        return responses.not_found("characters", True)
 
-                characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
+                    characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-                character_king = list(filter(lambda character: character.name == ClassCharacterName.king.value, characters))  # get king from characters
+                    character_king = list(filter(lambda character: character.name == ClassCharacterName.king.value, characters))  # get king from characters
 
-                if character_king:  # check if player has the king | player becomes king at the of the round if the character was assassinated during the round
-                    for _player in players:  # go through players
-                        if _player.king:  # check if player is the current king
-                            success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(king=False))  # update king flag for player in database | old king needs to be reset so the new king can be set
+                    if character_king:  # check if player has the king | player becomes king at the of the round if the character was assassinated during the round
+                        for _player in players:  # go through players
+                            if _player.king:  # check if player is the current king
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(king=False))  # update king flag for player in database | old king needs to be reset so the new king can be set
 
-                            if not success_update_player:  # check if failed to update database
-                                return responses.error_updating_database("player")
+                                if not success_update_player:  # check if failed to update database
+                                    return responses.error_updating_database("player")
 
-                    success_update_player = database.update_row_in_db(players_db, player.uuid, dict(king=True))  # update king flag for player in database | set the new king
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(king=True))  # update king flag for player in database | set the new king
 
-                    if not success_update_player:  # check if failed to update database
-                        return responses.error_updating_database("player")
+                        if not success_update_player:  # check if failed to update database
+                            return responses.error_updating_database("player")
 
-            players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game again since we just updated the database
+                players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game again since we just updated the database
 
-            if not players:  # check if player does not exist
-                return responses.not_found("players", True)
+                if not players:  # check if player does not exist
+                    return responses.not_found("players", True)
 
-            players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects | don't add to game object because it messes with how the next seat is calculated
+                players = list(map(lambda player: ClassPlayer(database_object=player), players))  # initialize player objects | don't add to game object because it messes with how the next seat is calculated
 
-            success_delete_characters = []
-            success_update_players = []
-            for player in players:  # go through players
-                success_delete_characters.append(database.delete_row_from_db_where(characters_db, player_uuid=player.uuid))  # delete character from player characters in database
-                success_update_players.append(database.update_row_in_db(players_db, player.uuid, dict(protected=False, select_expected=player.king)))  # reset certain player flags
+                success_delete_characters = []
+                success_update_players = []
+                for player in players:  # go through players
+                    success_delete_characters.append(database.delete_row_from_db_where(characters_db, player_uuid=player.uuid))  # delete character from player characters in database
+                    success_update_players.append(database.update_row_in_db(players_db, player.uuid, dict(protected=False, select_expected=player.king)))  # reset certain player flags
 
-            if False in success_delete_characters:  # check if failed to delete in database
-                return responses.error_deleting_database("character")
+                if False in success_delete_characters:  # check if failed to delete in database
+                    return responses.error_deleting_database("character")
 
-            if False in success_update_players:  # check if database failed to update
-                return responses.error_updating_database("player")
+                if False in success_update_players:  # check if database failed to update
+                    return responses.error_updating_database("player")
 
-            deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get characters in game
+                deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get characters in game
 
-            game.deck_characters = list(map(lambda character: ClassCharacter(database_object=character), deck_characters))  # add deck of characters to game object
+                game.deck_characters = list(map(lambda character: ClassCharacter(database_object=character), deck_characters))  # add deck of characters to game object
 
-            game.set_character_division()  # define how many characters per player and how many are open or closed on the field
+                game.set_character_division()  # define how many characters per player and how many are open or closed on the field
 
-            game.set_initial_possible_and_removed_characters()  # set possible and removed characters which happens at the start of each round
+                game.set_initial_possible_and_removed_characters()  # set possible and removed characters which happens at the start of each round
 
-            success_write_possible_characters = []
-            for character in game.possible_characters:  # go through each possible character
-                success_write_possible_characters.append(database.write_row_to_db(possible_characters_db(  # write character to database
-                    uuid=helpers.create_uuid(),
-                    name=character.name,
-                    open=character.open,
-                    assassinated=character.assassinated,
-                    robbed=character.robbed,
-                    built=character.built,
-                    income_received=character.income_received,
-                    ability_used=character.ability_used,
-                    ability_additional_income_used=character.ability_additional_income_used,
-                    game_uuid=game_uuid)))
+                success_write_possible_characters = []
+                for character in game.possible_characters:  # go through each possible character
+                    success_write_possible_characters.append(database.write_row_to_db(possible_characters_db(  # write character to database
+                        uuid=helpers.create_uuid(),
+                        name=character.name,
+                        open=character.open,
+                        assassinated=character.assassinated,
+                        robbed=character.robbed,
+                        built=character.built,
+                        income_received=character.income_received,
+                        ability_used=character.ability_used,
+                        ability_additional_income_used=character.ability_additional_income_used,
+                        game_uuid=game_uuid)))
 
-            if False in success_write_possible_characters:  # check if failed to write to database
-                return responses.error_writing_database("possible characters")
+                if False in success_write_possible_characters:  # check if failed to write to database
+                    return responses.error_writing_database("possible characters")
 
-            success_write_removed_characters = []
-            for character in game.removed_characters:  # go through each removed character
-                success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
-                    uuid=helpers.create_uuid(),
-                    name=character.name,
-                    open=character.open,
-                    assassinated=character.assassinated,
-                    robbed=character.robbed,
-                    built=character.built,
-                    income_received=character.income_received,
-                    ability_used=character.ability_used,
-                    ability_additional_income_used=character.ability_additional_income_used,
-                    game_uuid=game_uuid)))
+                success_write_removed_characters = []
+                for character in game.removed_characters:  # go through each removed character
+                    success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
+                        uuid=helpers.create_uuid(),
+                        name=character.name,
+                        open=character.open,
+                        assassinated=character.assassinated,
+                        robbed=character.robbed,
+                        built=character.built,
+                        income_received=character.income_received,
+                        ability_used=character.ability_used,
+                        ability_additional_income_used=character.ability_additional_income_used,
+                        game_uuid=game_uuid)))
 
-            if False in success_write_removed_characters:  # check if failed to write to database
-                return responses.error_writing_database("removed characters")
+                if False in success_write_removed_characters:  # check if failed to write to database
+                    return responses.error_writing_database("removed characters")
 
         success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=next_character.name, round=game.round))  # update database with the latest information about the game state
 
