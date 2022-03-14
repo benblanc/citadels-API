@@ -1256,6 +1256,8 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                     cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), cards))  # convert database objects to class objects
 
+                    _cards = deepcopy(cards)  # take a deepcopy of cards| database will be updated in __update_districts_in_database function so it will manipulate the values which we don't want
+
                     cards_for_discard_pile = []
                     for name, count in name_count.items():  # go through the cards the magician wants to discard
                         card_to_discard = list(filter(lambda district: district.card.name == name, cards))
@@ -1272,7 +1274,15 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                         cards_for_discard_pile.append(card_to_discard)  # add card to list
 
-                    error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
+                    for card in _cards:  # go through deep copy of cards in hand
+                        for _card in cards_for_discard_pile:  # go through cards to discard
+                            if card.card.name == _card.card.name:  # find card to build
+                                card.amount -= 1  # reduce amount of copies of card in hand by 1
+
+                                if card.amount < 0:  # check if negative value
+                                    card.amount = 0  # set proper null value
+
+                    error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=cards_for_discard_pile, uuid=game_uuid, from_deck_cards_by_amount=_cards, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
 
                     if error:  # check if something went wrong when updating the database
                         return error
