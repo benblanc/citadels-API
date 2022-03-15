@@ -79,7 +79,7 @@ def get_game(game_uuid):
 
 def create_game(description):
     try:
-        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), description, ClassState.created.value)
+        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), description, ClassState.created.value, "The host created a game and is now waiting for other players to join.\n")
 
         success_write_game = database.write_row_to_db(game_db(
             uuid=new_game.uuid,
@@ -88,7 +88,8 @@ def create_game(description):
             state=new_game.state,
             amount_players=new_game.amount_players,
             character_turn=new_game.character_turn,
-            round=new_game.round))
+            round=new_game.round,
+            log=new_game.log))
 
         if not success_write_game:
             return responses.error_writing_database("game")
@@ -195,7 +196,9 @@ def join_game(game_uuid, name):
         if not success_write_player:
             return responses.error_writing_database("player")
 
-        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(amount_players=len(players) + 1))  # update player count for game
+        game.log += "{player_name} joined the game.\n".format(player_name=name)  # update game log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(amount_players=len(players) + 1, log=game.log))  # update player count and log for game
 
         if not success_update_game:
             return responses.error_updating_database("game")

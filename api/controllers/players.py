@@ -652,7 +652,9 @@ def start_game(game_uuid, player_uuid):
 
         game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
-        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state))  # update database with the latest information about the game state
+        game.log += "The host started the game.\nEach player will now pick their character(s) for this round.\n"  # update game log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, log=game.log))  # update database with the latest information about the game state
 
         if not success_update_game:  # check if database failed to update
             return responses.error_updating_database("game")

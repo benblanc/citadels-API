@@ -47,7 +47,7 @@ class ClassSettings:
 
 
 class ClassGame:
-    def __init__(self, uuid=None, created="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, character_turn="", round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
+    def __init__(self, uuid=None, created="", description="", state="", log="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, character_turn="", round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
         if players is None:
             players = []
 
@@ -75,6 +75,7 @@ class ClassGame:
         self.__description = description
 
         self.__state = state
+        self.__log = log
 
         self.__players = players
         self.__amount_players = amount_players
@@ -103,6 +104,7 @@ class ClassGame:
             self.__amount_players = database_object.amount_players
             self.__character_turn = database_object.character_turn
             self.__round = database_object.round
+            self.__log = database_object.log
 
     @property
     def uuid(self):
@@ -123,6 +125,14 @@ class ClassGame:
     @state.setter
     def state(self, value):
         self.__state = value
+
+    @property
+    def log(self):
+        return self.__log
+
+    @log.setter
+    def log(self, value):
+        self.__log = value
 
     @property
     def amount_players(self):
@@ -236,6 +246,7 @@ class ClassGame:
             "created": self.__created,
             "description": self.__description,
             "state": self.__state,
+            "log": self.__log,
             "players": self.__players,
             "amount_players": self.__amount_players,
             "characters_open": self.__characters_open,
