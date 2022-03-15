@@ -26,7 +26,7 @@ def get_games(sort_order, order_by, limit, offset):
         default_limit = 0
         default_offset = 0
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created', 'name'])
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created'])
 
         if invalid_query:
             return responses.conflict(invalid_query)
@@ -45,8 +45,6 @@ def get_games(sort_order, order_by, limit, offset):
 
         if default_order_by == 'created':
             sort = game_db.created
-        elif default_order_by == 'name':
-            sort = game_db.name
 
         if default_sort_order == 'asc':
             sort = sort.asc()
@@ -79,14 +77,13 @@ def get_game(game_uuid):
         return responses.error_handling_request()
 
 
-def create_game(name, description):
+def create_game(description):
     try:
-        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), name, description, ClassState.created.value)
+        new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), description, ClassState.created.value)
 
         success_write_game = database.write_row_to_db(game_db(
             uuid=new_game.uuid,
             created=new_game.created,
-            name=new_game.name,
             description=new_game.description,
             state=new_game.state,
             amount_players=new_game.amount_players,

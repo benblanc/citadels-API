@@ -7,8 +7,8 @@ BASE_URL = "http://127.0.0.1:8080"
 SLEEP_SECONDS = 0.10
 
 
-def create_game(game_description, game_name):
-    response_create_game = endpoints.create_game(BASE_URL, game_description, game_name)
+def create_game(game_description):
+    response_create_game = endpoints.create_game(BASE_URL, game_description)
 
     if response_create_game.status_code != 201:
         exit(1)

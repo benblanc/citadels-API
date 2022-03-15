@@ -154,7 +154,6 @@ paths:
           default: created
           enum:
             - created
-            - name
           in: query
           name: order_by
           required: false
@@ -208,14 +207,10 @@ paths:
               - description
             type: object
             properties:
-              name:
-                type: string
-                description: The name for the game used for display purposes.
-                example: Citadels, new players only
               description:
                 type: string
                 description: The description for the game used for display purposes.
-                example: My first time playing the game
+                example: Citadels, new players only
       responses:
         201:
           description: Returns the UUID of the created game

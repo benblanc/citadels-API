@@ -33,10 +33,9 @@ class GameCreate(Resource):
     @expects_json(read_json('api/schemas/game/create.json'))
     def post(self):
         body = json.loads(request.data)
-        name = body["name"]
         description = body["description"]
 
-        return create_game(str(name), str(description))
+        return create_game(str(description))
 
 
 class GameJoin(Resource):

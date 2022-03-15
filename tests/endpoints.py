@@ -24,10 +24,9 @@ def log_response(response):
     print("=" * 100)
 
 
-def create_game(base_url, description, name):
+def create_game(base_url, description):
     payload = {
-        "description": description,
-        "name": name
+        "description": description
     }
 
     response = requests.post(url=base_url + "/game/action.create", json=payload)
