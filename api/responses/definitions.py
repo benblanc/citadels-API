@@ -18,7 +18,6 @@ def define_game(game):
     response = {
         "uuid": game.uuid,
         "created": game.created.strftime('%Y-%m-%d %H:%M:%S'),
-        "name": game.name,
         "description": game.description,
         "state": game.state,
         "amount_players": game.amount_players,

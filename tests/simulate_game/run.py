@@ -1,7 +1,6 @@
 from tests.simulate_game.controllers import *
 
 GAME_DESCRIPTION = "Test to simulate game and see how far it gets before breaking"
-GAME_NAME = "Testing application"
 
 NUMBER_OF_PLAYERS = 4
 
@@ -253,7 +252,7 @@ def __perform_turn(game_uuid):
 
 
 if __name__ == '__main__':
-    game_uuid = create_game(GAME_DESCRIPTION, GAME_NAME)["uuid"]
+    game_uuid = create_game(GAME_DESCRIPTION)["uuid"]
 
     player_name = "Wubby"
 

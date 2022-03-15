@@ -5,7 +5,6 @@ class Game(db.Model):
     __tablename__ = 'game'
     uuid = db.Column(db.String(150), primary_key=True, nullable=False)
     created = db.Column(db.DateTime)
-    name = db.Column(db.String(100))
     description = db.Column(db.String(100))
     state = db.Column(db.String(100))
     amount_players = db.Column(db.Integer)

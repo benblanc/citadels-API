@@ -47,7 +47,7 @@ class ClassSettings:
 
 
 class ClassGame:
-    def __init__(self, uuid=None, created="", name="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, character_turn="", round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
+    def __init__(self, uuid=None, created="", description="", state="", players=None, amount_players=0, characters_open=0, characters_closed=0, characters_per_player=0, deck_characters=None, deck_districts=None, discard_pile=None, eight_districts_built=False, character_turn="", round=1, possible_characters=None, removed_characters=None, settings=None, database_object=None):
         if players is None:
             players = []
 
@@ -72,7 +72,6 @@ class ClassGame:
         self.__uuid = uuid
         self.__created = created
 
-        self.__name = name
         self.__description = description
 
         self.__state = state
@@ -99,7 +98,6 @@ class ClassGame:
         if database_object:  # check if parameters contain a database object
             self.__uuid = database_object.uuid
             self.__created = database_object.created
-            self.__name = database_object.name
             self.__description = database_object.description
             self.__state = database_object.state
             self.__amount_players = database_object.amount_players
@@ -113,10 +111,6 @@ class ClassGame:
     @property
     def created(self):
         return self.__created
-
-    @property
-    def name(self):
-        return self.__name
 
     @property
     def description(self):
@@ -240,7 +234,6 @@ class ClassGame:
         info = {
             "uuid": self.__uuid,
             "created": self.__created,
-            "name": self.__name,
             "description": self.__description,
             "state": self.__state,
             "players": self.__players,
