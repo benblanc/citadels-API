@@ -332,11 +332,15 @@ def build(game_uuid, player_uuid, name):
 
         buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
 
+        log = "{player_name} as the {character_name} builds the {district_name}.\n".format(player_name=player.name, character_name=character.name, district_name=card_complete_info.name)  # update log
+
         buildings_amount = 0
         for building in buildings:  # go through buildings
             buildings_amount += building.amount  # increase amount
 
         if buildings_amount == 8:  # check if player has a completed city
+            log += "{player_name} has a completed city.\n".format(player_name=player.name)  # update log
+
             players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
             if not players:  # check if there are no players
@@ -360,6 +364,13 @@ def build(game_uuid, player_uuid, name):
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("player")
+
+        game.log += log  # update log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(log=game.log))  # update game log in the database
+
+        if not success_update_game:  # check if database failed to update
+            return responses.error_updating_database("game")
 
         return responses.no_content()
 
@@ -410,12 +421,17 @@ def receive_coins(game_uuid, player_uuid):
 
         game.players[0].coins += 2  # increase coin amount
 
+        log = "{player_name} as the {character_name} chooses coins for their income.\n".format(player_name=player.name, character_name=character.name)  # update log
+
         if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
             character.ability_used = True
             game.players[0].coins += 1  # gain an additional coin
+            log += "{player_name} as the {character_name} receives a coin in addition to the income.\n".format(player_name=player.name, character_name=character.name)  # update log
 
         elif character.name == ClassCharacterName.architect.value and not character.ability_used:  # check if character is the architect
             character.ability_used = True
+
+            log += "{player_name} as the {character_name} receives two cards in addition to the income.\n".format(player_name=player.name, character_name=character.name)  # update log
 
             deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
 
@@ -469,6 +485,13 @@ def receive_coins(game_uuid, player_uuid):
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("character")
+
+        game.log += log  # update log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(log=game.log))  # update game log in the database
+
+        if not success_update_game:  # check if database failed to update
+            return responses.error_updating_database("game")
 
         return responses.no_content()
 
@@ -652,7 +675,23 @@ def start_game(game_uuid, player_uuid):
 
         game.state = ClassState.selection_phase.value  # update game to say it is ready to let players select characters
 
-        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state))  # update database with the latest information about the game state
+        game.log += "The host started the game.\nEach player will now pick their character(s) for this round.\n"  # update game log
+
+        game.log += "{line} round {round} {line}\n".format(line="=" * 40, round=game.round)  # update game log
+
+        amount = game.characters_open + game.characters_closed - 1  # define how many characters are removed at the beginning of the round
+
+        if game.amount_players < 4:  # check if less than 4 players
+            amount = 1  # define how many characters are removed at the beginning of the round
+
+        text = "{amount} characters have".format(amount=amount)  # update log
+
+        if amount == 1:  # check if only one card
+            text = "{amount} character has".format(amount=amount)  # update log
+
+        game.log += "{text} been removed for this round.\n".format(text=text)  # update log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, log=game.log))  # update database with the latest information about the game state
 
         if not success_update_game:  # check if database failed to update
             return responses.error_updating_database("game")
@@ -747,9 +786,9 @@ def select_character(game_uuid, player_uuid, name, remove):
 
         game.removed_characters = list(map(lambda character: ClassCharacter(database_object=character), removed_characters))  # add deck of removed characters to game object
 
-        if possible_characters and game.amount_players == 2 and len(game.removed_characters) > 1 or possible_characters and game.amount_players == 2 and not game.players[0].king:  # check if there are possible characters, two player game and atleast 2 removed characters or if there are possible characters, two player game and it's not the first player
-            remove_character_possible = False
+        remove_character_possible = False  # outside the if structure where it's used so it can also be used to determine log text
 
+        if possible_characters and game.amount_players == 2 and len(game.removed_characters) > 1 or possible_characters and game.amount_players == 2 and not game.players[0].king:  # check if there are possible characters, two player game and atleast 2 removed characters or if there are possible characters, two player game and it's not the first player
             remove_character = list(filter(lambda character: character.name == remove, possible_characters))  # get character to remove
 
             if remove_character:  # check if there is a character with given name
@@ -811,6 +850,11 @@ def select_character(game_uuid, player_uuid, name, remove):
         if not success_update_player:  # check if failed to update database
             return responses.error_updating_database("player")
 
+        log = "{player_name} picked a character.\n".format(player_name=game.players[0].name)  # update log
+
+        if remove_character_possible:  # check if removing the character with provided name is possible
+            log = "{player_name} picked a character and removed a character.\n".format(player_name=game.players[0].name)  # update log
+
         selection_phase_finished = True
 
         selected_characters_count = 0
@@ -854,6 +898,8 @@ def select_character(game_uuid, player_uuid, name, remove):
 
             game.state = ClassState.turn_phase.value  # update game to say it is ready to let each character perform their turn
 
+            log += "Each player has selected their character(s), so the character turns are up next.\n"  # update log
+
             characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
 
             lowest_character = ClassCharacter(order=8, name=ClassCharacterName.warlord.value)  # keep track of character with the lowest order | start from the highest order number and work the way down
@@ -869,7 +915,11 @@ def select_character(game_uuid, player_uuid, name, remove):
                     if character_complete_info.order < lowest_character.order:  # check if player's character has a lower order than the current lowest order
                         lowest_character = character_complete_info  # update the lowest character
 
-            success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=lowest_character.name))  # update database with the latest information about the game state
+            log += "The {character_name} is up first.\n".format(character_name=lowest_character.name)  # update log
+
+            game.log += log  # update log
+
+            success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=lowest_character.name, log=game.log))  # update database with the latest information about the game state
 
             if not success_update_game:  # check if database failed to update
                 return responses.error_updating_database("game")
@@ -896,6 +946,8 @@ def select_character(game_uuid, player_uuid, name, remove):
 
             if not player:  # check if player does not exist
                 return responses.not_found("player")
+
+            log += "{player_name} is up next to pick a character.\n".format(player_name=player.name)  # update log
 
             player_uuid = player.uuid  # get uuid of the next player | get value now before connection with database closes
 
@@ -927,6 +979,13 @@ def select_character(game_uuid, player_uuid, name, remove):
 
                     if not success_delete_possible_character:  # check if failed to delete in database
                         return responses.error_deleting_database("removed character")
+
+            game.log += log  # update log
+
+            success_update_game = database.update_row_in_db(game_db, game_uuid, dict(log=game.log))  # update game log in the database
+
+            if not success_update_game:  # check if database failed to update
+                return responses.error_updating_database("game")
 
         return responses.no_content()
 
@@ -1007,12 +1066,17 @@ def keep_card(game_uuid, player_uuid, name):
         if error:  # check if something went wrong when updating the database
             return error
 
+        log = "{player_name} as the {character_name} chooses cards for their income.\n".format(player_name=game.players[0].name, character_name=character.name)  # update log
+
         if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
             character.ability_used = True
             game.players[0].coins += 1  # gain an additional coin
+            log += "{player_name} as the {character_name} receives a coin in addition to the income.\n".format(player_name=game.players[0].name, character_name=character.name)  # update log
 
         elif character.name == ClassCharacterName.architect.value and not character.ability_used:  # check if character is the architect
             character.ability_used = True
+
+            log += "{player_name} as the {character_name} receives two cards in addition to the income.\n".format(player_name=game.players[0].name, character_name=character.name)  # update log
 
             deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()  # get deck of districts in game
 
@@ -1066,6 +1130,13 @@ def keep_card(game_uuid, player_uuid, name):
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("character")
+
+        game.log += log  # update log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(log=game.log))  # update game log in the database
+
+        if not success_update_game:  # check if database failed to update
+            return responses.error_updating_database("game")
 
         return responses.no_content()
 
@@ -1126,6 +1197,8 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
         if not main and character.ability_additional_income_used:  # check if the player has already used the character's second ability
             return responses.already_used_ability(main=False)
 
+        log = ""
+
         if main:  # check if character ability was the main ability
             if character.name == ClassCharacterName.assassin.value:  # check if the character is the assassin
                 character_possible = False
@@ -1140,6 +1213,8 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                 if not character_possible:  # check if character cannot be picked
                     return responses.not_found("character")
+
+                log += "{player_name} as the assassin kills the {character_name}.\n".format(player_name=player.name, character_name=name_character)  # update log
 
                 players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
@@ -1179,6 +1254,8 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                 if not character_possible:  # check if character cannot be picked
                     return responses.not_found("character")
+
+                log += "{player_name} as the thief robs the {character_name}.\n".format(player_name=player.name, character_name=name_character)  # update log
 
                 players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
@@ -1220,6 +1297,8 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                     if not other_player:  # check if player does not exist
                         return responses.not_found("player")
 
+                    log += "{player_name} as the magician swaps cards with {other_player_name}.\n".format(player_name=player.name, other_player_name=other_player.name)  # update log
+
                     cards = cards_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's hand
 
                     cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), cards))  # convert database objects to class objects
@@ -1253,6 +1332,13 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                     if not cards:  # check if the player has no district cards in their hand
                         return responses.no_cards_in_hand()
+
+                    text = "card"
+
+                    if len(name_districts) > 1:  # check if more than one cards
+                        text = "cards"
+
+                    log += "{player_name} as the magician discards {amount} {text} to draw the same amount from the deck of districts.\n".format(player_name=player.name, amount=len(name_districts), text=text)  # update log
 
                     cards = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), cards))  # convert database objects to class objects
 
@@ -1363,6 +1449,8 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 if not building_to_destroy:  # check if district cannot be destroyed
                     return responses.not_found("district")
 
+                log += "{player_name} as the warlord destroys the {district_name} in {other_player_name}'s city.\n".format(player_name=player.name, district_name=building_to_destroy[0].card.name, other_player_name=other_player.name)  # update log
+
                 cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
                 card_complete_info = list(filter(lambda card: card.name == building_to_destroy[0].card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
@@ -1408,18 +1496,24 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 color_count[card_complete_info.color] += 1  # increase count
 
             coins = 0
+            color = ""
 
-            if character.name == ClassCharacterName.king.value and ClassColor.yellow.value in color_count.keys():  # check if the character is the king
-                coins = color_count[ClassColor.yellow.value]  # player gains coins for yellow districts in their city
+            if character.name == ClassCharacterName.king.value:  # check if the character is the king
+                color = ClassColor.yellow.value  # set color
 
-            elif character.name == ClassCharacterName.bishop.value and ClassColor.blue.value in color_count.keys():  # check if the character is the bishop
-                coins = color_count[ClassColor.blue.value]  # player gains coins for blue districts in their city
+            elif character.name == ClassCharacterName.bishop.value:  # check if the character is the bishop
+                color = ClassColor.blue.value  # set color
 
-            elif character.name == ClassCharacterName.merchant.value and ClassColor.green.value in color_count.keys():  # check if the character is the merchant
-                coins = color_count[ClassColor.green.value]  # player gains coins for green districts in their city
+            elif character.name == ClassCharacterName.merchant.value:  # check if the character is the merchant
+                color = ClassColor.green.value  # set color
 
-            elif character.name == ClassCharacterName.warlord.value and ClassColor.red.value in color_count.keys():  # check if the character is the warlord
-                coins = color_count[ClassColor.red.value]  # player gains coins for red districts in their city
+            elif character.name == ClassCharacterName.warlord.value:  # check if the character is the warlord
+                color = ClassColor.red.value  # set color
+
+            if color in color_count.keys():  # check if player has any districts with the color
+                coins = color_count[color]  # player gains coins for each district with that color in their city
+
+            log += "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
 
             player.coins += coins  # add coins
 
@@ -1432,6 +1526,13 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
         if not success_update_character:  # check if failed to update database
             return responses.error_updating_database("character")
+
+        game.log += log  # update log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(log=game.log))  # update database with the latest information about the game
+
+        if not success_update_game:  # check if database failed to update
+            return responses.error_updating_database("game")
 
         return responses.no_content()
 
@@ -1479,6 +1580,8 @@ def end_turn(game_uuid, player_uuid):
 
         if not character.income_received:  # check if the character has received an income
             return responses.must_receive_income_to_end_turn()
+
+        game.log += "{player_name} as the {character_name} ends their turn.\n".format(player_name=player.name, character_name=character.name)  # update log
 
         players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
@@ -1564,14 +1667,20 @@ def end_turn(game_uuid, player_uuid):
                     if not success_update_character:  # check if failed to update database
                         return responses.error_updating_database("character")
 
+                    game.log += "The {character_name} is up next.\n".format(character_name=character_next[0].name)  # update log
+
         elif not next_character.name:  # check if there is no next character
             game.state = ClassState.finished.value  # update game state assuming game has ended
 
             player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
 
+            log = "One or more players have completed their city, so the game is finished.\n"  # default log
+
             if not player_city_first_completed:  # check if there is no player yet with a completed city | the game ends at the end of the round when a player has a completed city
                 game.round += 1  # increase counter
                 game.state = ClassState.selection_phase.value  # update game state
+
+                log = "The round has been played out, so next up is the character selection.\n"  # update log since game hasn't ended
 
                 success_delete_removed_characters = database.delete_rows_from_db(removed_characters_db, game_uuid=game_uuid)  # delete character from removed characters in database
 
@@ -1600,6 +1709,8 @@ def end_turn(game_uuid, player_uuid):
 
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
+
+                        log += "{player_name} was the assassinated king and receives the crown as the heir.\n".format(player_name=player.name)  # update log
 
                 players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game again since we just updated the database
 
@@ -1645,6 +1756,20 @@ def end_turn(game_uuid, player_uuid):
                 if False in success_write_possible_characters:  # check if failed to write to database
                     return responses.error_writing_database("possible characters")
 
+                log += "{line} round {round} {line}\n".format(line="=" * 40, round=game.round)  # update game log
+
+                amount = game.characters_open + game.characters_closed - 1  # define how many characters are removed at the beginning of the round
+
+                if game.amount_players < 4:  # check if less than 4 players
+                    amount = 1  # define how many characters are removed at the beginning of the round
+
+                text = "{amount} characters have".format(amount=amount)  # update log
+
+                if amount == 1:  # check if only one card
+                    text = "{amount} character has".format(amount=amount)  # update log
+
+                log += "{text} been removed for this round.\n".format(text=text)  # update log
+
                 success_write_removed_characters = []
                 for character in game.removed_characters:  # go through each removed character
                     success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
@@ -1662,7 +1787,9 @@ def end_turn(game_uuid, player_uuid):
                 if False in success_write_removed_characters:  # check if failed to write to database
                     return responses.error_writing_database("removed characters")
 
-        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=next_character.name, round=game.round))  # update database with the latest information about the game state
+            game.log += log  # update log
+
+        success_update_game = database.update_row_in_db(game_db, game_uuid, dict(state=game.state, character_turn=next_character.name, round=game.round, log=game.log))  # update database with the latest information about the game state
 
         if not success_update_game:  # check if database failed to update
             return responses.error_updating_database("game")

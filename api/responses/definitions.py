@@ -22,7 +22,8 @@ def define_game(game):
         "state": game.state,
         "amount_players": game.amount_players,
         "character_turn": game.character_turn,
-        "round": game.round
+        "round": game.round,
+        "log": game.log
     }
 
     return response

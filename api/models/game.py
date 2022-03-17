@@ -1,4 +1,5 @@
 from api import db
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 
 class Game(db.Model):
@@ -10,6 +11,7 @@ class Game(db.Model):
     amount_players = db.Column(db.Integer)
     character_turn = db.Column(db.String(100))
     round = db.Column(db.Integer)
+    log = db.Column(LONGTEXT)
 
     child1 = db.relationship("Settings", cascade="all, delete-orphan")
     child2 = db.relationship("Players", cascade="all, delete-orphan")
