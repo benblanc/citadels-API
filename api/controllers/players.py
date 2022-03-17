@@ -1710,7 +1710,8 @@ def end_turn(game_uuid, player_uuid):
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
 
-                        log += "{player_name} was the assassinated king and receives the crown as the heir.\n".format(player_name=player.name)  # update log
+                        if character_king[0].assassinated:  # check if the king was assassinated
+                            log += "{player_name} was the assassinated king and receives the crown as the heir.\n".format(player_name=player.name)  # update log
 
                 players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game again since we just updated the database
 
