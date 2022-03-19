@@ -1,22 +1,22 @@
 import logging, traceback
 
-from api.models.game import Game as game_db
-from api.models.players import Players as players_db
 from api.models.drawn_cards import DrawnCards as drawn_cards_db
 
 import api.responses as responses
+
+from api.utils import transactions
 
 from api.validation import query
 
 
 def get_drawn_cards(game_uuid, player_uuid, sort_order, order_by, limit, offset):
     try:
-        game = game_db.query.get(game_uuid)  # get game from database
+        game = transactions.get_game(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
             return responses.not_found("game")
 
-        player = players_db.query.get(player_uuid)  # get player from database
+        player = transactions.get_player(player_uuid)  # get player from database
 
         if not player:  # check if player does not exist
             return responses.not_found("player")

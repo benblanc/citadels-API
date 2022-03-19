@@ -5,8 +5,6 @@ from api.classes.game import *
 from api.classes.player import *
 
 from api.models.game import Game as game_db
-from api.models.players import Players as players_db
-from api.models.settings import Settings as settings_db
 
 import api.responses as responses
 
@@ -63,9 +61,9 @@ def get_games(sort_order, order_by, limit, offset):
 
 def get_game(game_uuid):
     try:
-        game = game_db.query.get(game_uuid)
+        game = transactions.get_game(game_uuid)  # get game from database
 
-        if game:
+        if game:  # check if game exists
             return responses.success_get_game(game)
 
         return responses.not_found()
@@ -116,29 +114,27 @@ def create_game(description):
 
 def join_game(game_uuid, name):
     try:
-        game = game_db.query.get(game_uuid)  # get game from database
+        game = transactions.get_game(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
             return responses.not_found("game")
 
-        game = ClassGame(database_object=game)  # initialize game object
-
         if game.state != ClassState.created.value:  # check if game has already started
             return responses.already_started()
 
-        settings = settings_db.query.filter_by(game_uuid=game_uuid).first()  # get settings from database
+        settings = transactions.get_game_settings(game_uuid)  # get settings from database
 
         if not settings:  # check if game settings do not exist
             return responses.not_found("settings", True)
 
-        game.settings = ClassSettings(database_object=settings)  # add settings to game object
+        game.settings = settings  # add settings to game object
 
         if game.amount_players == game.settings.max_players:  # check if there are already enough players
             return responses.enough_players()
 
         hosting = True  # assume new player is hosting
 
-        players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+        players = transactions.get_players(game_uuid)  # get players in game
 
         if players:  # check if there are players
             host = helpers.get_filtered_item(players, "hosting", True)  # get host

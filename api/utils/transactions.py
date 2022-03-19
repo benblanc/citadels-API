@@ -1,3 +1,7 @@
+from api.classes.card import *
+from api.classes.game import *
+from api.classes.player import *
+
 from api.models.buildings import Buildings as buildings_db
 from api.models.cards import Cards as cards_db
 from api.models.characters import Characters as characters_db
@@ -116,3 +120,146 @@ def write_character_to_player_characters(player_uuid, character):
         ability_used=character.ability_used,
         ability_additional_income_used=character.ability_additional_income_used,
         player_uuid=player_uuid))
+
+
+def get_game(game_uuid):
+    response = None
+
+    game = game_db.query.get(game_uuid)
+
+    if game:
+        response = ClassGame(database_object=game)
+
+    return response
+
+
+def get_game_settings(game_uuid):
+    response = None
+
+    settings = settings_db.query.filter_by(game_uuid=game_uuid).first()
+
+    if settings:
+        response = ClassSettings(database_object=settings)
+
+    return response
+
+
+def get_game_deck_characters(game_uuid):
+    response = []
+
+    deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()
+
+    if deck_characters:
+        response = list(map(lambda character: ClassCharacter(database_object=character), deck_characters))
+
+    return response
+
+
+def get_game_deck_districts(game_uuid):
+    response = []
+
+    deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()
+
+    if deck_districts:
+        response = list(map(lambda district: ClassDistrict(database_object=district), deck_districts))
+
+    return response
+
+
+def get_game_discard_pile(game_uuid):
+    response = []
+
+    discard_pile = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).all()
+
+    if discard_pile:
+        response = list(map(lambda district: ClassDistrict(database_object=district), discard_pile))
+
+    return response
+
+
+def get_game_possible_characters(game_uuid):
+    response = []
+
+    possible_characters = possible_characters_db.query.filter_by(game_uuid=game_uuid).all()
+
+    if possible_characters:
+        response = list(map(lambda character: ClassCharacter(database_object=character), possible_characters))
+
+    return response
+
+
+def get_game_removed_characters(game_uuid):
+    response = []
+
+    removed_characters = removed_characters_db.query.filter_by(game_uuid=game_uuid).all()
+
+    if removed_characters:
+        response = list(map(lambda character: ClassCharacter(database_object=character), removed_characters))
+
+    return response
+
+
+def get_players(game_uuid):
+    response = []
+
+    players = players_db.query.filter_by(game_uuid=game_uuid).all()
+
+    if players:
+        response = list(map(lambda player: ClassPlayer(database_object=player), players))
+
+    return response
+
+
+def get_player(player_uuid):
+    response = None
+
+    player = players_db.query.get(player_uuid)
+
+    if player:
+        response = ClassPlayer(database_object=player)
+
+    return response
+
+
+def get_player_characters(player_uuid):
+    response = []
+
+    characters = characters_db.query.filter_by(player_uuid=player_uuid).all()
+
+    if characters:
+        response = list(map(lambda character: ClassCharacter(database_object=character), characters))
+
+    return response
+
+
+def get_player_buildings(player_uuid):
+    response = []
+
+    buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()
+
+    if buildings:
+        response = list(map(lambda district: ClassDistrict(database_object=district), buildings))
+
+    return response
+
+
+def get_player_cards(player_uuid):
+    response = []
+
+    cards = cards_db.query.filter_by(player_uuid=player_uuid).all()
+
+    if cards:
+        response = list(map(lambda district: ClassDistrict(database_object=district), cards))
+
+    return response
+
+
+def get_player_drawn_cards(player_uuid):
+    response = []
+
+    drawn_cards = drawn_cards_db.query.filter_by(player_uuid=player_uuid).all()
+
+    if drawn_cards:
+        response = list(map(lambda district: ClassDistrict(database_object=district), drawn_cards))
+
+    return response
