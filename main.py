@@ -22,3 +22,7 @@ if __name__ == '__main__':
 # TODO: add the ability for the smithy
 # TODO: add the ability for the library
 # TODO: add the ability for the school of magic
+
+
+# TODO: check if the query gets can become a generic function and moved to separate file
+# TODO: check if card amounts count up, because it seems there are too many docks
