@@ -41,7 +41,7 @@ def write_settings(game_uuid, settings):
 def write_district_to_deck_districts(game_uuid, district):
     return database.write_row_to_db(deck_districts_db(
         uuid=helpers.create_uuid(),
-        name=district.card.name,
+        name=district.name,
         amount=district.amount,
         game_uuid=game_uuid))
 
