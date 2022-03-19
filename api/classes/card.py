@@ -115,13 +115,19 @@ class ClassAbility():
 
 
 class ClassDistrict:
-    def __init__(self, uuid=None, name="", color="", coins=0, value=0, effect=None):
+    def __init__(self, uuid=None, name="", color="", coins=0, value=0, effect=None, amount=1, database_object=None):
+        self.__uuid = uuid
         self.__name = name
         self.__color = color
         self.__coins = coins
         self.__value = value
         self.__effect = effect
-        self.__uuid = uuid
+        self.__amount = amount
+
+        if database_object:  # check if parameters contain a database object
+            self.__uuid = database_object.uuid
+            self.__name = database_object.name
+            self.__amount = database_object.amount
 
     def __eq__(self, other):  # override default equals behavior
         return self.__name == other.__name
@@ -151,6 +157,14 @@ class ClassDistrict:
         return self.__effect
 
     @property
+    def amount(self):
+        return self.__amount
+
+    @amount.setter
+    def amount(self, value):
+        self.__amount = value
+
+    @property
     def info(self):
         info = {
             "uuid": self.__uuid,
@@ -158,7 +172,8 @@ class ClassDistrict:
             "color": self.__color,
             "coins": self.__coins,
             "value": self.__value,
-            "effect": self.__effect
+            "effect": self.__effect,
+            "amount": self.__amount
         }
 
         return info
@@ -404,48 +419,48 @@ class ClassCard:
         ]
 
         self.__districts_red = [
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.watchtower.value, color=ClassColor.red.value, coins=1, value=1, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.prison.value, color=ClassColor.red.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.barracks.value, color=ClassColor.red.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.fortress.value, color=ClassColor.red.value, coins=5, value=5, effect=None))
+            ClassDistrict(name=ClassDistrictName.watchtower.value, color=ClassColor.red.value, coins=1, value=1, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.prison.value, color=ClassColor.red.value, coins=2, value=2, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.barracks.value, color=ClassColor.red.value, coins=3, value=3, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.fortress.value, color=ClassColor.red.value, coins=5, value=5, effect=None, amount=2)
         ]
 
         self.__districts_yellow = [
-            ClassDeckDistrict(5, ClassDistrict(name=ClassDistrictName.manor.value, color=ClassColor.yellow.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(4, ClassDistrict(name=ClassDistrictName.castle.value, color=ClassColor.yellow.value, coins=4, value=4, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.palace.value, color=ClassColor.yellow.value, coins=5, value=5, effect=None))
+            ClassDistrict(name=ClassDistrictName.manor.value, color=ClassColor.yellow.value, coins=3, value=3, effect=None, amount=5),
+            ClassDistrict(name=ClassDistrictName.castle.value, color=ClassColor.yellow.value, coins=4, value=4, effect=None, amount=4),
+            ClassDistrict(name=ClassDistrictName.palace.value, color=ClassColor.yellow.value, coins=5, value=5, effect=None, amount=3)
         ]
 
         self.__districts_blue = [
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.temple.value, color=ClassColor.blue.value, coins=1, value=1, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.church.value, color=ClassColor.blue.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.monastery.value, color=ClassColor.blue.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.cathedral.value, color=ClassColor.blue.value, coins=5, value=5, effect=None))
+            ClassDistrict(name=ClassDistrictName.temple.value, color=ClassColor.blue.value, coins=1, value=1, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.church.value, color=ClassColor.blue.value, coins=2, value=2, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.monastery.value, color=ClassColor.blue.value, coins=3, value=3, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.cathedral.value, color=ClassColor.blue.value, coins=5, value=5, effect=None, amount=2)
         ]
 
         self.__districts_green = [
-            ClassDeckDistrict(5, ClassDistrict(name=ClassDistrictName.tavern.value, color=ClassColor.green.value, coins=1, value=1, effect=None)),
-            ClassDeckDistrict(4, ClassDistrict(name=ClassDistrictName.market.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.trading_post.value, color=ClassColor.green.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.docks.value, color=ClassColor.green.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(3, ClassDistrict(name=ClassDistrictName.harbor.value, color=ClassColor.green.value, coins=4, value=4, effect=None)),
-            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.town_hall.value, color=ClassColor.green.value, coins=5, value=5, effect=None))
+            ClassDistrict(name=ClassDistrictName.tavern.value, color=ClassColor.green.value, coins=1, value=1, effect=None, amount=5),
+            ClassDistrict(name=ClassDistrictName.market.value, color=ClassColor.green.value, coins=2, value=2, effect=None, amount=4),
+            ClassDistrict(name=ClassDistrictName.trading_post.value, color=ClassColor.green.value, coins=2, value=2, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.docks.value, color=ClassColor.green.value, coins=3, value=3, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.harbor.value, color=ClassColor.green.value, coins=4, value=4, effect=None, amount=3),
+            ClassDistrict(name=ClassDistrictName.town_hall.value, color=ClassColor.green.value, coins=5, value=5, effect=None, amount=2)
         ]
 
         self.__districts_purple = [
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.haunted_quarter.value, color=ClassColor.purple.value, coins=2, value=2, effect=None)),
-            ClassDeckDistrict(2, ClassDistrict(name=ClassDistrictName.keep.value, color=ClassColor.purple.value, coins=3, value=3, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.observatory.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.laboratory.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.graveyard.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.smithy.value, color=ClassColor.purple.value, coins=5, value=5, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.library.value, color=ClassColor.purple.value, coins=6, value=6, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.school_of_magic.value, color=ClassColor.purple.value, coins=6, value=6, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.dragon_gate.value, color=ClassColor.purple.value, coins=6, value=8, effect=None)),
-            ClassDeckDistrict(1, ClassDistrict(name=ClassDistrictName.university.value, color=ClassColor.purple.value, coins=6, value=8, effect=None))
+            ClassDistrict(name=ClassDistrictName.haunted_quarter.value, color=ClassColor.purple.value, coins=2, value=2, effect=None),
+            ClassDistrict(name=ClassDistrictName.keep.value, color=ClassColor.purple.value, coins=3, value=3, effect=None, amount=2),
+            ClassDistrict(name=ClassDistrictName.observatory.value, color=ClassColor.purple.value, coins=5, value=5, effect=None),
+            ClassDistrict(name=ClassDistrictName.laboratory.value, color=ClassColor.purple.value, coins=5, value=5, effect=None),
+            ClassDistrict(name=ClassDistrictName.graveyard.value, color=ClassColor.purple.value, coins=5, value=5, effect=None),
+            ClassDistrict(name=ClassDistrictName.smithy.value, color=ClassColor.purple.value, coins=5, value=5, effect=None),
+            ClassDistrict(name=ClassDistrictName.library.value, color=ClassColor.purple.value, coins=6, value=6, effect=None),
+            ClassDistrict(name=ClassDistrictName.school_of_magic.value, color=ClassColor.purple.value, coins=6, value=6, effect=None),
+            ClassDistrict(name=ClassDistrictName.dragon_gate.value, color=ClassColor.purple.value, coins=6, value=8, effect=None),
+            ClassDistrict(name=ClassDistrictName.university.value, color=ClassColor.purple.value, coins=6, value=8, effect=None)
         ]
 
-        self.__unique_districts = [
+        self.__districts_grouped_by_color = [
             self.__districts_red,
             self.__districts_yellow,
             self.__districts_blue,
@@ -453,16 +468,11 @@ class ClassCard:
             self.__districts_purple
         ]
 
-    def get_districts(self, separate=True):
+    def get_districts(self):
         districts = []
 
-        for districts_color in self.__unique_districts:  # go through each district color group
-            for unique_district in districts_color:  # go through each unique district
-                if separate:  # check if cards need to be separate (not by amount)
-                    for index in range(unique_district.amount):  # for the specified amount
-                        districts.append(unique_district.card)  # add card to list
-                else:  # cards need to be by amount
-                    districts.append(unique_district)  # add card to list
+        for districts_color in self.__districts_grouped_by_color:  # go through each district color group
+            districts.extend(districts_color)  # add districts with that color to list
 
         return districts
 

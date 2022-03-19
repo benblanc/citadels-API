@@ -393,15 +393,28 @@ class ClassGame:
 
         return selected_character
 
+    def separate_cards_by_name(self, cards):
+        separated = []
+
+        for card in cards:  # go through cards
+            amount = card.amount  # get card amount
+
+            for index in range(amount):  # for the amount
+                card.amount = 1  # update amount
+                separated.append(card)  # add separated card to list
+
+        return separated
+
     def aggregate_cards_by_name(self, cards):
         aggregation = {}
 
         for card in cards:  # go through cards
             if card.name not in aggregation.keys():  # check if card is not in aggregation obejct
-                aggregation[card.name] = ClassDeckDistrict(1, card)  # add card by amount to aggregation
+                card.amount = 1  # update amount
+                aggregation[card.name] = card  # add card by amount to aggregation
             else:  # card is in aggregation
-                new_deck_district = aggregation[card.name]  # get card from aggregation
-                new_deck_district.amount += 1  # increase amount
-                aggregation[card.name] = new_deck_district  # update card in aggregation
+                district = aggregation[card.name]  # get card from aggregation
+                district.amount += 1  # increase amount
+                aggregation[card.name] = district  # update card in aggregation
 
         return list(map(lambda district: district, aggregation.values()))  # return deck of cards with updated card amount
