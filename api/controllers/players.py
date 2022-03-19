@@ -131,10 +131,10 @@ def __calculate_score(player_uuid, city_first_completed):
 
     buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
 
-    buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
+    buildings = list(map(lambda district: ClassDistrict(database_object=district), buildings))  # convert database objects to class objects
 
     for building in buildings:  # go through buildings in city
-        card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building.card.name)  # get complete info on buildings
+        card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building.name)  # get complete info on buildings
 
         for index in range(building.amount):  # go through amount
             player_buildings_complete_info.append(card_complete_info)  # add card to list
