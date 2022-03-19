@@ -261,7 +261,7 @@ if __name__ == '__main__':
 
     players = get_players(game_uuid)
 
-    host = list(filter(lambda player: player["hosting"] == True, players))[0]
+    host = __get_filtered_item(players, "hosting", True)
 
     start_game(game_uuid, host["uuid"])
 
