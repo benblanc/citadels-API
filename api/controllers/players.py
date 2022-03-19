@@ -6,24 +6,24 @@ from api.classes.card import *
 from api.classes.game import *
 from api.classes.player import *
 
-from api.models.characters import Characters as characters_db
-from api.models.game import Game as game_db
-from api.models.settings import Settings as settings_db
-from api.models.deck_districts import DeckDistricts as deck_districts_db
-from api.models.players import Players as players_db
+from api.models.buildings import Buildings as buildings_db
 from api.models.cards import Cards as cards_db
+from api.models.characters import Characters as characters_db
 from api.models.deck_characters import DeckCharacters as deck_characters_db
+from api.models.deck_discard_pile import DeckDiscardPile as deck_discard_pile_db
+from api.models.deck_districts import DeckDistricts as deck_districts_db
+from api.models.drawn_cards import DrawnCards as drawn_cards_db
+from api.models.game import Game as game_db
+from api.models.players import Players as players_db
 from api.models.possible_characters import PossibleCharacters as possible_characters_db
 from api.models.removed_characters import RemovedCharacters as removed_characters_db
-from api.models.drawn_cards import DrawnCards as drawn_cards_db
-from api.models.deck_discard_pile import DeckDiscardPile as deck_discard_pile_db
-from api.models.buildings import Buildings as buildings_db
+from api.models.settings import Settings as settings_db
 
 import api.responses as responses
 
 from api.services import database
 
-from api.utils import helpers
+from api.utils import helpers, transactions
 
 from api.validation import query
 
@@ -89,7 +89,7 @@ def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_
                 if not success_update_card:  # check if failed to update database
                     return responses.error_updating_database(to_table_name)
 
-            else:
+            else:  # table does not yet have a card with that name
                 success_write_card = database.write_row_to_db(to_table(  # write card to database
                     uuid=helpers.create_uuid(),
                     name=deck_district.card.name,
@@ -702,34 +702,14 @@ def start_game(game_uuid, player_uuid):
 
         success_write_possible_characters = []
         for character in game.possible_characters:  # go through each possible character
-            success_write_possible_characters.append(database.write_row_to_db(possible_characters_db(  # write character to database
-                uuid=helpers.create_uuid(),
-                name=character.name,
-                open=character.open,
-                assassinated=character.assassinated,
-                robbed=character.robbed,
-                built=character.built,
-                income_received=character.income_received,
-                ability_used=character.ability_used,
-                ability_additional_income_used=character.ability_additional_income_used,
-                game_uuid=game_uuid)))
+            success_write_possible_characters.append(transactions.write_character_to_possible_characters(game_uuid, character))  # write character to database
 
         if False in success_write_possible_characters:  # check if failed to write to database
             return responses.error_writing_database("possible characters")
 
         success_write_removed_characters = []
         for character in game.removed_characters:  # go through each removed character
-            success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
-                uuid=helpers.create_uuid(),
-                name=character.name,
-                open=character.open,
-                assassinated=character.assassinated,
-                robbed=character.robbed,
-                built=character.built,
-                income_received=character.income_received,
-                ability_used=character.ability_used,
-                ability_additional_income_used=character.ability_additional_income_used,
-                game_uuid=game_uuid)))
+            success_write_removed_characters.append(transactions.write_character_to_removed_characters(game_uuid, character))  # write character to database
 
         if False in success_write_removed_characters:  # check if failed to write to database
             return responses.error_writing_database("removed characters")
@@ -800,17 +780,7 @@ def select_character(game_uuid, player_uuid, name, remove):
 
         character = game.remove_character_from_possible_characters(name)  # remove character from possible characters for round
 
-        success_write_character = database.write_row_to_db(characters_db(  # write character to database
-            uuid=helpers.create_uuid(),
-            name=character.name,
-            open=character.open,
-            assassinated=character.assassinated,
-            robbed=character.robbed,
-            built=character.built,
-            income_received=character.income_received,
-            ability_used=character.ability_used,
-            ability_additional_income_used=character.ability_additional_income_used,
-            player_uuid=player_uuid))
+        success_write_character = transactions.write_character_to_player_characters(player_uuid, character)  # write character to database
 
         if not success_write_character:  # check if failed to write to database
             return responses.error_writing_database("character")
@@ -823,17 +793,7 @@ def select_character(game_uuid, player_uuid, name, remove):
         if game.amount_players == 2 and len(game.removed_characters) > 1 or game.amount_players == 2 and not game.players[0].king:  # check if game has only 2 players and atleast 2 characters have been removed | game with 2 players requires each player to also remove a character for the round, where player two gets to remove the first character
             character = game.remove_character_from_possible_characters(remove)  # remove character from possible characters for round
 
-            success_write_character = database.write_row_to_db(removed_characters_db(  # write character to database
-                uuid=helpers.create_uuid(),
-                name=character.name,
-                open=character.open,
-                assassinated=character.assassinated,
-                robbed=character.robbed,
-                built=character.built,
-                income_received=character.income_received,
-                ability_used=character.ability_used,
-                ability_additional_income_used=character.ability_additional_income_used,
-                game_uuid=game_uuid))
+            success_write_character = transactions.write_character_to_removed_characters(game_uuid, character)  # write character to database
 
             if not success_write_character:  # check if failed to write to database
                 return responses.error_writing_database("character")
@@ -874,17 +834,7 @@ def select_character(game_uuid, player_uuid, name, remove):
 
         if selection_phase_finished:  # check if the selection phase is finished
             for character in game.possible_characters:  # go through remaining possible characters
-                success_write_removed_character = database.write_row_to_db(removed_characters_db(  # write character to database
-                    uuid=helpers.create_uuid(),
-                    name=character.name,
-                    open=character.open,
-                    assassinated=character.assassinated,
-                    robbed=character.robbed,
-                    built=character.built,
-                    income_received=character.income_received,
-                    ability_used=character.ability_used,
-                    ability_additional_income_used=character.ability_additional_income_used,
-                    game_uuid=game_uuid))
+                success_write_removed_character = transactions.write_character_to_removed_characters(game_uuid, character)  # write character to database
 
                 if not success_write_removed_character:  # check if failed to write to database
                     return responses.error_writing_database("removed character")
@@ -958,17 +908,7 @@ def select_character(game_uuid, player_uuid, name, remove):
                 characters = helpers.get_filtered_items(game.removed_characters, "open", False)  # get facedown removed characters
 
                 for character in characters:  # go through characters
-                    success_write_possible_character = database.write_row_to_db(possible_characters_db(  # write character to database
-                        uuid=helpers.create_uuid(),
-                        name=character.name,
-                        open=character.open,
-                        assassinated=character.assassinated,
-                        robbed=character.robbed,
-                        built=character.built,
-                        income_received=character.income_received,
-                        ability_used=character.ability_used,
-                        ability_additional_income_used=character.ability_additional_income_used,
-                        game_uuid=game_uuid))
+                    success_write_possible_character = transactions.write_character_to_possible_characters(game_uuid, character)  # write character to database
 
                     if not success_write_possible_character:  # check if failed to write to database
                         return responses.error_writing_database("possible character")
@@ -1733,17 +1673,7 @@ def end_turn(game_uuid, player_uuid):
 
                 success_write_possible_characters = []
                 for character in game.possible_characters:  # go through each possible character
-                    success_write_possible_characters.append(database.write_row_to_db(possible_characters_db(  # write character to database
-                        uuid=helpers.create_uuid(),
-                        name=character.name,
-                        open=character.open,
-                        assassinated=character.assassinated,
-                        robbed=character.robbed,
-                        built=character.built,
-                        income_received=character.income_received,
-                        ability_used=character.ability_used,
-                        ability_additional_income_used=character.ability_additional_income_used,
-                        game_uuid=game_uuid)))
+                    success_write_possible_characters.append(transactions.write_character_to_possible_characters(game_uuid, character))  # write character to database
 
                 if False in success_write_possible_characters:  # check if failed to write to database
                     return responses.error_writing_database("possible characters")
@@ -1764,17 +1694,7 @@ def end_turn(game_uuid, player_uuid):
 
                 success_write_removed_characters = []
                 for character in game.removed_characters:  # go through each removed character
-                    success_write_removed_characters.append(database.write_row_to_db(removed_characters_db(  # write character to database
-                        uuid=helpers.create_uuid(),
-                        name=character.name,
-                        open=character.open,
-                        assassinated=character.assassinated,
-                        robbed=character.robbed,
-                        built=character.built,
-                        income_received=character.income_received,
-                        ability_used=character.ability_used,
-                        ability_additional_income_used=character.ability_additional_income_used,
-                        game_uuid=game_uuid)))
+                    success_write_removed_characters.append(transactions.write_character_to_removed_characters(game_uuid, character))  # write character to database
 
                 if False in success_write_removed_characters:  # check if failed to write to database
                     return responses.error_writing_database("removed characters")
