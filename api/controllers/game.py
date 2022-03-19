@@ -89,7 +89,7 @@ def create_game(description):
         if not success_write_settings:
             return responses.error_writing_database("settings")
 
-        new_game.deck_districts = ClassCard().get_districts(False)  # get districts in game
+        new_game.deck_districts = ClassCard().get_districts()  # get districts in game
 
         success_write_deck_districts = []
         for district in new_game.deck_districts:  # go through districts
