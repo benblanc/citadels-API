@@ -31,7 +31,7 @@ from api.validation import query
 def __define_next_character_turn(players, current_character_name):
     characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
 
-    current_character = list(filter(lambda complete_character: complete_character.name == current_character_name, characters_complete_info))[0]  # get complete info on current character
+    current_character = helpers.get_filtered_item(characters_complete_info, "name", current_character_name)  # get complete info on current character
 
     lowest_character = ClassCharacter(order=10, name=None)  # keep track of character with the lowest order | start from the highest order number and work the way down
 
@@ -41,7 +41,7 @@ def __define_next_character_turn(players, current_character_name):
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database object to class objects
 
         for character in characters:  # go through player's characters
-            character_complete_info = list(filter(lambda complete_character: complete_character.name == character.name, characters_complete_info))[0]  # get complete info on character
+            character_complete_info = helpers.get_filtered_item(characters_complete_info, "name", character.name)  # get complete info on character
 
             if current_character.order < character_complete_info.order < lowest_character.order and not character.assassinated:  # check if the order of the player's character is between the current one and the lowest one AND the character is not assassinated
                 lowest_character = character_complete_info  # update the lowest character
@@ -136,7 +136,7 @@ def __calculate_score(player_uuid, city_first_completed):
     buildings = list(map(lambda card: ClassDeckDistrict(amount=card.amount, card=ClassDistrict(uuid=card.uuid, name=card.name)), buildings))  # convert database objects to class objects
 
     for building in buildings:  # go through buildings in city
-        card_complete_info = list(filter(lambda card: card.name == building.card.name, cards_complete_info))[0]  # get complete info on buildings
+        card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building.card.name)  # get complete info on buildings
 
         for index in range(building.amount):  # go through amount
             player_buildings_complete_info.append(card_complete_info)  # add card to list
@@ -256,7 +256,7 @@ def build(game_uuid, player_uuid, name):
 
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+        character = helpers.get_filtered_items(characters, "name", game.character_turn)  # get character
 
         if character:  # check if there is a character with the given name
             character = character[0]  # get character from list
@@ -270,7 +270,7 @@ def build(game_uuid, player_uuid, name):
 
         characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
 
-        character_complete_info = list(filter(lambda character_complete_info: character_complete_info.name == character.name, characters_complete_info))[0]  # get full info on charcter | extra validation before getting index 0 is not necessary because game knows player has the character
+        character_complete_info = helpers.get_filtered_item(characters_complete_info, "name", character.name)  # get full info on charcter | extra validation before getting index 0 is not necessary because game knows player has the character
 
         if character.built >= character_complete_info.max_built:  # check if the player's character has not reached the building limit
             return responses.building_limit()
@@ -289,7 +289,7 @@ def build(game_uuid, player_uuid, name):
 
         cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
-        card_complete_info = list(filter(lambda card: card.name == card_to_build[0].card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+        card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", card_to_build[0].card.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
 
         buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()  # get cards in player's city
 
@@ -348,7 +348,7 @@ def build(game_uuid, player_uuid, name):
 
             players = list(map(lambda player: ClassPlayer(database_object=player), players))  # add players to class object
 
-            player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
+            player_city_first_completed = helpers.get_filtered_item(players, "city_first_completed", True)  # get first player with a completed city
 
             if not player_city_first_completed:  # check if there is no other player who has already completed their city first
                 player.city_first_completed = True  # this player is the first to complete their city
@@ -407,10 +407,9 @@ def receive_coins(game_uuid, player_uuid):
 
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+        character = helpers.get_filtered_item(characters, "name", game.character_turn)  # get character
 
         if character:  # check if there is a character with the given name
-            character = character[0]  # get character from list
             character_in_hand = True  # character is in player's hand
 
         if not character_in_hand:  # check if character is not in player's hand
@@ -528,10 +527,9 @@ def draw_cards(game_uuid, player_uuid):
 
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+        character = helpers.get_filtered_item(characters, "name", game.character_turn)  # get character
 
         if character:  # check if there is a character with the given name
-            character = character[0]  # get character from list
             character_in_hand = True  # character is in player's hand
 
         if not character_in_hand:  # check if character is not in player's hand
@@ -772,7 +770,7 @@ def select_character(game_uuid, player_uuid, name, remove):
         possible_characters = possible_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get possible characters in game
 
         if possible_characters:  # check if there are possible characters
-            character = list(filter(lambda character: character.name == name, possible_characters))  # get character
+            character = helpers.get_filtered_item(possible_characters, "name", name)  # get character
 
             if character:  # check if there is a character with the given name
                 character_possible = True  # character is in game
@@ -789,7 +787,7 @@ def select_character(game_uuid, player_uuid, name, remove):
         remove_character_possible = False  # outside the if structure where it's used so it can also be used to determine log text
 
         if possible_characters and game.amount_players == 2 and len(game.removed_characters) > 1 or possible_characters and game.amount_players == 2 and not game.players[0].king:  # check if there are possible characters, two player game and atleast 2 removed characters or if there are possible characters, two player game and it's not the first player
-            remove_character = list(filter(lambda character: character.name == remove, possible_characters))  # get character to remove
+            remove_character = helpers.get_filtered_item(possible_characters, "name", remove)  # get character to remove
 
             if remove_character:  # check if there is a character with given name
                 remove_character_possible = True  # character is in game
@@ -910,7 +908,7 @@ def select_character(game_uuid, player_uuid, name, remove):
                 characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database object to class objects
 
                 for character in characters:  # go through player's characters
-                    character_complete_info = list(filter(lambda complete_character: complete_character.name == character.name, characters_complete_info))[0]  # get complete info on character
+                    character_complete_info = helpers.get_filtered_item(characters_complete_info, "name", character.name)  # get complete info on character
 
                     if character_complete_info.order < lowest_character.order:  # check if player's character has a lower order than the current lowest order
                         lowest_character = character_complete_info  # update the lowest character
@@ -957,7 +955,7 @@ def select_character(game_uuid, player_uuid, name, remove):
                 return responses.error_updating_database("player")
 
             if selected_characters_count == 6:  # check if player 7 needs to pick a character next | when game has 7 players, player 7 can pick between the removed facedown card and the possible character
-                characters = list(filter(lambda character: character.open == False, game.removed_characters))  # get facedown removed characters
+                characters = helpers.get_filtered_items(game.removed_characters, "open", False)  # get facedown removed characters
 
                 for character in characters:  # go through characters
                     success_write_possible_character = database.write_row_to_db(possible_characters_db(  # write character to database
@@ -1022,10 +1020,9 @@ def keep_card(game_uuid, player_uuid, name):
 
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+        character = helpers.get_filtered_item(characters, "name", game.character_turn)  # get character
 
         if character:  # check if there is a character with the given name
-            character = character[0]  # get character from list
             character_in_hand = True  # character is in player's hand
 
         if not character_in_hand:  # check if character is not in player's hand
@@ -1173,10 +1170,9 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+        character = helpers.get_filtered_item(characters, "name", game.character_turn)  # get character
 
         if character:  # check if there is a character with the given name
-            character = character[0]  # get character from list
             character_in_hand = True  # character is in player's hand
 
         if not character_in_hand:  # check if character is not in player's hand
@@ -1184,9 +1180,9 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
         characters_complete_info = ClassCard().get_characters()  # get characters in game with complete information
 
-        character_complete_info = list(filter(lambda character_complete_info: character_complete_info.name == character.name, characters_complete_info))[0]  # get full info on current character
+        character_complete_info = helpers.get_filtered_item(characters_complete_info, "name", character.name)  # get full info on current character
 
-        ability = list(filter(lambda effect: effect.main == main, character_complete_info.effect))  # get character
+        ability = helpers.get_filtered_item(character_complete_info.effect, "main", main)  # get character with effect
 
         if not ability:  # check if character does not have the ability
             return responses.not_found("ability")
@@ -1206,7 +1202,7 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 characters_in_game = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get all characters in game
 
                 if characters_in_game:  # check if there are characters in the game
-                    character_in_game = list(filter(lambda character: character.name == name_character, characters_in_game))  # get character
+                    character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
 
                     if character_in_game:  # check if there is a character with the given name
                         character_possible = True  # character is in game
@@ -1231,11 +1227,9 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                     characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-                    character_to_assassinate = list(filter(lambda character: character.name == name_character, characters))  # get character to assassinate
+                    character_to_assassinate = helpers.get_filtered_item(characters, "name", name_character)  # get character to assassinate
 
                     if character_to_assassinate:  # check if there is a character with the given name
-                        character_to_assassinate = character_to_assassinate[0]  # get character from list
-
                         success_update_character = database.update_row_in_db(characters_db, character_to_assassinate.uuid, dict(assassinated=True))  # update assassinated flag for character in database
 
                         if not success_update_character:  # check if failed to update database
@@ -1247,7 +1241,7 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 characters_in_game = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()  # get all characters in game
 
                 if characters_in_game:  # check if there are characters in the game
-                    character_in_game = list(filter(lambda character: character.name == name_character, characters_in_game))  # get character
+                    character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
 
                     if character_in_game:  # check if there is a character with the given name
                         character_possible = True  # character is in game
@@ -1272,11 +1266,9 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                     characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-                    character_to_rob = list(filter(lambda character: character.name == name_character, characters))  # get character to assassinate
+                    character_to_rob = helpers.get_filtered_item(characters, "name", name_character)  # get character to rob
 
                     if character_to_rob:  # check if there is a character with the given name
-                        character_to_rob = character_to_rob[0]  # get character from list
-
                         cannot_rob = [  # character which cannot be robbed
                             ClassCharacterName.assassin,
                             ClassCharacterName.thief
@@ -1453,7 +1445,7 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
                 cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
-                card_complete_info = list(filter(lambda card: card.name == building_to_destroy[0].card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+                card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building_to_destroy[0].card.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
 
                 if player.coins < card_complete_info.coins - 1:  # check if player does not have enough coins to destroy the district
                     return responses.not_enough_coins()
@@ -1488,7 +1480,7 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
             color_count = {}
             for building in buildings:  # go through buildings
-                card_complete_info = list(filter(lambda card: card.name == building.card.name, cards_complete_info))[0]  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+                card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building.card.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
 
                 if card_complete_info.color not in color_count.keys():  # check if color not yet in object
                     color_count[card_complete_info.color] = 0  # add color to count object
@@ -1569,10 +1561,9 @@ def end_turn(game_uuid, player_uuid):
 
         characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-        character = list(filter(lambda character: character.name == game.character_turn, characters))  # get character
+        character = helpers.get_filtered_item(characters, "name", game.character_turn)  # get character
 
         if character:  # check if there is a character with the given name
-            character = character[0]  # get character from list
             character_in_hand = True  # character is in player's hand
 
         if not character_in_hand:  # check if character is not in player's hand
@@ -1601,12 +1592,12 @@ def end_turn(game_uuid, player_uuid):
 
                 characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-                character_next = list(filter(lambda character: character.name == next_character.name, characters))  # get next character from characters
+                character_next = helpers.get_filtered_item(characters, "name", next_character.name)  # get next character from characters
 
                 if character_next:  # check if player has the next character
-                    ability_used = character_next[0].ability_used  # get ability used flag
+                    ability_used = character_next.ability_used  # get ability used flag
 
-                    if character_next[0].name == ClassCharacterName.king.value:  # check if the next character is the king
+                    if character_next.name == ClassCharacterName.king.value:  # check if the next character is the king
                         ability_used = True  # update flag
 
                         for _player in players:  # go through players
@@ -1621,7 +1612,7 @@ def end_turn(game_uuid, player_uuid):
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
 
-                    if character_next[0].name == ClassCharacterName.bishop.value:  # check if the next character is the bishop
+                    if character_next.name == ClassCharacterName.bishop.value:  # check if the next character is the bishop
                         ability_used = True  # update flag
 
                         for _player in players:  # go through players
@@ -1636,7 +1627,7 @@ def end_turn(game_uuid, player_uuid):
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
 
-                    if character_next[0].robbed:  # check if character is robbed
+                    if character_next.robbed:  # check if character is robbed
                         coins = player.coins  # get coins from the player with the robbed character
 
                         success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=0))  # update amount of coins for player in database
@@ -1652,7 +1643,7 @@ def end_turn(game_uuid, player_uuid):
 
                             _characters = list(map(lambda character: ClassCharacter(database_object=character), _characters))  # convert database objects to class objects
 
-                            character_thief = list(filter(lambda character: character.name == ClassCharacterName.thief.value, _characters))  # get thief from characters
+                            character_thief = helpers.get_filtered_item(_characters, "name", ClassCharacterName.thief.value)  # get thief from characters
 
                             if character_thief:  # check if player has the thief
                                 _player.coins += coins  # add coins
@@ -1662,17 +1653,17 @@ def end_turn(game_uuid, player_uuid):
                                 if not success_update_player:  # check if failed to update database
                                     return responses.error_updating_database("player")
 
-                    success_update_character = database.update_row_in_db(characters_db, character_next[0].uuid, dict(open=True, ability_used=ability_used))  # update open and ability used flags for character in database
+                    success_update_character = database.update_row_in_db(characters_db, character_next.uuid, dict(open=True, ability_used=ability_used))  # update open and ability used flags for character in database
 
                     if not success_update_character:  # check if failed to update database
                         return responses.error_updating_database("character")
 
-                    game.log += "The {character_name} is up next.\n".format(character_name=character_next[0].name)  # update log
+                    game.log += "The {character_name} is up next.\n".format(character_name=character_next.name)  # update log
 
         elif not next_character.name:  # check if there is no next character
             game.state = ClassState.finished.value  # update game state assuming game has ended
 
-            player_city_first_completed = list(filter(lambda player: player.city_first_completed == True, players))  # get first player with a completed city
+            player_city_first_completed = helpers.get_filtered_item(players, "city_first_completed", True)  # get first player with a completed city
 
             log = "One or more players have completed their city, so the game is finished.\n"  # default log
 
@@ -1695,7 +1686,7 @@ def end_turn(game_uuid, player_uuid):
 
                     characters = list(map(lambda character: ClassCharacter(database_object=character), characters))  # convert database objects to class objects
 
-                    character_king = list(filter(lambda character: character.name == ClassCharacterName.king.value, characters))  # get king from characters
+                    character_king = helpers.get_filtered_item(characters, "name", ClassCharacterName.king.value)  # get king from characters
 
                     if character_king:  # check if player has the king | player becomes king at the of the round if the character was assassinated during the round
                         for _player in players:  # go through players
@@ -1710,7 +1701,7 @@ def end_turn(game_uuid, player_uuid):
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
 
-                        if character_king[0].assassinated:  # check if the king was assassinated
+                        if character_king.assassinated:  # check if the king was assassinated
                             log += "{player_name} was the assassinated king and receives the crown as the heir.\n".format(player_name=player.name)  # update log
 
                 players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game again since we just updated the database

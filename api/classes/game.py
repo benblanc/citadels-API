@@ -7,6 +7,8 @@ from copy import deepcopy
 from api.classes import player
 from api.classes.card import ClassDeckDistrict, ClassCharacterName
 
+from api.utils import helpers
+
 
 class ClassState(enum.Enum):
     created = "created"
@@ -367,8 +369,8 @@ class ClassGame:
         return characters, drawn_card
 
     def set_initial_possible_and_removed_characters(self):
-        possible_characters = list(filter(lambda character: character.name != ClassCharacterName.king.value, self.__deck_characters))  # remove king from deck with characters
-        character_king = list(filter(lambda character: character.name == ClassCharacterName.king.value, self.__deck_characters))[0]  # separated king
+        possible_characters = helpers.get_filtered_items(self.__deck_characters, "name", ClassCharacterName.king.value, False)  # remove king from deck with characters
+        character_king = helpers.get_filtered_item(self.__deck_characters, "name", ClassCharacterName.king.value)  # separated king
 
         removed_characters = []
         for index in range(self.__characters_open):  # for the amount of removed open characters
@@ -384,8 +386,8 @@ class ClassGame:
         self.__removed_characters = removed_characters  # set removed characters
 
     def remove_character_from_possible_characters(self, name):
-        possible_characters = list(filter(lambda character: character.name != name, self.__possible_characters))  # remove selected character from possible characters
-        selected_character = list(filter(lambda character: character.name == name, self.__possible_characters))[0]  # separate selected character
+        possible_characters = helpers.get_filtered_items(self.__possible_characters, "name", name, False)  # remove selected character from possible characters
+        selected_character = helpers.get_filtered_item(self.__possible_characters, "name", name)  # separate selected character
 
         self.__possible_characters = possible_characters  # set possible characters
 
