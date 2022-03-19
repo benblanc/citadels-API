@@ -171,7 +171,7 @@ def join_game(game_uuid, name):
         players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
 
         if players:  # check if there are players
-            host = list(filter(lambda player: player.hosting == True, players))  # get host
+            host = helpers.get_filtered_item(players, "hosting", True)  # get host
 
             if host:  # check if there is a host
                 hosting = False  # new player will not host the game

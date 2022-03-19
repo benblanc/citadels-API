@@ -42,3 +42,33 @@ def load_app_config(app):
     app.config["SECRET_KEY"] = os.environ['SECRET_KEY']
 
     return app
+
+
+def get_filtered_items(items, check_property, required_value, equals=True):
+    response = []
+
+    if items:  # check if list has items
+        if isinstance(items[0], dict):  # check if item is a dictionary / json
+            if equals:  # check if operator is equals
+                response = list(filter(lambda item: item[check_property] == required_value, items))  # filter through items
+            else:  # operator is not equals
+                response = list(filter(lambda item: item[check_property] != required_value, items))  # filter through items
+
+        else:  # item is from a class
+            if equals:  # check if operator is equals
+                response = list(filter(lambda item: item.__getattribute__(check_property) == required_value, items))  # filter through items
+            else:  # operator is not equals
+                response = list(filter(lambda item: item.__getattribute__(check_property) != required_value, items))  # filter through items
+
+    return response
+
+
+def get_filtered_item(items, check_property, required_value, equals=True):
+    response = None
+
+    filtered_items = get_filtered_items(items, check_property, required_value, equals)
+
+    if filtered_items:  # check if there are items after filtering
+        response = filtered_items[0]  # get the first filtered item
+
+    return response

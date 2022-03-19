@@ -4,6 +4,8 @@ from api.classes import card
 
 import api.responses as responses
 
+from api.utils import helpers
+
 from api.validation import query
 
 
@@ -68,7 +70,7 @@ def get_district(name):
     try:
         districts = card.ClassCard().get_districts()
 
-        districts = list(filter(lambda district: district.name.lower() == name.lower(), districts))
+        districts = helpers.get_filtered_items(districts, "name", name.lower())
 
         if districts:
             return responses.success_get_generic_card(districts)
@@ -95,7 +97,7 @@ def get_character(name):
     try:
         characters = card.ClassCard().get_characters()
 
-        character = list(filter(lambda character: character.name.lower() == name.lower(), characters))
+        character = helpers.get_filtered_items(characters, "name", name.lower())
 
         if character:
             return responses.success_get_generic_card(character)
