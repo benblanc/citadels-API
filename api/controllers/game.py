@@ -5,16 +5,14 @@ from api.classes.game import *
 from api.classes.player import *
 
 from api.models.game import Game as game_db
-from api.models.settings import Settings as settings_db
-from api.models.deck_districts import DeckDistricts as deck_districts_db
-from api.models.deck_characters import DeckCharacters as deck_characters_db
 from api.models.players import Players as players_db
+from api.models.settings import Settings as settings_db
 
 import api.responses as responses
 
 from api.services import database
 
-from api.utils import helpers
+from api.utils import helpers, transactions
 
 from api.validation import query
 
@@ -81,58 +79,30 @@ def create_game(description):
     try:
         new_game = ClassGame(helpers.create_uuid(), helpers.create_timestamp(), description, ClassState.created.value, "The host created a game and is now waiting for other players to join.\n")
 
-        success_write_game = database.write_row_to_db(game_db(
-            uuid=new_game.uuid,
-            created=new_game.created,
-            description=new_game.description,
-            state=new_game.state,
-            amount_players=new_game.amount_players,
-            character_turn=new_game.character_turn,
-            round=new_game.round,
-            log=new_game.log))
+        success_write_game = transactions.write_game(new_game)  # write game to database
 
         if not success_write_game:
             return responses.error_writing_database("game")
 
-        success_write_settings = database.write_row_to_db(settings_db(
-            uuid=helpers.create_uuid(),
-            min_players=new_game.settings.min_players,
-            max_players=new_game.settings.max_players,
-            amount_starting_hand=new_game.settings.amount_starting_hand,
-            amount_starting_coins=new_game.settings.amount_starting_coins,
-            game_uuid=new_game.uuid))
+        success_write_settings = transactions.write_settings(new_game.uuid, new_game.settings)  # write settings to database
 
         if not success_write_settings:
             return responses.error_writing_database("settings")
 
-        new_game.deck_districts = ClassCard().get_districts(False)
+        new_game.deck_districts = ClassCard().get_districts(False)  # get districts in game
 
         success_write_deck_districts = []
-        for district in new_game.deck_districts:
-            success_write_deck_districts.append(database.write_row_to_db(deck_districts_db(
-                uuid=helpers.create_uuid(),
-                name=district.card.name,
-                amount=district.amount,
-                game_uuid=new_game.uuid)))
+        for district in new_game.deck_districts:  # go through districts
+            success_write_deck_districts.append(transactions.write_district_to_deck_districts(new_game.uuid, district))  # write district to database
 
         if False in success_write_deck_districts:
             return responses.error_writing_database("deck of districts")
 
-        new_game.deck_characters = ClassCard().get_characters()
+        new_game.deck_characters = ClassCard().get_characters()  # get characters in game
 
         success_write_deck_characters = []
-        for character in new_game.deck_characters:
-            success_write_deck_characters.append(database.write_row_to_db(deck_characters_db(
-                uuid=helpers.create_uuid(),
-                name=character.name,
-                open=character.open,
-                assassinated=character.assassinated,
-                robbed=character.robbed,
-                built=character.built,
-                income_received=character.income_received,
-                ability_used=character.ability_used,
-                ability_additional_income_used=character.ability_additional_income_used,
-                game_uuid=new_game.uuid)))
+        for character in new_game.deck_characters:  # go through characters
+            success_write_deck_characters.append(transactions.write_character_to_deck_characters(new_game.uuid, character))  # write character to database
 
         if False in success_write_deck_characters:
             return responses.error_writing_database("deck of characters")
@@ -178,20 +148,7 @@ def join_game(game_uuid, name):
 
         new_player = ClassPlayer(helpers.create_uuid(), helpers.create_timestamp(), name, hosting)
 
-        success_write_player = database.write_row_to_db(players_db(
-            uuid=new_player.uuid,
-            created=new_player.created,
-            name=new_player.name,
-            hosting=new_player.hosting,
-            seat=new_player.seat,
-            coins=new_player.coins,
-            king=new_player.king,
-            protected=new_player.protected,
-            select_expected=new_player.select_expected,
-            city_first_completed=new_player.city_first_completed,
-            score=new_player.score,
-            game_uuid=game_uuid
-        ))
+        success_write_player = transactions.write_player(game_uuid, new_player)  # write player to database
 
         if not success_write_player:
             return responses.error_writing_database("player")
