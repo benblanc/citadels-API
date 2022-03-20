@@ -1,5 +1,6 @@
 import logging, traceback, random
 
+from collections import Counter
 from copy import deepcopy
 
 from api.classes.card import *
@@ -100,6 +101,8 @@ def __calculate_score(player_uuid, city_first_completed):
     player_buildings_complete_info = []
     score = 0
 
+    haunted_quarter = False
+
     cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
     buildings = transactions.get_player_buildings(player_uuid)  # get cards in player's city
@@ -107,10 +110,35 @@ def __calculate_score(player_uuid, city_first_completed):
     for building in buildings:  # go through buildings in city
         card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building.name)  # get complete info on buildings
 
+        if card_complete_info.name == ClassDistrictName.haunted_quarter.value:  # check if player has the haunted quarter in their city
+            haunted_quarter = True  # update flag
+
         for index in range(building.amount):  # go through amount
             player_buildings_complete_info.append(card_complete_info)  # add card to list
 
     all_colors = list(set(map(lambda building: building.color, player_buildings_complete_info)))  # get colors of buildings
+
+    if haunted_quarter and len(all_colors) == 4:  # check if player has the haunted quarter and is one color short in their city
+        colors = list(map(lambda building: building.color, player_buildings_complete_info))  # get colors without removing duplicates
+
+        colors_count = dict(Counter(colors))  # count occurences of each color
+
+        if colors_count[ClassColor.purple.value] > 1:  # check if haunted quarter is not the only purple district
+            possible_colors = [
+                ClassColor.red.value,
+                ClassColor.yellow.value,
+                ClassColor.blue.value,
+                ClassColor.green.value,
+                ClassColor.purple.value,
+            ]
+
+            missing_color = ""
+
+            for color in possible_colors:  # go through all possible colors
+                if color not in colors_count.keys():  # check if it is the missing color
+                    missing_color = color  # set missing color
+
+            all_colors.append(missing_color)  # add missing color
 
     for building in player_buildings_complete_info:  # go through buildings with full info
         score += building.value  # add building value to score
