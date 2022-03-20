@@ -162,6 +162,12 @@ def cannot_rob():
     return response, 400
 
 
+def not_keep():
+    response = define_message("The keep cannot be destroyed by the warlord.")
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 
