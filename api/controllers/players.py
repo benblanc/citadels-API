@@ -1217,6 +1217,9 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 if not building_to_destroy:  # check if district cannot be destroyed
                     return responses.not_found("district")
 
+                if building_to_destroy.name == ClassDistrictName.keep.value:  # check if player wants to destroy the keep
+                    return responses.not_keep()
+
                 log += "{player_name} as the warlord destroys the {district_name} in {other_player_name}'s city.\n".format(player_name=player.name, district_name=building_to_destroy[0].card.name, other_player_name=other_player.name)  # update log
 
                 cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information

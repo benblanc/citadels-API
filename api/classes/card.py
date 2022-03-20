@@ -116,6 +116,9 @@ class ClassAbility():
 
 class ClassDistrict:
     def __init__(self, uuid=None, name="", color="", coins=0, value=0, effect=None, amount=1, database_object=None):
+        if effect is None:
+            effect = []
+
         self.__uuid = uuid
         self.__name = name
         self.__color = color
@@ -156,6 +159,10 @@ class ClassDistrict:
     def effect(self):
         return self.__effect
 
+    @effect.setter
+    def effect(self, value):
+        self.__effect = value
+
     @property
     def amount(self):
         return self.__amount
@@ -166,13 +173,17 @@ class ClassDistrict:
 
     @property
     def info(self):
+        effects = []
+        for effect in self.__effect:
+            effects.append(effect.info)
+
         info = {
             "uuid": self.__uuid,
             "name": self.__name,
             "color": self.__color,
             "coins": self.__coins,
             "value": self.__value,
-            "effect": self.__effect,
+            "effect": effects,
             "amount": self.__amount
         }
 
@@ -388,6 +399,11 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.haunted_quarter.value
                          ]),
+            ClassAbility(active=False,
+                         description="This district cannot be destroyed by the warlord.",
+                         used_by=[
+                             ClassDistrictName.keep.value
+                         ]),
         ]
 
         self.__districts_red = [
@@ -445,6 +461,9 @@ class ClassCard:
 
         for districts_color in self.__districts_grouped_by_color:  # go through each district color group
             districts.extend(districts_color)  # add districts with that color to list
+
+        for district in districts:  # go through districts
+            district.effect = list(filter(lambda ability: district.name in ability.used_by, self.__district_abilities))  # add abilities used by the district
 
         return districts
 
