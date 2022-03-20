@@ -315,42 +315,6 @@ class ClassCharacter:
         return info
 
 
-class ClassDeckDistrict:
-    def __init__(self, amount=0, card=None):
-        self.__amount = amount
-        self.__card = card
-
-    def __eq__(self, other):  # override default equals behavior
-        return self.__card == other.__card
-
-    @property
-    def amount(self):
-        return self.__amount
-
-    @amount.setter
-    def amount(self, value):
-        if isinstance(value, int):
-            self.__amount = value
-
-    @property
-    def card(self):
-        return self.__card
-
-    @card.setter
-    def card(self, value):
-        if isinstance(value, ClassDistrict):
-            self.__card = value
-
-    @property
-    def info(self):
-        info = {
-            "amount": self.__amount,
-            "card": self.__card.info,
-        }
-
-        return info
-
-
 class ClassCard:
     def __init__(self, ):
         self.__character_abilities = [
@@ -416,6 +380,14 @@ class ClassCard:
                          used_by=[
                              ClassCharacterName.warlord.value
                          ])
+        ]
+
+        self.__district_abilities = [
+            ClassAbility(active=False,
+                         description="This district counts as a district color which is missing in your city.",
+                         used_by=[
+                             ClassDistrictName.haunted_quarter.value
+                         ]),
         ]
 
         self.__districts_red = [
