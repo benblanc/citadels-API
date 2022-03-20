@@ -1255,9 +1255,14 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
             cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
+            school_of_magic = False
+
             color_count = {}
             for building in buildings:  # go through buildings
                 card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+
+                if card_complete_info.name == ClassDistrictName.school_of_magic.value:  # check if player has the school of magic in their city
+                    school_of_magic = True  # update flag
 
                 if card_complete_info.color not in color_count.keys():  # check if color not yet in object
                     color_count[card_complete_info.color] = 0  # add color to count object
@@ -1281,6 +1286,9 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
             if color in color_count.keys():  # check if player has any districts with the color
                 coins = color_count[color]  # player gains coins for each district with that color in their city
+
+            if school_of_magic:  # check if player has the school of magic
+                coins += 1  # increase coins
 
             log += "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
 
