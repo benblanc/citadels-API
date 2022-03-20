@@ -17,40 +17,12 @@ from api.validation import query
 
 def get_games(sort_order, order_by, limit, offset):
     try:
-        default_sort_order = 'asc'
-        default_order_by = 'created'
-        default_limit = 0
-        default_offset = 0
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created'])  # validate query parameters
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created'])
-
-        if invalid_query:
+        if invalid_query:  # check if invalid query
             return responses.conflict(invalid_query)
 
-        if sort_order:  # check if not none
-            default_sort_order = sort_order
-
-        if order_by:  # check if not none
-            default_order_by = order_by
-
-        if limit:  # check if not none
-            default_limit = limit
-
-        if offset:  # check if not none
-            default_offset = offset
-
-        if default_order_by == 'created':
-            sort = game_db.created
-
-        if default_sort_order == 'asc':
-            sort = sort.asc()
-        elif default_sort_order == 'desc':
-            sort = sort.desc()
-
-        if default_limit == 0:
-            games = game_db.query.order_by(sort).offset(default_offset).all()
-        else:
-            games = game_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
+        games = transactions.get_all_from_query(game_db, sort_order, order_by, limit, offset, default_order_by="created")  # get all from database based on query
 
         return responses.success_get_games(games)
 

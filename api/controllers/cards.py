@@ -21,40 +21,12 @@ def get_cards(game_uuid, player_uuid, sort_order, order_by, limit, offset):
         if not player:  # check if player does not exist
             return responses.not_found("player")
 
-        default_sort_order = 'asc'
-        default_order_by = 'name'
-        default_limit = 0
-        default_offset = 0
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['name'])  # validate query parameters
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['name'])
-
-        if invalid_query:
+        if invalid_query:  # check if invalid query
             return responses.conflict(invalid_query)
 
-        if sort_order:  # check if not none
-            default_sort_order = sort_order
-
-        if order_by:  # check if not none
-            default_order_by = order_by
-
-        if limit:  # check if not none
-            default_limit = limit
-
-        if offset:  # check if not none
-            default_offset = offset
-
-        if default_order_by == 'name':
-            sort = cards_db.name
-
-        if default_sort_order == 'asc':
-            sort = sort.asc()
-        elif default_sort_order == 'desc':
-            sort = sort.desc()
-
-        if default_limit == 0:
-            cards = cards_db.query.filter_by(player_uuid=player_uuid).order_by(sort).offset(default_offset).all()
-        else:
-            cards = cards_db.query.filter_by(player_uuid=player_uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
+        cards = transactions.get_all_from_query(cards_db, sort_order, order_by, limit, offset, uuid=player_uuid, player_table=True)  # get all from database based on query
 
         return responses.success_get_cards(cards)
 
