@@ -168,6 +168,18 @@ def not_keep():
     return response, 400
 
 
+def too_many_cards_to_keep():
+    response = define_message("The player making the request cannot keep this many cards.")
+
+    return response, 400
+
+
+def not_enough_drawn_cards(amount, name):
+    response = define_message("The player making the request cannot keep {amount} copies of the {name} of their drawn cards.".format(amount=amount, name=name))
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 

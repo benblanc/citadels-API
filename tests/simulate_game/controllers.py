@@ -120,8 +120,8 @@ def get_drawn_cards(game_uuid, player_uuid):
     return response_get_drawn_cards.json()
 
 
-def keep_card(game_uuid, player_uuid, drawn_card):
-    response_keep_card = endpoints.keep_card(BASE_URL, game_uuid, player_uuid, drawn_card)
+def keep_card(game_uuid, player_uuid, drawn_cards):
+    response_keep_card = endpoints.keep_card(BASE_URL, game_uuid, player_uuid, drawn_cards)
 
     if response_keep_card.status_code != 204:
         exit(1)

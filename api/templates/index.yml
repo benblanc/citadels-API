@@ -696,13 +696,15 @@ paths:
           name: body
           schema:
             required:
-              - name
+              - names
             type: object
             properties:
-              name:
-                type: string
-                description: The name of the district you want to keep.
-                example: 'castle'
+              names:
+                type: array
+                items:
+                  type: string
+                description: The names of the districts you want to keep.
+                example: ["castle", "market"]
       responses:
         204:
           description: Keeping card successful
