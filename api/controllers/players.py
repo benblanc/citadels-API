@@ -46,16 +46,10 @@ def __define_next_character_turn(players, current_character_name):
 
 
 def __update_district_in_database(to_table, uuid, card, to_table_name, player_table=False):
-    if player_table:  # check if table should be filtered on player uuid
-        cards_in_table = to_table.query.filter_by(name=card.name, player_uuid=uuid).first()  # get cards
-    else:  # table should be filtered on game uuid
-        cards_in_table = to_table.query.filter_by(name=card.name, game_uuid=uuid).first()  # get cards
+    target_card_in_table = transactions.get_card_from_table(to_table, card.name, uuid, player_table)  # get card
 
-    if cards_in_table:  # check if the table already has a card with that name
-        amount = cards_in_table.amount + card.amount  # increase amount
-        card_uuid = cards_in_table.uuid  # get card uuid (before db session closes)
-
-        success_update_card = database.update_row_in_db(to_table, card_uuid, dict(amount=amount))  # update card amount in to_table in database
+    if target_card_in_table:  # check if the table already has a card with that name
+        success_update_card = database.update_row_in_db(to_table, target_card_in_table.uuid, dict(amount=target_card_in_table.amount + card.amount))  # update card amount in to_table in database
 
         if not success_update_card:  # check if failed to update database
             return responses.error_updating_database(to_table_name)
@@ -550,7 +544,7 @@ def start_game(game_uuid, player_uuid):
 
             cards = game.aggregate_cards_by_name(player.cards)  # update the amount per card
 
-            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=cards, uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
+            error = __update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=deepcopy(cards), uuid=player.uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="card")
 
             if error:  # check if something went wrong when updating the database
                 return error

@@ -280,6 +280,20 @@ def get_player_drawn_cards(player_uuid):
     return response
 
 
+def get_card_from_table(table, name, uuid, player_table=False):
+    response = None
+
+    if player_table:
+        card = table.query.filter_by(name=name, player_uuid=uuid).first()
+    else:
+        card = table.query.filter_by(name=name, game_uuid=uuid).first()
+
+    if card:
+        response = ClassDistrict(database_object=card)
+
+    return response
+
+
 def get_all_from_query(table, sort_order, order_by, limit, offset, uuid="", player_table=False, default_sort_order="asc", default_order_by="name", default_limit=0, default_offset=0):
     if sort_order:  # check if not none
         default_sort_order = sort_order
