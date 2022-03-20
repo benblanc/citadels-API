@@ -45,54 +45,37 @@ def __define_next_character_turn(players, current_character_name):
     return lowest_character
 
 
+def __update_district_in_database(to_table, uuid, card, to_table_name, player_table=False):
+    if player_table:  # check if table should be filtered on player uuid
+        cards_in_table = to_table.query.filter_by(name=card.name, player_uuid=uuid).first()  # get cards
+    else:  # table should be filtered on game uuid
+        cards_in_table = to_table.query.filter_by(name=card.name, game_uuid=uuid).first()  # get cards
+
+    if cards_in_table:  # check if the table already has a card with that name
+        amount = cards_in_table.amount + card.amount  # increase amount
+        card_uuid = cards_in_table.uuid  # get card uuid (before db session closes)
+
+        success_update_card = database.update_row_in_db(to_table, card_uuid, dict(amount=amount))  # update card amount in to_table in database
+
+        if not success_update_card:  # check if failed to update database
+            return responses.error_updating_database(to_table_name)
+
+    else:  # table does not yet have a card with that name
+        success_write_card = transactions.write_card_to_table(to_table, uuid, card, player_table)  # write card to database
+
+        if not success_write_card:  # check if failed to write to database
+            return responses.error_writing_database(to_table_name)
+
+
 def __update_districts_in_database(from_table, to_table, cards, uuid, from_deck_cards_by_amount=None, player_table=False, from_table_name="deck of districts", to_table_name="deck of districts"):  # write districts to new database table and update/delete from old database table
     updated_districts = []  # to avoid updating already updated districts (with the same value)
     deleted_districts = []  # to avoid deleting already deleted districts
 
     for card in cards:  # go through each card in object
-        if player_table:  # check if the card needs to be written to a player related database table
-            cards_in_table = to_table.query.filter_by(name=card.name, player_uuid=uuid).first()  # get cards
+        error = __update_district_in_database(to_table, uuid, card, to_table_name, player_table)  # update the district in the database
 
-            if cards_in_table:  # check if the table already has a card with that name
-                amount = cards_in_table.amount + card.amount  # increase amount
-                card_uuid = cards_in_table.uuid  # get card uuid (before db session closes)
-
-                success_update_card = database.update_row_in_db(to_table, card_uuid, dict(amount=amount))  # update card amount in to_table in database
-
-                if not success_update_card:  # check if failed to update database
-                    return responses.error_updating_database(to_table_name)
-
-            else:  # table does not yet have a card with that name
-                success_write_card = database.write_row_to_db(to_table(  # write card to database
-                    uuid=helpers.create_uuid(),
-                    name=card.name,
-                    amount=card.amount,
-                    player_uuid=uuid))
-
-                if not success_write_card:  # check if failed to write to database
-                    return responses.error_writing_database(to_table_name)
-
-        else:  # card needs to be written to a game related database table
-            cards_in_table = to_table.query.filter_by(name=card.name, game_uuid=uuid).first()  # get cards
-
-            if cards_in_table:  # check if the table already has a card with that name
-                amount = cards_in_table.amount + card.amount  # increase amount
-                card_uuid = cards_in_table.uuid  # get card uuid (before db session closes)
-
-                success_update_card = database.update_row_in_db(to_table, card_uuid, dict(amount=amount))  # update card amount in to_table in database
-
-                if not success_update_card:  # check if failed to update database
-                    return responses.error_updating_database(to_table_name)
-
-            else:  # table does not yet have a card with that name
-                success_write_card = database.write_row_to_db(to_table(  # write card to database
-                    uuid=helpers.create_uuid(),
-                    name=card.name,
-                    amount=card.amount,
-                    game_uuid=uuid))
-
-                if not success_write_card:  # check if failed to write to database
-                    return responses.error_writing_database(to_table_name)
+        if error:  # check if there is an error
+            return error
 
         amount = 0  # amount by default
 

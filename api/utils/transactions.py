@@ -122,6 +122,21 @@ def write_character_to_player_characters(player_uuid, character):
         player_uuid=player_uuid))
 
 
+def write_card_to_table(table, uuid, card, player_table=False):
+    if player_table:  # check if card is written to a player table
+        return database.write_row_to_db(table(
+            uuid=helpers.create_uuid(),
+            name=card.name,
+            amount=card.amount,
+            player_uuid=uuid))
+    else:  # card is written to a game table
+        return database.write_row_to_db(table(
+            uuid=helpers.create_uuid(),
+            name=card.name,
+            amount=card.amount,
+            game_uuid=uuid))
+
+
 def get_game(game_uuid):
     response = None
 
@@ -265,7 +280,7 @@ def get_player_drawn_cards(player_uuid):
     return response
 
 
-def get_all_from_query(database, sort_order, order_by, limit, offset, uuid="", player_table=False, default_sort_order="asc", default_order_by="name", default_limit=0, default_offset=0):
+def get_all_from_query(table, sort_order, order_by, limit, offset, uuid="", player_table=False, default_sort_order="asc", default_order_by="name", default_limit=0, default_offset=0):
     if sort_order:  # check if not none
         default_sort_order = sort_order
 
@@ -279,11 +294,11 @@ def get_all_from_query(database, sort_order, order_by, limit, offset, uuid="", p
         default_offset = offset
 
     if default_order_by == "name":
-        sort = database.name
+        sort = table.name
     elif default_order_by == 'created':
-        sort = database.created
+        sort = table.created
     elif default_order_by == "uuid":
-        sort = database.uuid
+        sort = table.uuid
 
     if default_sort_order == "asc":
         sort = sort.asc()
@@ -293,27 +308,27 @@ def get_all_from_query(database, sort_order, order_by, limit, offset, uuid="", p
     if uuid:  # check if query should be filtered on uuid
         if default_limit == 0:  # check if there is no limit
             if player_table:  # check if table should be filtered on player uuid
-                response = database.query.filter_by(player_uuid=uuid).order_by(sort).offset(default_offset).all()
+                response = table.query.filter_by(player_uuid=uuid).order_by(sort).offset(default_offset).all()
             else:  # table should be filtered on game uuid
-                response = database.query.filter_by(game_uuid=uuid).order_by(sort).offset(default_offset).all()
+                response = table.query.filter_by(game_uuid=uuid).order_by(sort).offset(default_offset).all()
 
         else:  # there is a limit
             if player_table:  # check if table should be filtered on player uuid
-                response = database.query.filter_by(player_uuid=uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
+                response = table.query.filter_by(player_uuid=uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
             else:  # table should be filtered on game uuid
-                response = database.query.filter_by(game_uuid=uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
+                response = table.query.filter_by(game_uuid=uuid).order_by(sort).limit(default_limit).offset(default_offset).all()
 
     else:  # query should not be filtered on uuid
         if default_limit == 0:  # check if there is no limit
             if player_table:  # check if table should be filtered on player uuid
-                response = database.query.order_by(sort).offset(default_offset).all()
+                response = table.query.order_by(sort).offset(default_offset).all()
             else:  # table should be filtered on game uuid
-                response = database.query.order_by(sort).offset(default_offset).all()
+                response = table.query.order_by(sort).offset(default_offset).all()
 
         else:  # there is a limit
             if player_table:  # check if table should be filtered on player uuid
-                response = database.query.order_by(sort).limit(default_limit).offset(default_offset).all()
+                response = table.query.order_by(sort).limit(default_limit).offset(default_offset).all()
             else:  # table should be filtered on game uuid
-                response = database.query.order_by(sort).limit(default_limit).offset(default_offset).all()
+                response = table.query.order_by(sort).limit(default_limit).offset(default_offset).all()
 
     return response
