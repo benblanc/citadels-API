@@ -410,6 +410,11 @@ class ClassCard:
                              ClassDistrictName.dragon_gate.value,
                              ClassDistrictName.university.value
                          ]),
+            ClassAbility(active=False,
+                         description="This district counts as the color of your character for abilities which gain resources for your colored districts.",
+                         used_by=[
+                             ClassDistrictName.school_of_magic.value
+                         ]),
         ]
 
         self.__districts_red = [
