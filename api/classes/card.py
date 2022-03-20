@@ -404,6 +404,12 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.keep.value
                          ]),
+            ClassAbility(active=False,
+                         description="This district is worth 8 points.",
+                         used_by=[
+                             ClassDistrictName.dragon_gate.value,
+                             ClassDistrictName.university.value
+                         ]),
         ]
 
         self.__districts_red = [
