@@ -826,7 +826,7 @@ def select_character(game_uuid, player_uuid, name, remove):
         return responses.error_handling_request()
 
 
-def keep_card(game_uuid, player_uuid, name):
+def keep_card(game_uuid, player_uuid, names):
     try:
         game = transactions.get_game(game_uuid)  # get game from database
 
@@ -861,30 +861,55 @@ def keep_card(game_uuid, player_uuid, name):
         if not drawn_cards:  # check if the player has not yet drawn cards | the player can't pick beteen cards that have not been drawn
             return responses.no_cards_drawn()
 
-        card_for_hand = helpers.get_filtered_item(drawn_cards, "name", name)  # get district for player's hand
+        keep_amount = 1  # define how many cards can be kept
 
-        if not card_for_hand:  # check if district cannot be kept
-            return responses.not_found("district")
+        buildings = transactions.get_player_buildings(player_uuid)  # get buildings in player's city
 
-        cards_for_discard_pile = helpers.get_filtered_items(drawn_cards, "name", name, False)  # filter cards where the name is different from the card for the player's hand
+        for district in buildings:  # go through districts in player's city
+            if district.name == ClassDistrictName.library.value:  # check if player has the library in their city
+                keep_amount += 1  # increase amount of cards the player can keep
 
-        if card_for_hand.amount > 1:  # check if drawn cards have multiple copies of the same card
-            amount_for_discard_pile = card_for_hand.amount - 1  # keep 1 and the rest is for the discard pile
+        if len(names) != keep_amount:  # check if player wants to keep more cards than is allowed
+            return responses.too_many_cards_to_keep()
 
-            cards_for_discard_pile.append(card_for_hand)  # add card(s) to discard pile
-            cards_for_discard_pile[0].amount = amount_for_discard_pile  # set right amount
+        names_count = dict(Counter(names))  # count occurences of names
 
-            card_for_hand.amount = 1  # set right amount
+        for name in names:  # go through names
+            card = helpers.get_filtered_item(drawn_cards, "name", name)  # get district for player's hand
 
-        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=deepcopy(cards_for_discard_pile), uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
+            if not card:  # check if district cannot be kept
+                return responses.not_found("district")
+
+            if card.amount < names_count[name]:  # check if there are not enough cards with the name
+                return responses.not_enough_drawn_cards(names_count[name], name)
+
+        separated_drawn_cards = game.separate_cards_by_name(drawn_cards)  # separate the drawn cards
+
+        cards_for_hand = []
+        cards_for_discard_pile = []
+
+        for card in separated_drawn_cards:  # go through separated drawn cards
+            if card.name in names:  # check if it is a card the player wants to keep
+                cards_for_hand.append(card)  # add to list
+                names.remove(card.name)  # remove the name from the cards the player wants to keep
+
+            else:  # player does not want to keep the card
+                cards_for_discard_pile.append(card)  # add to list
+
+        cards_for_hand = game.aggregate_cards_by_name(cards_for_hand)  # put separated cards back together
+
+        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=deepcopy(cards_for_hand), uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
 
         if error:  # check if something went wrong when updating the database
             return error
 
-        error = __update_districts_in_database(from_table=drawn_cards_db, to_table=cards_db, cards=deepcopy([card_for_hand]), uuid=player_uuid, player_table=True, from_table_name="drawn cards", to_table_name="cards in the player's hand")  # write the cards for the player's hand to the cards table and update/remove the cards for the player's hand from the drawn_cards table
+        if cards_for_discard_pile:  # check if not empty
+            cards_for_discard_pile = game.aggregate_cards_by_name(cards_for_discard_pile)  # put separated cards back together
 
-        if error:  # check if something went wrong when updating the database
-            return error
+            error = __update_districts_in_database(from_table=drawn_cards_db, to_table=deck_discard_pile_db, cards=deepcopy(cards_for_discard_pile), uuid=game_uuid, from_table_name="drawn cards", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the drawn_cards table
+
+            if error:  # check if something went wrong when updating the database
+                return error
 
         log = "{player_name} as the {character_name} chooses cards for their income.\n".format(player_name=game.players[0].name, character_name=character.name)  # update log
 

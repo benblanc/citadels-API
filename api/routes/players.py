@@ -70,9 +70,9 @@ class PlayerKeepCard(Resource):
     @expects_json(read_json('api/schemas/player/keep_card.json'))
     def post(self, game_uuid, player_uuid):
         body = json.loads(request.data)
-        name = body["name"]
+        names = body["names"]
 
-        return keep_card(str(game_uuid), str(player_uuid), str(name).lower())
+        return keep_card(str(game_uuid), str(player_uuid), list(names))
 
 
 class PlayerCharacterUseAbility(Resource):

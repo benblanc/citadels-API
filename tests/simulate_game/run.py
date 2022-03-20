@@ -65,7 +65,7 @@ def __get_cards_player_can_build(cards, districts_in_city, player_coins):
     return cards_player_can_build
 
 
-def __receive_income(game_uuid, player_uuid, player_coins):
+def __receive_income(game_uuid, player_uuid, player_coins, player_building_names):
     if player_coins < COINS_INCOME_LIMIT:
         receive_coins(game_uuid, player_uuid)
 
@@ -74,9 +74,24 @@ def __receive_income(game_uuid, player_uuid, player_coins):
 
         drawn_cards = get_drawn_cards(game_uuid, player_uuid)
 
-        random_index = random.randint(0, len(drawn_cards) - 1)
+        drawn_card_names = []
+        for card in drawn_cards:
+            for index in range(card["amount"]):
+                drawn_card_names.append(card["name"])
 
-        keep_card(game_uuid, player_uuid, drawn_cards[random_index]["name"])
+        keep_amount = 1
+
+        if "library" in player_building_names:
+            keep_amount += 1
+
+        cards_to_keep = []
+        for index in range(keep_amount):
+            random_index = random.randint(0, len(drawn_card_names) - 1)
+            name = drawn_card_names[random_index]
+            cards_to_keep.append(name)
+            drawn_card_names.remove(name)  # remove so len becomes smaller
+
+        keep_card(game_uuid, player_uuid, cards_to_keep)
 
 
 def __build_district(game_uuid, player_uuid, district):
@@ -222,7 +237,7 @@ def __perform_turn(game_uuid):
                 cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, _player["coins"])
 
                 if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
-                    __receive_income(game_uuid, player["uuid"], _player["coins"])
+                    __receive_income(game_uuid, player["uuid"], _player["coins"], player_building_names)
 
                 elif character_expected_to_play["income_received"] and character_expected_to_play["built"] < character["max_built"] and cards_player_can_build:  # check if character has received an income, building limit not yet reached and there are districts the player can actually build
                     __build_district(game_uuid, player["uuid"], cards_player_can_build[0])

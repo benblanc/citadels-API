@@ -415,6 +415,11 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.school_of_magic.value
                          ]),
+            ClassAbility(active=False,
+                         description="This district increases the amount of cards you keep by one when you draw cards for your income.",
+                         used_by=[
+                             ClassDistrictName.library.value
+                         ]),
         ]
 
         self.__districts_red = [

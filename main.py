@@ -18,4 +18,3 @@ if __name__ == '__main__':
 # TODO: add the ability for the laboratory
 # TODO: add the ability for the graveyard
 # TODO: add the ability for the smithy
-# TODO: add the ability for the library

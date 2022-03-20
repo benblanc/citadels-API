@@ -133,9 +133,9 @@ def draw_cards(base_url, game_uuid, player_uuid):
     return response
 
 
-def keep_card(base_url, game_uuid, player_uuid, name):
+def keep_card(base_url, game_uuid, player_uuid, names):
     payload = {
-        "name": name,
+        "names": names,
     }
 
     response = requests.post(url=base_url + "/game/" + game_uuid + "/players/" + player_uuid + "/action.keep_card", json=payload)
