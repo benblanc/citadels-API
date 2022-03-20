@@ -5,7 +5,7 @@ from pprint import pprint
 from copy import deepcopy
 
 from api.classes import player
-from api.classes.card import ClassDeckDistrict, ClassCharacterName
+from api.classes.card import ClassCharacterName
 
 from api.utils import helpers
 
