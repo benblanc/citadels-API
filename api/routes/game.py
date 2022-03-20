@@ -4,8 +4,6 @@ from api import api, Resource, swag_from, reqparse, request, expects_json
 
 from api.controllers.game import *
 
-from api.models.game import Game as game_db
-
 from api.utils.helpers import *
 
 

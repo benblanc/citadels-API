@@ -5,8 +5,6 @@ from api.classes.game import *
 from api.classes.player import *
 
 from api.models.game import Game as game_db
-from api.models.players import Players as players_db
-from api.models.settings import Settings as settings_db
 
 import api.responses as responses
 
@@ -19,40 +17,12 @@ from api.validation import query
 
 def get_games(sort_order, order_by, limit, offset):
     try:
-        default_sort_order = 'asc'
-        default_order_by = 'created'
-        default_limit = 0
-        default_offset = 0
+        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created'])  # validate query parameters
 
-        invalid_query = query.validate_query(sort_order, order_by, limit, offset, ['created'])
-
-        if invalid_query:
+        if invalid_query:  # check if invalid query
             return responses.conflict(invalid_query)
 
-        if sort_order:  # check if not none
-            default_sort_order = sort_order
-
-        if order_by:  # check if not none
-            default_order_by = order_by
-
-        if limit:  # check if not none
-            default_limit = limit
-
-        if offset:  # check if not none
-            default_offset = offset
-
-        if default_order_by == 'created':
-            sort = game_db.created
-
-        if default_sort_order == 'asc':
-            sort = sort.asc()
-        elif default_sort_order == 'desc':
-            sort = sort.desc()
-
-        if default_limit == 0:
-            games = game_db.query.order_by(sort).offset(default_offset).all()
-        else:
-            games = game_db.query.order_by(sort).limit(default_limit).offset(default_offset).all()
+        games = transactions.get_all_from_query(game_db, sort_order, order_by, limit, offset, default_order_by="created")  # get all from database based on query
 
         return responses.success_get_games(games)
 
@@ -63,9 +33,9 @@ def get_games(sort_order, order_by, limit, offset):
 
 def get_game(game_uuid):
     try:
-        game = game_db.query.get(game_uuid)
+        game = transactions.get_game(game_uuid)  # get game from database
 
-        if game:
+        if game:  # check if game exists
             return responses.success_get_game(game)
 
         return responses.not_found()
@@ -116,29 +86,27 @@ def create_game(description):
 
 def join_game(game_uuid, name):
     try:
-        game = game_db.query.get(game_uuid)  # get game from database
+        game = transactions.get_game(game_uuid)  # get game from database
 
         if not game:  # check if game does not exist
             return responses.not_found("game")
 
-        game = ClassGame(database_object=game)  # initialize game object
-
         if game.state != ClassState.created.value:  # check if game has already started
             return responses.already_started()
 
-        settings = settings_db.query.filter_by(game_uuid=game_uuid).first()  # get settings from database
+        settings = transactions.get_game_settings(game_uuid)  # get settings from database
 
         if not settings:  # check if game settings do not exist
             return responses.not_found("settings", True)
 
-        game.settings = ClassSettings(database_object=settings)  # add settings to game object
+        game.settings = settings  # add settings to game object
 
         if game.amount_players == game.settings.max_players:  # check if there are already enough players
             return responses.enough_players()
 
         hosting = True  # assume new player is hosting
 
-        players = players_db.query.filter_by(game_uuid=game_uuid).all()  # get players in game
+        players = transactions.get_players(game_uuid)  # get players in game
 
         if players:  # check if there are players
             host = helpers.get_filtered_item(players, "hosting", True)  # get host
