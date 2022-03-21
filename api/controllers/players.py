@@ -1388,6 +1388,16 @@ def end_turn(game_uuid, player_uuid):
         if not players:  # check if player does not exist
             return responses.not_found("players", True)
 
+        buildings = transactions.get_player_buildings(player.uuid)  # get districts in player's city
+
+        if buildings:  # check if player has districts in their city
+            for building in buildings:  # go through each district
+                if building.ability_used:  # check if player used the district's ability this turn
+                    success_update_building = database.update_row_in_db(buildings_db, building.uuid, dict(ability_used=False))  # update the ability flag for building in database
+
+                    if not success_update_building:  # check if failed to update database
+                        return responses.error_updating_database("building")
+
         next_character = __define_next_character_turn(players, game.character_turn)  # get the name of the next character
 
         if next_character.name:  # check if there is a next character
