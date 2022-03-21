@@ -472,8 +472,16 @@ def draw_cards(game_uuid, player_uuid):
 
         game.deck_districts = districts  # add districts to game object
 
+        draw_amount = 2  # define how many cards are drawn
+
+        buildings = transactions.get_player_buildings(player_uuid)  # get buildings in player's city
+
+        for district in buildings:  # go through districts in player's city
+            if district.name == ClassDistrictName.observatory.value:  # check if player has the observatory in their city
+                draw_amount += 1  # increase amount of cards the player can keep
+
         drawn_cards = []
-        for index in range(2):  # do it twice
+        for index in range(draw_amount):  # do it twice (possibly thrice)
             if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
                 cards = transactions.get_game_discard_pile(game_uuid)  # get discard pile in game
 

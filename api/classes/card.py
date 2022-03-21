@@ -420,6 +420,11 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.library.value
                          ]),
+            ClassAbility(active=False,
+                         description="This district increases the amount of cards you draw by one when you draw cards for your income.",
+                         used_by=[
+                             ClassDistrictName.observatory.value
+                         ]),
         ]
 
         self.__districts_red = [
