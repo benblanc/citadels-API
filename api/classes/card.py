@@ -436,6 +436,11 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.observatory.value
                          ]),
+            ClassAbility(active=True,
+                         description="Once per turn you can pay 3 coins to draw 2 cards.",
+                         used_by=[
+                             ClassDistrictName.smithy.value
+                         ]),
         ]
 
         self.__districts_red = [
