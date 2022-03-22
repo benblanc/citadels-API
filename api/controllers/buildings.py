@@ -33,3 +33,12 @@ def get_buildings(game_uuid, player_uuid, sort_order, order_by, limit, offset):
     except Exception:
         logging.error(traceback.format_exc())
         return responses.error_handling_request()
+
+
+def use_ability(game_uuid, player_uuid, name, target_name):
+    try:
+        return responses.no_content()
+
+    except Exception:
+        logging.error(traceback.format_exc())
+        return responses.error_handling_request()
