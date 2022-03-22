@@ -1,6 +1,10 @@
-from api import api, Resource, swag_from, reqparse
+import json
+
+from api import api, Resource, swag_from, reqparse, request, expects_json
 
 from api.controllers.buildings import *
+
+from api.utils.helpers import *
 
 
 class Buildings(Resource):
@@ -16,4 +20,15 @@ class Buildings(Resource):
         return get_buildings(str(game_uuid), str(player_uuid), args['sort_order'], args['order_by'], args['limit'], args['offset'])
 
 
+class PlayerBuildingUseAbility(Resource):
+    @swag_from('../templates/index.yml', endpoint='/game/{game_uuid}/players/{player_uuid}/buildings/{name}/action.use_ability')
+    @expects_json(read_json('api/schemas/building/use_ability.json'))
+    def post(self, game_uuid, player_uuid, name):
+        body = json.loads(request.data)
+        target_name = body["name"]
+
+        return use_ability(str(game_uuid), str(player_uuid), str(name), str(target_name))
+
+
 api.add_resource(Buildings, '/game/<string:game_uuid>/players/<string:player_uuid>/buildings')
+api.add_resource(PlayerBuildingUseAbility, '/game/<string:game_uuid>/players/<string:player_uuid>/buildings/<string:name>/action.use_ability')

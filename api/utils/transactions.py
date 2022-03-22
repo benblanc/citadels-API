@@ -20,6 +20,50 @@ from api.services import database
 from api.utils import helpers
 
 
+def write_card_to_table(table, uuid, card, player_table=False):
+    if player_table:  # check if card is written to a player table
+        return database.write_row_to_db(table(
+            uuid=helpers.create_uuid(),
+            name=card.name,
+            ability_used=card.ability_used,
+            amount=card.amount,
+            player_uuid=uuid))
+    else:  # card is written to a game table
+        return database.write_row_to_db(table(
+            uuid=helpers.create_uuid(),
+            name=card.name,
+            ability_used=card.ability_used,
+            amount=card.amount,
+            game_uuid=uuid))
+
+
+def write_character_to_table(table, uuid, character, player_table=False):
+    if player_table:  # check if card is written to a player table
+        return database.write_row_to_db(table(
+            uuid=helpers.create_uuid(),
+            name=character.name,
+            open=character.open,
+            assassinated=character.assassinated,
+            robbed=character.robbed,
+            built=character.built,
+            income_received=character.income_received,
+            ability_used=character.ability_used,
+            ability_additional_income_used=character.ability_additional_income_used,
+            player_uuid=uuid))
+    else:  # card is written to a game table
+        return database.write_row_to_db(table(
+            uuid=helpers.create_uuid(),
+            name=character.name,
+            open=character.open,
+            assassinated=character.assassinated,
+            robbed=character.robbed,
+            built=character.built,
+            income_received=character.income_received,
+            ability_used=character.ability_used,
+            ability_additional_income_used=character.ability_additional_income_used,
+            game_uuid=uuid))
+
+
 def write_game(game):
     return database.write_row_to_db(game_db(
         uuid=game.uuid,
@@ -43,25 +87,11 @@ def write_settings(game_uuid, settings):
 
 
 def write_district_to_deck_districts(game_uuid, district):
-    return database.write_row_to_db(deck_districts_db(
-        uuid=helpers.create_uuid(),
-        name=district.name,
-        amount=district.amount,
-        game_uuid=game_uuid))
+    return write_card_to_table(deck_districts_db, game_uuid, district)
 
 
 def write_character_to_deck_characters(game_uuid, character):
-    return database.write_row_to_db(deck_characters_db(
-        uuid=helpers.create_uuid(),
-        name=character.name,
-        open=character.open,
-        assassinated=character.assassinated,
-        robbed=character.robbed,
-        built=character.built,
-        income_received=character.income_received,
-        ability_used=character.ability_used,
-        ability_additional_income_used=character.ability_additional_income_used,
-        game_uuid=game_uuid))
+    return write_character_to_table(deck_characters_db, game_uuid, character)
 
 
 def write_player(game_uuid, player):
@@ -81,60 +111,43 @@ def write_player(game_uuid, player):
 
 
 def write_character_to_possible_characters(game_uuid, character):
-    return database.write_row_to_db(possible_characters_db(
-        uuid=helpers.create_uuid(),
-        name=character.name,
-        open=character.open,
-        assassinated=character.assassinated,
-        robbed=character.robbed,
-        built=character.built,
-        income_received=character.income_received,
-        ability_used=character.ability_used,
-        ability_additional_income_used=character.ability_additional_income_used,
-        game_uuid=game_uuid))
+    return write_character_to_table(possible_characters_db, game_uuid, character)
 
 
 def write_character_to_removed_characters(game_uuid, character):
-    return database.write_row_to_db(removed_characters_db(
-        uuid=helpers.create_uuid(),
-        name=character.name,
-        open=character.open,
-        assassinated=character.assassinated,
-        robbed=character.robbed,
-        built=character.built,
-        income_received=character.income_received,
-        ability_used=character.ability_used,
-        ability_additional_income_used=character.ability_additional_income_used,
-        game_uuid=game_uuid))
+    return write_character_to_table(removed_characters_db, game_uuid, character)
 
 
 def write_character_to_player_characters(player_uuid, character):
-    return database.write_row_to_db(characters_db(
-        uuid=helpers.create_uuid(),
-        name=character.name,
-        open=character.open,
-        assassinated=character.assassinated,
-        robbed=character.robbed,
-        built=character.built,
-        income_received=character.income_received,
-        ability_used=character.ability_used,
-        ability_additional_income_used=character.ability_additional_income_used,
-        player_uuid=player_uuid))
+    return write_character_to_table(characters_db, player_uuid, character, True)
 
 
-def write_card_to_table(table, uuid, card, player_table=False):
-    if player_table:  # check if card is written to a player table
-        return database.write_row_to_db(table(
-            uuid=helpers.create_uuid(),
-            name=card.name,
-            amount=card.amount,
-            player_uuid=uuid))
-    else:  # card is written to a game table
-        return database.write_row_to_db(table(
-            uuid=helpers.create_uuid(),
-            name=card.name,
-            amount=card.amount,
-            game_uuid=uuid))
+def get_districts(table, uuid, player_table=False):
+    response = []
+
+    if player_table:  # check if districts are from a player table
+        districts = table.query.filter_by(player_uuid=uuid).all()
+    else:  # districts are from a game table
+        districts = table.query.filter_by(game_uuid=uuid).all()
+
+    if districts:  # check if not empty
+        response = list(map(lambda district: ClassDistrict(database_object=district), districts))
+
+    return response
+
+
+def get_characters(table, uuid, player_table=False):
+    response = []
+
+    if player_table:  # check if characters are from a player table
+        characters = table.query.filter_by(player_uuid=uuid).all()
+    else:  # characters are from a game table
+        characters = table.query.filter_by(game_uuid=uuid).all()
+
+    if characters:  # check if not empty
+        response = list(map(lambda character: ClassCharacter(database_object=character), characters))
+
+    return response
 
 
 def get_game(game_uuid):
@@ -160,58 +173,23 @@ def get_game_settings(game_uuid):
 
 
 def get_game_deck_characters(game_uuid):
-    response = []
-
-    deck_characters = deck_characters_db.query.filter_by(game_uuid=game_uuid).all()
-
-    if deck_characters:
-        response = list(map(lambda character: ClassCharacter(database_object=character), deck_characters))
-
-    return response
+    return get_characters(deck_characters_db, game_uuid)
 
 
 def get_game_deck_districts(game_uuid):
-    response = []
-
-    deck_districts = deck_districts_db.query.filter_by(game_uuid=game_uuid).all()
-
-    if deck_districts:
-        response = list(map(lambda district: ClassDistrict(database_object=district), deck_districts))
-
-    return response
+    return get_districts(deck_districts_db, game_uuid)
 
 
 def get_game_discard_pile(game_uuid):
-    response = []
-
-    discard_pile = deck_discard_pile_db.query.filter_by(game_uuid=game_uuid).all()
-
-    if discard_pile:
-        response = list(map(lambda district: ClassDistrict(database_object=district), discard_pile))
-
-    return response
+    return get_districts(deck_discard_pile_db, game_uuid)
 
 
 def get_game_possible_characters(game_uuid):
-    response = []
-
-    possible_characters = possible_characters_db.query.filter_by(game_uuid=game_uuid).all()
-
-    if possible_characters:
-        response = list(map(lambda character: ClassCharacter(database_object=character), possible_characters))
-
-    return response
+    return get_characters(possible_characters_db, game_uuid)
 
 
 def get_game_removed_characters(game_uuid):
-    response = []
-
-    removed_characters = removed_characters_db.query.filter_by(game_uuid=game_uuid).all()
-
-    if removed_characters:
-        response = list(map(lambda character: ClassCharacter(database_object=character), removed_characters))
-
-    return response
+    return get_characters(removed_characters_db, game_uuid)
 
 
 def get_players(game_uuid):
@@ -237,47 +215,19 @@ def get_player(player_uuid):
 
 
 def get_player_characters(player_uuid):
-    response = []
-
-    characters = characters_db.query.filter_by(player_uuid=player_uuid).all()
-
-    if characters:
-        response = list(map(lambda character: ClassCharacter(database_object=character), characters))
-
-    return response
+    return get_characters(characters_db, player_uuid, True)
 
 
 def get_player_buildings(player_uuid):
-    response = []
-
-    buildings = buildings_db.query.filter_by(player_uuid=player_uuid).all()
-
-    if buildings:
-        response = list(map(lambda district: ClassDistrict(database_object=district), buildings))
-
-    return response
+    return get_districts(buildings_db, player_uuid, True)
 
 
 def get_player_cards(player_uuid):
-    response = []
-
-    cards = cards_db.query.filter_by(player_uuid=player_uuid).all()
-
-    if cards:
-        response = list(map(lambda district: ClassDistrict(database_object=district), cards))
-
-    return response
+    return get_districts(cards_db, player_uuid, True)
 
 
 def get_player_drawn_cards(player_uuid):
-    response = []
-
-    drawn_cards = drawn_cards_db.query.filter_by(player_uuid=player_uuid).all()
-
-    if drawn_cards:
-        response = list(map(lambda district: ClassDistrict(database_object=district), drawn_cards))
-
-    return response
+    return get_districts(drawn_cards_db, player_uuid, True)
 
 
 def get_card_from_table(table, name, uuid, player_table=False):

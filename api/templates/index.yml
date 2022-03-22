@@ -1003,7 +1003,46 @@ paths:
       responses:
         200:
           description: Returns a list of the player's built district card objects
-      summary: Requests a list of the player's built district card card objects
+      summary: Requests a list of the player's built district card objects
+      tags:
+        - players
+  '/game/{game_uuid}/players/{player_uuid}/buildings/{name}/action.use_ability':
+    post:
+      description: ''
+      parameters:
+        - description: Game UUID
+          in: path
+          name: game_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: Player UUID
+          in: path
+          name: player_uuid
+          required: true
+          type: string
+          format: uuid
+        - description: District name
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: The request body
+          in: body
+          name: body
+          schema:
+            required:
+              - name
+            type: object
+            properties:
+              name:
+                type: string
+                description: The uuid of the district you want to use your districts's ability on. Set an empty string when not needed.
+                example: 'castle'
+      responses:
+        204:
+          description: Using ability successful
+      summary: Requests using the ability of a district in your city
       tags:
         - players
   '/game/{game_uuid}/players/{player_uuid}/drawn_cards':

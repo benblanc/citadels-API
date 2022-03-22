@@ -63,6 +63,7 @@ def define_card(card):
     response = {
         "uuid": card.uuid,
         "name": card.name,
+        "ability_used": card.ability_used,
         "amount": card.amount
     }
 
