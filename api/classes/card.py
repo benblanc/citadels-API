@@ -441,6 +441,11 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.smithy.value
                          ]),
+            ClassAbility(active=False,
+                         description="The warlord needs to pay one more coin to destroy a district in your city.",
+                         used_by=[
+                             ClassDistrictName.great_wall.value
+                         ]),
         ]
 
         self.__districts_red = [
@@ -477,7 +482,7 @@ class ClassCard:
             ClassDistrict(name=ClassDistrictName.keep.value, color=ClassColor.purple.value, coins=3, value=3, amount=2),
             ClassDistrict(name=ClassDistrictName.observatory.value, color=ClassColor.purple.value, coins=5, value=5),
             ClassDistrict(name=ClassDistrictName.laboratory.value, color=ClassColor.purple.value, coins=5, value=5),
-            ClassDistrict(name=ClassDistrictName.graveyard.value, color=ClassColor.purple.value, coins=5, value=5),
+            ClassDistrict(name=ClassDistrictName.great_wall.value, color=ClassColor.purple.value, coins=6, value=6),
             ClassDistrict(name=ClassDistrictName.smithy.value, color=ClassColor.purple.value, coins=5, value=5),
             ClassDistrict(name=ClassDistrictName.library.value, color=ClassColor.purple.value, coins=6, value=6),
             ClassDistrict(name=ClassDistrictName.school_of_magic.value, color=ClassColor.purple.value, coins=6, value=6),
