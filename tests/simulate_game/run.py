@@ -201,17 +201,19 @@ def __use_main_ability(game_uuid, player_uuid, character_expected_to_play):
         use_ability(game_uuid, player_uuid, main=True, character_name=character_name, districts_name=districts_name, other_player_uuid=other_player_uuid)
 
 
-def __use_district_ability(game_uuid, player_uuid, name, player, buildings, building_names):
-    ability_used = False
-
+def __use_district_ability(game_uuid, player_uuid, name, buildings, player_cards):
     district = __get_filtered_item(buildings, "name", name)
 
     if district:
-        if district["ability_used"]:
-            ability_used = True
+        if not district["ability_used"]:
+            card_to_discard = ""
 
-    if not ability_used:
-        use_district_ability(game_uuid, player_uuid, name, "")
+            if name == "laboratory":
+                random_index = random.randint(2, len(player_cards) - 1)
+
+                card_to_discard = player_cards[random_index]["name"]
+
+            use_district_ability(game_uuid, player_uuid, name, card_to_discard)
 
 
 def __perform_turn(game_uuid):
@@ -265,11 +267,11 @@ def __perform_turn(game_uuid):
 
                 elif "smithy" in player_building_names and player["coins"] > 3:  # check if player has the smithy and has enough coins to use its effect
                     if random.choice([0, 1]):  # 50% chance to actually use the district ability
-                        __use_district_ability(game_uuid, player["uuid"], "smithy", player, player_buildings, player_building_names)
+                        __use_district_ability(game_uuid, player["uuid"], "smithy", player_buildings, player_cards)
 
-                # elif "laboratory" in player_building_names:  # check if player has the laboratory
-                #     if random.choice([0, 1]):  # 50% chance to actually use the district ability
-                #         __use_district_ability(game_uuid, player["uuid"], "laboratory", player, player_buildings, player_building_names)
+                elif "laboratory" in player_building_names:  # check if player has the laboratory
+                    if random.choice([0, 1]):  # 50% chance to actually use the district ability
+                        __use_district_ability(game_uuid, player["uuid"], "laboratory", player_buildings, player_cards)
 
                 else:  # nothing else to do so end turn
                     skip_main_ability = False  # reset flag

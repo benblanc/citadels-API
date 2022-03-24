@@ -186,6 +186,12 @@ def no_district_name():
     return response, 400
 
 
+def no_target_district_name():
+    response = define_message("The player making the request did not provide a target district name.")
+
+    return response, 400
+
+
 def already_used_district_ability():
     response = define_message("The player making the request has already used the district's ability this turn.")
 
