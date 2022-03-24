@@ -1245,7 +1245,14 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 if amount == 8:  # check if completed city
                     return responses.completed_city()
 
-                building_to_destroy = helpers.get_filtered_item(buildings, "card", name_districts[0])  # get district to destroy
+                reduced_cost = 1  # warlord needs to pay one less coin to destroy a district
+
+                great_wall = helpers.get_filtered_item(buildings, "name", ClassDistrictName.great_wall.value)  # get great wall
+
+                if great_wall:  # check if other player has the great wall in their city
+                    reduced_cost = 0  # warlord needs to pay the full price
+
+                building_to_destroy = helpers.get_filtered_item(buildings, "name", name_districts[0])  # get district to destroy
 
                 if not building_to_destroy:  # check if district cannot be destroyed
                     return responses.not_found("district")
@@ -1253,23 +1260,23 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
                 if building_to_destroy.name == ClassDistrictName.keep.value:  # check if player wants to destroy the keep
                     return responses.not_keep()
 
-                log += "{player_name} as the warlord destroys the {district_name} in {other_player_name}'s city.\n".format(player_name=player.name, district_name=building_to_destroy[0].card.name, other_player_name=other_player.name)  # update log
+                log += "{player_name} as the warlord destroys the {district_name} in {other_player_name}'s city.\n".format(player_name=player.name, district_name=building_to_destroy.name, other_player_name=other_player.name)  # update log
 
                 cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
-                card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building_to_destroy[0].card.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
+                card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building_to_destroy.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
 
-                if player.coins < card_complete_info.coins - 1:  # check if player does not have enough coins to destroy the district
+                if player.coins < card_complete_info.coins - reduced_cost:  # check if player does not have enough coins to destroy the district
                     return responses.not_enough_coins()
 
-                player.coins -= card_complete_info.coins - 1  # decrease coins for player
+                player.coins -= card_complete_info.coins - reduced_cost  # decrease coins for player
 
                 success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
 
                 if not success_update_player:  # check if failed to update database
                     return responses.error_updating_database("player")
 
-                error = __update_districts_in_database(from_table=buildings_db, to_table=deck_discard_pile_db, cards=deepcopy(building_to_destroy), uuid=game_uuid, from_table_name="buildings", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the buildings table
+                error = __update_districts_in_database(from_table=buildings_db, to_table=deck_discard_pile_db, cards=deepcopy([building_to_destroy]), uuid=game_uuid, from_table_name="buildings", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the buildings table
 
                 if error:  # check if something went wrong when updating the database
                     return error
