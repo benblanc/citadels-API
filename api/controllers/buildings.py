@@ -207,7 +207,7 @@ def use_ability(game_uuid, player_uuid, name, target_name):
 
             card.amount = 1  # one copy of the card needs to be discarded
 
-            error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=deepcopy([card]), uuid=player_uuid, from_deck_cards_by_amount=deepcopy(cards), to_table_name="discard pile")  # write the card in the player's hand to the discard pile table and update/remove the card from the player's hand table
+            error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=deepcopy([card]), uuid=game_uuid, from_deck_cards_by_amount=deepcopy(cards), to_table_name="discard pile")  # write the card in the player's hand to the discard pile table and update/remove the card from the player's hand table
 
             if error:  # check if something went wrong when updating the database
                 return error
