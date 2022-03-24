@@ -6,6 +6,7 @@ from api.classes.card import *
 from api.classes.game import *
 
 from api.models.buildings import Buildings as buildings_db
+from api.models.deck_discard_pile import DeckDiscardPile as deck_discard_pile_db
 from api.models.deck_districts import DeckDistricts as deck_districts_db
 from api.models.cards import Cards as cards_db
 from api.models.players import Players as players_db
@@ -191,7 +192,41 @@ def use_ability(game_uuid, player_uuid, name, target_name):
                 return responses.error_updating_database("building")
 
         elif building.name == ClassDistrictName.laboratory.value:  # check if player wants to use the effect of the laboratory
-            pass
+            if not target_name:  # check if target name was provided
+                return responses.no_target_district_name()
+
+            cards = transactions.get_player_cards(player_uuid)  # get cards in player's hand
+
+            if not cards:  # check if player has cards
+                return responses.not_found("cards", True)
+
+            card = helpers.get_filtered_item(cards, "name", target_name)  # get target card in player's hand
+
+            if not card:  # check if card in player's hand
+                return responses.not_found("card")
+
+            card.amount -= 1  # one copy of the card needs to be discarded | manipulates card amount in list of cards in player's hand
+
+            _card = deepcopy(card)  # copy object so it doesn't manipulate list of cards in player's hand
+
+            _card.amount = 1  # one copy of the card needs to be discarded
+
+            error = __update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=deepcopy([_card]), uuid=game_uuid, from_deck_cards_by_amount=deepcopy(cards), to_table_name="discard pile")  # write the card in the player's hand to the discard pile table and update/remove the card from the player's hand table
+
+            if error:  # check if something went wrong when updating the database
+                return error
+
+            player.coins += 1  # increase coins
+
+            success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=player.coins))  # update amount of coins for player in database
+
+            if not success_update_player:  # check if failed to update database
+                return responses.error_updating_database("player")
+
+            success_update_building = database.update_row_in_db(buildings_db, building.uuid, dict(ability_used=True))  # update ability used flags for building in database
+
+            if not success_update_building:  # check if failed to update database
+                return responses.error_updating_database("building")
 
         return responses.no_content()
 

@@ -441,11 +441,16 @@ class ClassCard:
                          used_by=[
                              ClassDistrictName.smithy.value
                          ]),
+            ClassAbility(active=True,
+                         description="Once per turn you can discard a card to receive one coin.",
+                         used_by=[
+                             ClassDistrictName.laboratory.value
+                         ]),
             ClassAbility(active=False,
                          description="The warlord needs to pay one more coin to destroy a district in your city.",
                          used_by=[
                              ClassDistrictName.great_wall.value
-                         ]),
+                         ])
         ]
 
         self.__districts_red = [
