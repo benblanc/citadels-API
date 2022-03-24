@@ -222,6 +222,18 @@ def use_ability(base_url, game_uuid, player_uuid, main=False, character_name=Non
     return response
 
 
+def use_district_ability(base_url, game_uuid, player_uuid, name, target_name):
+    payload = {
+        "name": target_name
+    }
+
+    response = requests.post(url=base_url + "/game/" + game_uuid + "/players/" + player_uuid + "/buildings/" + name + "/action.use_ability", json=payload)
+
+    log_response(response)
+
+    return response
+
+
 def get_characters(base_url):
     query_params = {
         "sort_order": "asc",

@@ -201,6 +201,19 @@ def __use_main_ability(game_uuid, player_uuid, character_expected_to_play):
         use_ability(game_uuid, player_uuid, main=True, character_name=character_name, districts_name=districts_name, other_player_uuid=other_player_uuid)
 
 
+def __use_district_ability(game_uuid, player_uuid, name, player, buildings, building_names):
+    ability_used = False
+
+    district = __get_filtered_item(buildings, "name", name)
+
+    if district:
+        if district["ability_used"]:
+            ability_used = True
+
+    if not ability_used:
+        use_district_ability(game_uuid, player_uuid, name, "")
+
+
 def __perform_turn(game_uuid):
     skip_main_ability = False
     skip_secondary_ability = False
@@ -249,6 +262,14 @@ def __perform_turn(game_uuid):
                 elif not character_expected_to_play["ability_used"] and not skip_main_ability:  # check if character has not yet used its main ability
                     skip_main_ability = True  # skip using the ability next time the script wants to try
                     __use_main_ability(game_uuid, player["uuid"], player_character_turn_name)
+
+                elif "smithy" in player_building_names and player["coins"] > 3:  # check if player has the smithy and has enough coins to use its effect
+                    if random.choice([0, 1]):  # 50% chance to actually use the district ability
+                        __use_district_ability(game_uuid, player["uuid"], "smithy", player, player_buildings, player_building_names)
+
+                # elif "laboratory" in player_building_names:  # check if player has the laboratory
+                #     if random.choice([0, 1]):  # 50% chance to actually use the district ability
+                #         __use_district_ability(game_uuid, player["uuid"], "laboratory", player, player_buildings, player_building_names)
 
                 else:  # nothing else to do so end turn
                     skip_main_ability = False  # reset flag
