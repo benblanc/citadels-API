@@ -381,7 +381,7 @@ def receive_coins(game_uuid, player_uuid):
             drawn_cards = []
             for index in range(2):  # do it twice
                 if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
-                    cards = transactions.get_game_discard_pile  # get discard pile in game
+                    cards = transactions.get_game_discard_pile(game_uuid)  # get discard pile in game
 
                     error = __update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=deepcopy(cards), uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
 

@@ -147,6 +147,15 @@ def use_ability(game_uuid, player_uuid, main=False, character_name=None, distric
     time.sleep(SLEEP_SECONDS)
 
 
+def use_district_ability(game_uuid, player_uuid, name, target_name):
+    response_use_district_ability = endpoints.use_district_ability(BASE_URL, game_uuid, player_uuid, name, target_name)
+
+    if response_use_district_ability.status_code != 204:
+        exit(1)
+
+    time.sleep(SLEEP_SECONDS)
+
+
 def get_player_characters(game_uuid, player_uuid):
     response_get_player_characters = endpoints.get_player_characters(BASE_URL, game_uuid, player_uuid)
 

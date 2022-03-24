@@ -27,6 +27,11 @@ class PlayerBuildingUseAbility(Resource):
         body = json.loads(request.data)
         target_name = body["name"]
 
+        print(game_uuid)
+        print(player_uuid)
+        print(name)
+        print(target_name)
+
         return use_ability(str(game_uuid), str(player_uuid), str(name), str(target_name))
 
 

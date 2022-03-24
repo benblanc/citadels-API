@@ -180,6 +180,18 @@ def not_enough_drawn_cards(amount, name):
     return response, 400
 
 
+def no_district_name():
+    response = define_message("The player making the request did not provide a district name.")
+
+    return response, 400
+
+
+def already_used_district_ability():
+    response = define_message("The player making the request has already used the district's ability this turn.")
+
+    return response, 400
+
+
 def not_found(item="item", plural=False):
     message = "The requested {item} is not found or does not exist.".format(item=item)
 
