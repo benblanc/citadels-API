@@ -10,7 +10,7 @@ This API is used together with the [citadels client](https://github.com/benblanc
 
 I hope everyone has fun playing this wonderful game together!
 
-## Getting Started
+## Getting started
 
 [Open a terminal](https://atom.io/packages/open-terminal-here) at the location of this cloned/downloaded repository and run these commands:
 
