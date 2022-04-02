@@ -53,7 +53,7 @@ This application was programmed using [python 3.7](https://www.python.org/downlo
 * If you have python 3 installed on your system, try using that first
 * If you don't have python installed on your system, download python 3.7
 
-This application also uses [docker-compose](https://docs.docker.com/compose/) to manage a mysql database. If you don't have docker-compose installed on your system, you can follow [these steps](https://docs.docker.com/compose/install/#install-compose) to install it on your system.You can also install just install the mysql database separately, but you'll have to find out how on your own.
+This application also uses [docker-compose](https://docs.docker.com/compose/) to manage a mysql database. If you don't have docker-compose installed on your system, you can follow [these steps](https://docs.docker.com/compose/install/#install-compose) to install it on your system. You can also install just install the mysql database separately, but you'll have to find out how on your own.
 
 ## Running the tests
 
