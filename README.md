@@ -94,3 +94,9 @@ The script will make requests to the endpoints of the API to simulate a game. Th
     ```
 
 The final output should be the score each player has in the database and the score the script calculated.
+
+## Notes
+
+The game only uses the cards from the original set, except for the graveyard and the great wall.
+
+Programming the graveyard would have been difficult/annoying, so I replaced it with the great wall which was easier to programme.
