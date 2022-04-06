@@ -209,7 +209,7 @@ def __use_district_ability(game_uuid, player_uuid, name, buildings, player_cards
             card_to_discard = ""
 
             if name == "laboratory":
-                random_index = random.randint(2, len(player_cards) - 1)
+                random_index = random.randint(0, len(player_cards) - 1)
 
                 card_to_discard = player_cards[random_index]["name"]
 
@@ -267,10 +267,11 @@ def __perform_turn(game_uuid):
 
                 elif "smithy" in player_building_names and player["coins"] > 3:  # check if player has the smithy and has enough coins to use its effect
                     if random.choice([0, 1]):  # 50% chance to actually use the district ability
+                        print("player_coins: ", player["coins"])
                         __use_district_ability(game_uuid, player["uuid"], "smithy", player_buildings, player_cards)
 
                 elif "laboratory" in player_building_names:  # check if player has the laboratory
-                    if random.choice([0, 1]):  # 50% chance to actually use the district ability
+                    if random.choice([0, 1]) and player_cards:  # 50% chance to actually use the district ability andf player needs to have cards to discard
                         __use_district_ability(game_uuid, player["uuid"], "laboratory", player_buildings, player_cards)
 
                 else:  # nothing else to do so end turn
