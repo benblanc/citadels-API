@@ -1,6 +1,13 @@
+import random
+
 from collections import Counter
+from copy import deepcopy
 
 from api.classes.card import *
+from api.classes.game import *
+
+from api.models.deck_discard_pile import DeckDiscardPile as deck_discard_pile_db
+from api.models.deck_districts import DeckDistricts as deck_districts_db
 
 import api.responses as responses
 
@@ -135,3 +142,40 @@ def calculate_score(player_uuid, city_first_completed):
         score += 2  # add bonus
 
     return score
+
+
+def get_shuffled_deck_districts(game_uuid):
+    districts = []
+
+    deck_districts = transactions.get_game_deck_districts(game_uuid)  # get deck of districts in game
+
+    if deck_districts:  # check if not empty
+        game = ClassGame()  # initialize new game object
+
+        districts = game.separate_cards_by_name(deck_districts)  # get separated cards
+
+        random.shuffle(districts)  # shuffle district cards
+
+    return districts
+
+
+def draw_cards_from_deck_districts(game_uuid, amount):
+    game = ClassGame()  # initialize new game object
+
+    game.deck_districts = get_shuffled_deck_districts(game_uuid)  # add districts to game object
+
+    drawn_cards = []
+    for index in range(amount):  # repeat for the required amount
+        if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
+            cards = transactions.get_game_discard_pile(game_uuid)  # get discard pile in game
+
+            error = update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=deepcopy(cards), uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
+
+            if error:  # check if something went wrong when updating the database
+                return error
+
+            game.deck_districts = get_shuffled_deck_districts(game_uuid)  # add districts to game object
+
+        drawn_cards.append(game.draw_card_deck_districts())  # draw a card from the deck of districts and add it to the list
+
+    return game.aggregate_cards_by_name(drawn_cards)  # update the amount per card

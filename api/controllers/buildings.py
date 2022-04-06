@@ -93,37 +93,14 @@ def use_ability(game_uuid, player_uuid, name, target_name):
             if player.coins < 3:  # check if player has enough coins
                 return responses.not_enough_coins()
 
-            deck_districts = transactions.get_game_deck_districts(game_uuid)  # get deck of districts in game
+            drawn_cards = game_helpers.draw_cards_from_deck_districts(game_uuid, 2)  # draw 2 cards from the deck of districts
 
-            districts = game.separate_cards_by_name(deck_districts)  # get separated cards
+            if isinstance(drawn_cards, dict):  # check if error message
+                return drawn_cards  # in this case it will contain the error message
 
-            random.shuffle(districts)  # shuffle district cards
+            game.deck_districts = transactions.get_game_deck_districts(game_uuid)  # add districts to game object
 
-            game.deck_districts = districts  # add districts to game object
-
-            drawn_cards = []
-            for index in range(2):  # do it twice
-                if not len(game.deck_districts):  # check if the deck of districts has any cards left | we'll need to add the discard pile to the deck
-                    cards = transactions.get_game_discard_pile  # get discard pile in game
-
-                    error = game_helpers.update_districts_in_database(from_table=deck_discard_pile_db, to_table=deck_districts_db, cards=deepcopy(cards), uuid=game_uuid, from_table_name="discard pile")  # write the discard pile cards to the deck of districts table and update/remove the discard pile cards from the discard pile table
-
-                    if error:  # check if something went wrong when updating the database
-                        return error
-
-                    deck_districts = transactions.get_game_deck_districts(game_uuid)  # get deck of districts in game which now has the cards from the discard pile
-
-                    districts = game.separate_cards_by_name(deck_districts)  # get separated cards
-
-                    random.shuffle(districts)  # shuffle district cards
-
-                    game.deck_districts = districts  # add districts to game object
-
-                drawn_cards.append(game.draw_card_deck_districts())  # draw a card from the deck of districts and add it to the list
-
-            drawn_cards = game.aggregate_cards_by_name(drawn_cards)  # update the amount per card
-
-            error = game_helpers.update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=deepcopy(drawn_cards), uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts_by_amount, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the player cards table and update/remove the drawn cards from the deck_districts table
+            error = game_helpers.update_districts_in_database(from_table=deck_districts_db, to_table=cards_db, cards=deepcopy(drawn_cards), uuid=player_uuid, from_deck_cards_by_amount=game.deck_districts, player_table=True, to_table_name="drawn cards")  # write the drawn cards to the player cards table and update/remove the drawn cards from the deck_districts table
 
             if error:  # check if something went wrong when updating the database
                 return error
