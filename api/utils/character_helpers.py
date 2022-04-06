@@ -109,17 +109,11 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
 
 
 def use_assassin_ability(log, game_uuid, name_character, player_name):
-    character_possible = False
-
     characters_in_game = transactions.get_game_deck_characters(game_uuid)  # get all characters in game
 
-    if characters_in_game:  # check if there are characters in the game
-        character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
+    character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
 
-        if character_in_game:  # check if there is a character with the given name
-            character_possible = True  # character is in game
-
-    if not character_possible:  # check if character cannot be picked
+    if not character_in_game:  # check if there is a character with the given name
         return responses.not_found("character")
 
     log += "{player_name} as the assassin kills the {character_name}.\n".format(player_name=player_name, character_name=name_character)  # update log
@@ -147,17 +141,11 @@ def use_assassin_ability(log, game_uuid, name_character, player_name):
 
 
 def use_thief_ability(log, game_uuid, name_character, player_name):
-    character_possible = False
-
     characters_in_game = transactions.get_game_deck_characters(game_uuid)  # get all characters in game
 
-    if characters_in_game:  # check if there are characters in the game
-        character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
+    character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
 
-        if character_in_game:  # check if there is a character with the given name
-            character_possible = True  # character is in game
-
-    if not character_possible:  # check if character cannot be picked
+    if not character_in_game:  # check if there is a character with the given name
         return responses.not_found("character")
 
     log += "{player_name} as the thief robs the {character_name}.\n".format(player_name=player_name, character_name=name_character)  # update log

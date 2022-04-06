@@ -59,25 +59,25 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
             if character.name == ClassCharacterName.assassin.value:  # check if the character is the assassin
                 log = character_helpers.use_assassin_ability(log, game_uuid, name_character, player.name)  # use assassin's ability and update log
 
-                if isinstance(log, dict):  # check if error message
+                if isinstance(log, tuple):  # check if error message
                     return log  # in this case it will contain the error message
 
             elif character.name == ClassCharacterName.thief.value:  # check if the character is the thief
                 log = character_helpers.use_thief_ability(log, game_uuid, name_character, player.name)  # use thief's ability and update log
 
-                if isinstance(log, dict):  # check if error message
+                if isinstance(log, tuple):  # check if error message
                     return log  # in this case it will contain the error message
 
             elif character.name == ClassCharacterName.magician.value:  # check if the character is the magician
                 log = character_helpers.use_magician_ability(log, game_uuid, player_uuid, other_player_uuid, player.name, name_districts)  # use magician's ability and update log
 
-                if isinstance(log, dict):  # check if error message
+                if isinstance(log, tuple):  # check if error message
                     return log  # in this case it will contain the error message
 
             elif character.name == ClassCharacterName.warlord.value:  # check if the character is the warlord
                 log = character_helpers.use_warlord_ability(log, game_uuid, player, other_player_uuid, name_districts)  # use warlord's ability and update log
 
-                if isinstance(log, dict):  # check if error message
+                if isinstance(log, tuple):  # check if error message
                     return log  # in this case it will contain the error message
 
             success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(ability_used=True))  # update ability used flag for character in database
@@ -85,7 +85,7 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
         else:  # not main ability
             log = character_helpers.use_secondary_ability(log, player, character)  # use secondary ability and update log
 
-            if isinstance(log, dict):  # check if error message
+            if isinstance(log, tuple):  # check if error message
                 return log  # in this case it will contain the error message
 
             success_update_character = database.update_row_in_db(characters_db, character.uuid, dict(ability_additional_income_used=True))  # update ability for additional income used flags for character in database
