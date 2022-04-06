@@ -209,7 +209,7 @@ def __use_district_ability(game_uuid, player_uuid, name, buildings, player_cards
             card_to_discard = ""
 
             if name == "laboratory":
-                random_index = random.randint(2, len(player_cards) - 1)
+                random_index = random.randint(0, len(player_cards) - 1)
 
                 card_to_discard = player_cards[random_index]["name"]
 
@@ -239,7 +239,7 @@ def __perform_turn(game_uuid):
             player_character_turn_name = character_expected_to_play["name"]
 
             while player_character_turn_name == game["character_turn"]:
-                _player = get_player(game_uuid, player["uuid"])
+                player = get_player(game_uuid, player["uuid"])
 
                 character = get_character(player_character_turn_name)
 
@@ -249,10 +249,10 @@ def __perform_turn(game_uuid):
 
                 player_building_names = list(map(lambda building: building["name"], player_buildings))
 
-                cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, _player["coins"])
+                cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, player["coins"])
 
                 if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
-                    __receive_income(game_uuid, player["uuid"], _player["coins"], player_building_names)
+                    __receive_income(game_uuid, player["uuid"], player["coins"], player_building_names)
 
                 elif character_expected_to_play["income_received"] and character_expected_to_play["built"] < character["max_built"] and cards_player_can_build:  # check if character has received an income, building limit not yet reached and there are districts the player can actually build
                     __build_district(game_uuid, player["uuid"], cards_player_can_build[0])
@@ -270,7 +270,7 @@ def __perform_turn(game_uuid):
                         __use_district_ability(game_uuid, player["uuid"], "smithy", player_buildings, player_cards)
 
                 elif "laboratory" in player_building_names:  # check if player has the laboratory
-                    if random.choice([0, 1]):  # 50% chance to actually use the district ability
+                    if random.choice([0, 1]) and player_cards:  # 50% chance to actually use the district ability andf player needs to have cards to discard
                         __use_district_ability(game_uuid, player["uuid"], "laboratory", player_buildings, player_cards)
 
                 else:  # nothing else to do so end turn
