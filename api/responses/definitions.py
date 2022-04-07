@@ -49,7 +49,7 @@ def define_player(player):
         "hosting": player.hosting,
         "seat": player.seat,
         "coins": player.coins,
-        "king": player.king,
+        "crown": player.crown,
         "protected": player.protected,
         "select_expected": player.select_expected,
         "city_first_completed": player.city_first_completed,

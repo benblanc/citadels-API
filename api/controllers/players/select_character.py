@@ -57,7 +57,7 @@ def select_character(game_uuid, player_uuid, name, remove):
 
         remove_character_possible = False  # outside the if structure where it's used so it can also be used to determine log text
 
-        if possible_characters and game.amount_players == 2 and len(game.removed_characters) > 1 or possible_characters and game.amount_players == 2 and not game.players[0].king:  # check if there are possible characters, two player game and atleast 2 removed characters or if there are possible characters, two player game and it's not the first player
+        if possible_characters and game.amount_players == 2 and len(game.removed_characters) > 1 or possible_characters and game.amount_players == 2 and not game.players[0].crown:  # check if there are possible characters, two player game and atleast 2 removed characters or if there are possible characters, two player game and it's not the first player
             remove_character = helpers.get_filtered_item(possible_characters, "name", remove)  # get character to remove
 
             if remove_character:  # check if there is a character with given name
@@ -81,7 +81,7 @@ def select_character(game_uuid, player_uuid, name, remove):
         if not success_delete_possible_character:  # check if failed to delete in database
             return responses.error_deleting_database("possible character")
 
-        if game.amount_players == 2 and len(game.removed_characters) > 1 or game.amount_players == 2 and not game.players[0].king:  # check if game has only 2 players and atleast 2 characters have been removed | game with 2 players requires each player to also remove a character for the round, where player two gets to remove the first character
+        if game.amount_players == 2 and len(game.removed_characters) > 1 or game.amount_players == 2 and not game.players[0].crown:  # check if game has only 2 players and atleast 2 characters have been removed | game with 2 players requires each player to also remove a character for the round, where player two gets to remove the first character
             character = game.remove_character_from_possible_characters(remove)  # remove character from possible characters for round
 
             success_write_character = transactions.write_character_to_removed_characters(game_uuid, character)  # write character to database

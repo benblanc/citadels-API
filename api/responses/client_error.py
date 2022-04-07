@@ -13,12 +13,6 @@ def not_host():
     return response, 400
 
 
-def not_king():
-    response = define_message("The player making the request is not the king.")
-
-    return response, 400
-
-
 def not_select_expected():
     response = define_message("The player making the request is not expected to select a character.")
 

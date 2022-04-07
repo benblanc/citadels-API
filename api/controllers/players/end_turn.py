@@ -81,13 +81,13 @@ def end_turn(game_uuid, player_uuid):
                         ability_used = True  # update flag
 
                         for _player in players:  # go through players
-                            if _player.king:  # check if player is the current king
-                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(king=False))  # update king flag for player in database | old king needs to be reset so the new king can be set
+                            if _player.crown:  # check if player currently has the crown
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(crown=False))  # update crown flag for player in database | old crown needs to be reset so the new crown can be set
 
                                 if not success_update_player:  # check if failed to update database
                                     return responses.error_updating_database("player")
 
-                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(king=True))  # update king flag for player in database | set the new king
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(crown=True))  # update crown flag for player in database | set the new crown
 
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
@@ -96,7 +96,7 @@ def end_turn(game_uuid, player_uuid):
                         ability_used = True  # update flag
 
                         for _player in players:  # go through players
-                            if _player.protected:  # check if player is the current king
+                            if _player.protected:  # check if player is currently protected from the warlord
                                 success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(protected=False))  # update protected flag for previous player in database
 
                                 if not success_update_player:  # check if failed to update database
@@ -166,13 +166,13 @@ def end_turn(game_uuid, player_uuid):
 
                     if character_king:  # check if player has the king | player becomes king at the of the round if the character was assassinated during the round
                         for _player in players:  # go through players
-                            if _player.king:  # check if player is the current king
-                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(king=False))  # update king flag for player in database | old king needs to be reset so the new king can be set
+                            if _player.crown:  # check if player currently has the crown
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(crown=False))  # update crown flag for player in database | old crown needs to be reset so the new crown can be set
 
                                 if not success_update_player:  # check if failed to update database
                                     return responses.error_updating_database("player")
 
-                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(king=True))  # update king flag for player in database | set the new king
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(crown=True))  # update king flag for player in database | set the new king
 
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
@@ -189,7 +189,7 @@ def end_turn(game_uuid, player_uuid):
                 success_update_players = []
                 for player in players:  # go through players
                     success_delete_characters.append(database.delete_rows_from_db(characters_db, player_uuid=player.uuid))  # delete character from player characters in database
-                    success_update_players.append(database.update_row_in_db(players_db, player.uuid, dict(protected=False, select_expected=player.king)))  # reset certain player flags
+                    success_update_players.append(database.update_row_in_db(players_db, player.uuid, dict(protected=False, select_expected=player.crown)))  # reset certain player flags
 
                 if False in success_delete_characters:  # check if failed to delete in database
                     return responses.error_deleting_database("character")

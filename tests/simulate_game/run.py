@@ -43,7 +43,7 @@ def __perform_selection(game_uuid):
         if game["amount_players"] == 2:
             removed_characters = get_removed_characters(game_uuid)
 
-            if len(removed_characters) > 1 or not player_expected_to_select["king"]:  # first player to pick doesn't remove a character
+            if len(removed_characters) > 1 or not player_expected_to_select["crown"]:  # first player to pick doesn't remove a character
                 remove_character = possible_characters[0]["name"]
 
                 if keep_character == remove_character:
