@@ -2,8 +2,6 @@ import logging, traceback
 
 from api import db
 
-from pprint import pprint
-
 
 def write_row_to_db(row):
     try:
