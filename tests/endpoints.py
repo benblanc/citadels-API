@@ -117,8 +117,8 @@ def get_player_characters(base_url, game_uuid, player_uuid):
     return response
 
 
-def receive_coins(base_url, game_uuid, player_uuid):
-    response = requests.post(url=base_url + "/game/" + game_uuid + "/players/" + player_uuid + "/action.receive_coins")
+def receive_gold(base_url, game_uuid, player_uuid):
+    response = requests.post(url=base_url + "/game/" + game_uuid + "/players/" + player_uuid + "/action.receive_gold")
 
     log_response(response)
 

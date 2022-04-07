@@ -21,7 +21,7 @@ from api.services import database
 from api.utils import game_helpers, helpers, transactions
 
 
-def receive_coins(game_uuid, player_uuid):
+def receive_gold(game_uuid, player_uuid):
     try:
         game = transactions.get_game(game_uuid)  # get game from database
 
@@ -51,13 +51,13 @@ def receive_coins(game_uuid, player_uuid):
         if character.income_received:  # check if the character has already received an income
             return responses.already_income_received()
 
-        game.players[0].coins += 2  # increase coin amount
+        game.players[0].gold += 2  # increase coin amount
 
-        log = "{player_name} as the {character_name} chooses coins for their income.\n".format(player_name=player.name, character_name=character.name)  # update log
+        log = "{player_name} as the {character_name} chooses gold for their income.\n".format(player_name=player.name, character_name=character.name)  # update log
 
         if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
             character.ability_used = True
-            game.players[0].coins += 1  # gain an additional coin
+            game.players[0].gold += 1  # gain an additional coin
             log += "{player_name} as the {character_name} receives a coin in addition to the income.\n".format(player_name=player.name, character_name=character.name)  # update log
 
         elif character.name == ClassCharacterName.architect.value and not character.ability_used:  # check if character is the architect
@@ -77,7 +77,7 @@ def receive_coins(game_uuid, player_uuid):
             if error:  # check if something went wrong when updating the database
                 return error
 
-        success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
+        success_update_player = database.update_row_in_db(players_db, player_uuid, dict(gold=game.players[0].gold))  # update amount of gold for player in database
 
         if not success_update_player:  # check if failed to update database
             return responses.error_updating_database("player")
@@ -252,7 +252,7 @@ def keep_card(game_uuid, player_uuid, names):
 
         if character.name == ClassCharacterName.merchant.value and not character.ability_used:  # check if character is the merchant
             character.ability_used = True
-            game.players[0].coins += 1  # gain an additional coin
+            game.players[0].gold += 1  # gain an additional coin
             log += "{player_name} as the {character_name} receives a coin in addition to the income.\n".format(player_name=game.players[0].name, character_name=character.name)  # update log
 
         elif character.name == ClassCharacterName.architect.value and not character.ability_used:  # check if character is the architect
@@ -272,7 +272,7 @@ def keep_card(game_uuid, player_uuid, names):
             if error:  # check if something went wrong when updating the database
                 return error
 
-        success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=game.players[0].coins))  # update amount of coins for player in database
+        success_update_player = database.update_row_in_db(players_db, player_uuid, dict(gold=game.players[0].gold))  # update amount of gold for player in database
 
         if not success_update_player:  # check if failed to update database
             return responses.error_updating_database("player")

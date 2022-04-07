@@ -81,10 +81,10 @@ def build(game_uuid, player_uuid, name):
         if card_complete_info.name in building_names:  # check if player already has the district in their city
             return responses.already_in_city()
 
-        if player.coins < card_complete_info.coins:  # check if the player does not have enough coins
-            return responses.not_enough_coins()
+        if player.gold < card_complete_info.gold:  # check if the player does not have enough gold
+            return responses.not_enough_gold()
 
-        player.coins -= card_complete_info.coins  # decrease coin amount
+        player.gold -= card_complete_info.gold  # decrease gold amount
 
         _cards = deepcopy(cards)  # take a deepcopy of cards| database will be updated in game_helpers.update_districts_in_database function so it will manipulate the values which we don't want
 
@@ -125,7 +125,7 @@ def build(game_uuid, player_uuid, name):
 
         player.score = game_helpers.calculate_score(player_uuid, player.city_first_completed)  # calculate score
 
-        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins, city_first_completed=player.city_first_completed, score=player.score))  # update amount of coins, first to complete city flag and score for player in database
+        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(gold=player.gold, city_first_completed=player.city_first_completed, score=player.score))  # update amount of gold, first to complete city flag and score for player in database
 
         if not success_update_player:  # check if failed to update database
             return responses.error_updating_database("player")

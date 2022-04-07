@@ -35,7 +35,7 @@ def define_setting(setting):
         "min_players": setting.min_players,
         "max_players": setting.max_players,
         "amount_starting_hand": setting.amount_starting_hand,
-        "amount_starting_coins": setting.amount_starting_coins
+        "amount_starting_gold": setting.amount_starting_gold
     }
 
     return response
@@ -48,7 +48,7 @@ def define_player(player):
         "name": player.name,
         "hosting": player.hosting,
         "seat": player.seat,
-        "coins": player.coins,
+        "gold": player.gold,
         "crown": player.crown,
         "protected": player.protected,
         "select_expected": player.select_expected,

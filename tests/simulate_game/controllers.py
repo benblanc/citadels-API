@@ -91,10 +91,10 @@ def select_character(game_uuid, player_uuid, keep_character, remove_character):
     time.sleep(SLEEP_SECONDS)
 
 
-def receive_coins(game_uuid, player_uuid):
-    response_receive_coins = endpoints.receive_coins(BASE_URL, game_uuid, player_uuid)
+def receive_gold(game_uuid, player_uuid):
+    response_receive_gold = endpoints.receive_gold(BASE_URL, game_uuid, player_uuid)
 
-    if response_receive_coins.status_code != 204:
+    if response_receive_gold.status_code != 204:
         exit(1)
 
     time.sleep(SLEEP_SECONDS)

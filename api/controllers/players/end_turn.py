@@ -108,9 +108,9 @@ def end_turn(game_uuid, player_uuid):
                             return responses.error_updating_database("player")
 
                     if character_next.robbed:  # check if character is robbed
-                        coins = player.coins  # get coins from the player with the robbed character
+                        gold = player.gold  # get gold from the player with the robbed character
 
-                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=0))  # update amount of coins for player in database
+                        success_update_player = database.update_row_in_db(players_db, player.uuid, dict(gold=0))  # update amount of gold for player in database
 
                         if not success_update_player:  # check if failed to update database
                             return responses.error_updating_database("player")
@@ -124,9 +124,9 @@ def end_turn(game_uuid, player_uuid):
                             character_thief = helpers.get_filtered_item(_characters, "name", ClassCharacterName.thief.value)  # get thief from characters
 
                             if character_thief:  # check if player has the thief
-                                _player.coins += coins  # add coins
+                                _player.gold += gold  # add gold
 
-                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(coins=_player.coins))  # update amount of coins for player in database
+                                success_update_player = database.update_row_in_db(players_db, _player.uuid, dict(gold=_player.gold))  # update amount of gold for player in database
 
                                 if not success_update_player:  # check if failed to update database
                                     return responses.error_updating_database("player")
