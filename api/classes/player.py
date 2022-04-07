@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, king=False, protected=False, select_expected=False, city_first_completed=False, score=0, database_object=None):
+    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, crown=False, protected=False, select_expected=False, city_first_completed=False, score=0, database_object=None):
         if character is None:
             character = []
 
@@ -18,7 +18,7 @@ class ClassPlayer:
         self.__character = character  # character(s) for current round
         self.__cards = cards  # distracts in hand
         self.__buildings = buildings  # districts built
-        self.__king = king  # is player king
+        self.__crown = crown  # is player king
         self.__protected = protected  # is player protected from warlord
         self.__select_expected = select_expected  # is player expected to select a character
         self.__city_first_completed = city_first_completed  # is player the first one to have a completed city
@@ -31,7 +31,7 @@ class ClassPlayer:
             self.__hosting = database_object.hosting
             self.__seat = database_object.seat
             self.__coins = database_object.coins
-            self.__king = database_object.king
+            self.__crown = database_object.crown
             self.__protected = database_object.protected
             self.__select_expected = database_object.select_expected
             self.__city_first_completed = database_object.city_first_completed
@@ -102,12 +102,12 @@ class ClassPlayer:
         self.__buildings = value
 
     @property
-    def king(self):
-        return self.__king
+    def crown(self):
+        return self.__crown
 
-    @king.setter
-    def king(self, value):
-        self.__king = value
+    @crown.setter
+    def crown(self, value):
+        self.__crown = value
 
     @property
     def protected(self):
@@ -166,7 +166,7 @@ class ClassPlayer:
             "character": character,
             "cards": cards,
             "buildings": buildings,
-            "king": self.__king,
+            "crown": self.__crown,
             "protected": self.__protected,
             "select_expected": self.__select_expected,
             "city_first_completed": self.__city_first_completed,

@@ -46,6 +46,12 @@ I hope everyone has fun playing this wonderful game together!
 
 While the application is running, people can play games using the [citadels client](https://github.com/benblanc/citadels-client).
 
+While the application is running, you can view all of the API's endpoints by going to this URL:
+
+``` text
+http://127.0.0.1:8080/apidocs
+```
+
 ### Prerequisites
 
 This application was programmed using [python 3.7](https://www.python.org/downloads/release/python-3712/):

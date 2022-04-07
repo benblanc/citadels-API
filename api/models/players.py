@@ -9,7 +9,7 @@ class Players(db.Model):
     hosting = db.Column(db.Boolean)
     seat = db.Column(db.Integer)
     coins = db.Column(db.Integer)
-    king = db.Column(db.Boolean)
+    crown = db.Column(db.Boolean)
     protected = db.Column(db.Boolean)
     select_expected = db.Column(db.Boolean)
     city_first_completed = db.Column(db.Boolean)

@@ -1,7 +1,5 @@
 import random, enum
 
-from pprint import pprint
-
 from copy import deepcopy
 
 from api.classes import player
@@ -269,8 +267,8 @@ class ClassGame:
 
     def set_starting_king(self):
         index_king = random.randint(0, self.__amount_players - 1)  # randomly choose a king
-        self.__players[index_king].king = True  # make a random player the king
-        self.__players[index_king].select_expected = True  # king is expected to select character first in the selection phase
+        self.__players[index_king].crown = True  # give a random player the crown
+        self.__players[index_king].select_expected = True  # player with crown is expected to select character first in the selection phase
 
     def set_character_division(self):
         if self.__amount_players == 2:
