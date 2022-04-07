@@ -3,7 +3,7 @@ info:
   description: API for the game named Citadels.
   termsOfService: No terms of service.
   title: Citadels API
-  version: 1.0.3
+  version: 1.0.4
 host: 127.0.0.1:8080
 basePath: '/'
 schemes:
