@@ -115,14 +115,14 @@ class ClassAbility():
 
 
 class ClassDistrict:
-    def __init__(self, uuid=None, name="", color="", coins=0, value=0, effect=None, ability_used=False, amount=1, database_object=None):
+    def __init__(self, uuid=None, name="", color="", gold=0, value=0, effect=None, ability_used=False, amount=1, database_object=None):
         if effect is None:
             effect = []
 
         self.__uuid = uuid
         self.__name = name
         self.__color = color
-        self.__coins = coins
+        self.__gold = gold
         self.__value = value
         self.__effect = effect
         self.__ability_used = ability_used
@@ -150,8 +150,8 @@ class ClassDistrict:
         return self.__color
 
     @property
-    def coins(self):
-        return self.__coins
+    def gold(self):
+        return self.__gold
 
     @property
     def value(self):
@@ -191,7 +191,7 @@ class ClassDistrict:
             "uuid": self.__uuid,
             "name": self.__name,
             "color": self.__color,
-            "coins": self.__coins,
+            "gold": self.__gold,
             "value": self.__value,
             "effect": effects,
             "ability_used": self.__ability_used,
@@ -355,7 +355,7 @@ class ClassCard:
                              ClassCharacterName.assassin.value
                          ]),
             ClassAbility(active=True,
-                         description="Pick a character you wish to rob. Take all of the robbed character's coins at the beginning of their turn.",
+                         description="Pick a character you wish to rob. Take all of the robbed character's gold at the beginning of their turn.",
                          main=True,
                          used_by=[
                              ClassCharacterName.thief.value
@@ -437,7 +437,7 @@ class ClassCard:
                              ClassDistrictName.observatory.value
                          ]),
             ClassAbility(active=True,
-                         description="Once per turn you can pay 3 coins to draw 2 cards.",
+                         description="Once per turn you can pay 3 gold to draw 2 cards.",
                          used_by=[
                              ClassDistrictName.smithy.value
                          ]),
@@ -454,45 +454,45 @@ class ClassCard:
         ]
 
         self.__districts_red = [
-            ClassDistrict(name=ClassDistrictName.watchtower.value, color=ClassColor.red.value, coins=1, value=1, amount=3),
-            ClassDistrict(name=ClassDistrictName.prison.value, color=ClassColor.red.value, coins=2, value=2, amount=3),
-            ClassDistrict(name=ClassDistrictName.barracks.value, color=ClassColor.red.value, coins=3, value=3, amount=3),
-            ClassDistrict(name=ClassDistrictName.fortress.value, color=ClassColor.red.value, coins=5, value=5, amount=2)
+            ClassDistrict(name=ClassDistrictName.watchtower.value, color=ClassColor.red.value, gold=1, value=1, amount=3),
+            ClassDistrict(name=ClassDistrictName.prison.value, color=ClassColor.red.value, gold=2, value=2, amount=3),
+            ClassDistrict(name=ClassDistrictName.barracks.value, color=ClassColor.red.value, gold=3, value=3, amount=3),
+            ClassDistrict(name=ClassDistrictName.fortress.value, color=ClassColor.red.value, gold=5, value=5, amount=2)
         ]
 
         self.__districts_yellow = [
-            ClassDistrict(name=ClassDistrictName.manor.value, color=ClassColor.yellow.value, coins=3, value=3, amount=5),
-            ClassDistrict(name=ClassDistrictName.castle.value, color=ClassColor.yellow.value, coins=4, value=4, amount=4),
-            ClassDistrict(name=ClassDistrictName.palace.value, color=ClassColor.yellow.value, coins=5, value=5, amount=3)
+            ClassDistrict(name=ClassDistrictName.manor.value, color=ClassColor.yellow.value, gold=3, value=3, amount=5),
+            ClassDistrict(name=ClassDistrictName.castle.value, color=ClassColor.yellow.value, gold=4, value=4, amount=4),
+            ClassDistrict(name=ClassDistrictName.palace.value, color=ClassColor.yellow.value, gold=5, value=5, amount=3)
         ]
 
         self.__districts_blue = [
-            ClassDistrict(name=ClassDistrictName.temple.value, color=ClassColor.blue.value, coins=1, value=1, amount=3),
-            ClassDistrict(name=ClassDistrictName.church.value, color=ClassColor.blue.value, coins=2, value=2, amount=3),
-            ClassDistrict(name=ClassDistrictName.monastery.value, color=ClassColor.blue.value, coins=3, value=3, amount=3),
-            ClassDistrict(name=ClassDistrictName.cathedral.value, color=ClassColor.blue.value, coins=5, value=5, amount=2)
+            ClassDistrict(name=ClassDistrictName.temple.value, color=ClassColor.blue.value, gold=1, value=1, amount=3),
+            ClassDistrict(name=ClassDistrictName.church.value, color=ClassColor.blue.value, gold=2, value=2, amount=3),
+            ClassDistrict(name=ClassDistrictName.monastery.value, color=ClassColor.blue.value, gold=3, value=3, amount=3),
+            ClassDistrict(name=ClassDistrictName.cathedral.value, color=ClassColor.blue.value, gold=5, value=5, amount=2)
         ]
 
         self.__districts_green = [
-            ClassDistrict(name=ClassDistrictName.tavern.value, color=ClassColor.green.value, coins=1, value=1, amount=5),
-            ClassDistrict(name=ClassDistrictName.market.value, color=ClassColor.green.value, coins=2, value=2, amount=4),
-            ClassDistrict(name=ClassDistrictName.trading_post.value, color=ClassColor.green.value, coins=2, value=2, amount=3),
-            ClassDistrict(name=ClassDistrictName.docks.value, color=ClassColor.green.value, coins=3, value=3, amount=3),
-            ClassDistrict(name=ClassDistrictName.harbor.value, color=ClassColor.green.value, coins=4, value=4, amount=3),
-            ClassDistrict(name=ClassDistrictName.town_hall.value, color=ClassColor.green.value, coins=5, value=5, amount=2)
+            ClassDistrict(name=ClassDistrictName.tavern.value, color=ClassColor.green.value, gold=1, value=1, amount=5),
+            ClassDistrict(name=ClassDistrictName.market.value, color=ClassColor.green.value, gold=2, value=2, amount=4),
+            ClassDistrict(name=ClassDistrictName.trading_post.value, color=ClassColor.green.value, gold=2, value=2, amount=3),
+            ClassDistrict(name=ClassDistrictName.docks.value, color=ClassColor.green.value, gold=3, value=3, amount=3),
+            ClassDistrict(name=ClassDistrictName.harbor.value, color=ClassColor.green.value, gold=4, value=4, amount=3),
+            ClassDistrict(name=ClassDistrictName.town_hall.value, color=ClassColor.green.value, gold=5, value=5, amount=2)
         ]
 
         self.__districts_purple = [
-            ClassDistrict(name=ClassDistrictName.haunted_quarter.value, color=ClassColor.purple.value, coins=2, value=2),
-            ClassDistrict(name=ClassDistrictName.keep.value, color=ClassColor.purple.value, coins=3, value=3, amount=2),
-            ClassDistrict(name=ClassDistrictName.observatory.value, color=ClassColor.purple.value, coins=5, value=5),
-            ClassDistrict(name=ClassDistrictName.laboratory.value, color=ClassColor.purple.value, coins=5, value=5),
-            ClassDistrict(name=ClassDistrictName.great_wall.value, color=ClassColor.purple.value, coins=6, value=6),
-            ClassDistrict(name=ClassDistrictName.smithy.value, color=ClassColor.purple.value, coins=5, value=5),
-            ClassDistrict(name=ClassDistrictName.library.value, color=ClassColor.purple.value, coins=6, value=6),
-            ClassDistrict(name=ClassDistrictName.school_of_magic.value, color=ClassColor.purple.value, coins=6, value=6),
-            ClassDistrict(name=ClassDistrictName.dragon_gate.value, color=ClassColor.purple.value, coins=6, value=8),
-            ClassDistrict(name=ClassDistrictName.university.value, color=ClassColor.purple.value, coins=6, value=8)
+            ClassDistrict(name=ClassDistrictName.haunted_quarter.value, color=ClassColor.purple.value, gold=2, value=2),
+            ClassDistrict(name=ClassDistrictName.keep.value, color=ClassColor.purple.value, gold=3, value=3, amount=2),
+            ClassDistrict(name=ClassDistrictName.observatory.value, color=ClassColor.purple.value, gold=5, value=5),
+            ClassDistrict(name=ClassDistrictName.laboratory.value, color=ClassColor.purple.value, gold=5, value=5),
+            ClassDistrict(name=ClassDistrictName.great_wall.value, color=ClassColor.purple.value, gold=6, value=6),
+            ClassDistrict(name=ClassDistrictName.smithy.value, color=ClassColor.purple.value, gold=5, value=5),
+            ClassDistrict(name=ClassDistrictName.library.value, color=ClassColor.purple.value, gold=6, value=6),
+            ClassDistrict(name=ClassDistrictName.school_of_magic.value, color=ClassColor.purple.value, gold=6, value=6),
+            ClassDistrict(name=ClassDistrictName.dragon_gate.value, color=ClassColor.purple.value, gold=6, value=8),
+            ClassDistrict(name=ClassDistrictName.university.value, color=ClassColor.purple.value, gold=6, value=8)
         ]
 
         self.__districts_grouped_by_color = [

@@ -82,7 +82,7 @@ def write_settings(game_uuid, settings):
         min_players=settings.min_players,
         max_players=settings.max_players,
         amount_starting_hand=settings.amount_starting_hand,
-        amount_starting_coins=settings.amount_starting_coins,
+        amount_starting_gold=settings.amount_starting_gold,
         game_uuid=game_uuid))
 
 
@@ -101,7 +101,7 @@ def write_player(game_uuid, player):
         name=player.name,
         hosting=player.hosting,
         seat=player.seat,
-        coins=player.coins,
+        gold=player.gold,
         crown=player.crown,
         protected=player.protected,
         select_expected=player.select_expected,

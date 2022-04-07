@@ -60,7 +60,7 @@ def start_game(game_uuid, player_uuid):
 
         game.set_seat_per_player()  # define each player's position
 
-        game.set_starting_coins_per_player()  # give each player coins to start with
+        game.set_starting_gold_per_player()  # give each player gold to start with
 
         game.set_starting_hand_per_player()  # give each player district cards to start with
 
@@ -69,7 +69,7 @@ def start_game(game_uuid, player_uuid):
         game.set_character_division()  # define how many characters per player and how many are open or closed on the field
 
         for player in game.players:  # go through each player
-            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(seat=player.seat, coins=player.coins, crown=player.crown, select_expected=player.select_expected))  # update seat, amount of coins, crown and select expected flag for player in database
+            success_update_player = database.update_row_in_db(players_db, player.uuid, dict(seat=player.seat, gold=player.gold, crown=player.crown, select_expected=player.select_expected))  # update seat, amount of gold, crown and select expected flag for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")

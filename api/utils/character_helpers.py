@@ -228,12 +228,12 @@ def use_warlord_ability(game_uuid, player, other_player_uuid, name_districts):
 
     card_complete_info = helpers.get_filtered_item(cards_complete_info, "name", building_to_destroy.name)  # get full info on district | extra validation before getting index 0 is not necessary because game knows player has the card
 
-    if player.coins < card_complete_info.coins - reduced_cost:  # check if player does not have enough coins to destroy the district
-        return responses.not_enough_coins()
+    if player.gold < card_complete_info.gold - reduced_cost:  # check if player does not have enough gold to destroy the district
+        return responses.not_enough_gold()
 
-    player.coins -= card_complete_info.coins - reduced_cost  # decrease coins for player
+    player.gold -= card_complete_info.gold - reduced_cost  # decrease gold for player
 
-    success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+    success_update_player = database.update_row_in_db(players_db, player.uuid, dict(gold=player.gold))  # update amount of gold for player in database
 
     if not success_update_player:  # check if failed to update database
         return responses.error_updating_database("player")
@@ -272,7 +272,7 @@ def use_secondary_ability(player, character):
 
         color_count[card_complete_info.color] += 1  # increase count
 
-    coins = 0
+    gold = 0
     color = ""
 
     if character.name == ClassCharacterName.king.value:  # check if the character is the king
@@ -288,16 +288,16 @@ def use_secondary_ability(player, character):
         color = ClassColor.red.value  # set color
 
     if color in color_count.keys():  # check if player has any districts with the color
-        coins = color_count[color]  # player gains coins for each district with that color in their city
+        gold = color_count[color]  # player gains gold for each district with that color in their city
 
     if school_of_magic:  # check if player has the school of magic
-        coins += 1  # increase coins
+        gold += 1  # increase gold
 
-    log = "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
+    log = "{player_name} as the {character_name} receives {amount} gold for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=gold, color=color)  # update log
 
-    player.coins += coins  # add coins
+    player.gold += gold  # add gold
 
-    success_update_player = database.update_row_in_db(players_db, player.uuid, dict(coins=player.coins))  # update amount of coins for player in database
+    success_update_player = database.update_row_in_db(players_db, player.uuid, dict(gold=player.gold))  # update amount of gold for player in database
 
     if not success_update_player:  # check if failed to update database
         return responses.error_updating_database("player")

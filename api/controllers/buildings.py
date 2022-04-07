@@ -90,8 +90,8 @@ def use_ability(game_uuid, player_uuid, name, target_name):
             return responses.already_used_district_ability()
 
         if building.name == ClassDistrictName.smithy.value:  # check if player wants to use the effect of the smithy
-            if player.coins < 3:  # check if player has enough coins
-                return responses.not_enough_coins()
+            if player.gold < 3:  # check if player has enough gold
+                return responses.not_enough_gold()
 
             drawn_cards = game_helpers.draw_cards_from_deck_districts(game_uuid, 2)  # draw 2 cards from the deck of districts
 
@@ -105,9 +105,9 @@ def use_ability(game_uuid, player_uuid, name, target_name):
             if error:  # check if something went wrong when updating the database
                 return error
 
-            player.coins -= 3  # reduce coins
+            player.gold -= 3  # reduce gold
 
-            success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=player.coins))  # update amount of coins for player in database
+            success_update_player = database.update_row_in_db(players_db, player_uuid, dict(gold=player.gold))  # update amount of gold for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")
@@ -142,9 +142,9 @@ def use_ability(game_uuid, player_uuid, name, target_name):
             if error:  # check if something went wrong when updating the database
                 return error
 
-            player.coins += 1  # increase coins
+            player.gold += 1  # increase gold
 
-            success_update_player = database.update_row_in_db(players_db, player_uuid, dict(coins=player.coins))  # update amount of coins for player in database
+            success_update_player = database.update_row_in_db(players_db, player_uuid, dict(gold=player.gold))  # update amount of gold for player in database
 
             if not success_update_player:  # check if failed to update database
                 return responses.error_updating_database("player")

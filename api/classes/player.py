@@ -1,5 +1,5 @@
 class ClassPlayer:
-    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, coins=0, character=None, cards=None, buildings=None, crown=False, protected=False, select_expected=False, city_first_completed=False, score=0, database_object=None):
+    def __init__(self, uuid=None, created="", name="", hosting=False, seat=0, gold=0, character=None, cards=None, buildings=None, crown=False, protected=False, select_expected=False, city_first_completed=False, score=0, database_object=None):
         if character is None:
             character = []
 
@@ -14,7 +14,7 @@ class ClassPlayer:
         self.__name = name  # player name
         self.__hosting = hosting  # is player hosting the game
         self.__seat = seat  # player position
-        self.__coins = coins  # amount of coins player has
+        self.__gold = gold  # amount of gold player has
         self.__character = character  # character(s) for current round
         self.__cards = cards  # distracts in hand
         self.__buildings = buildings  # districts built
@@ -30,7 +30,7 @@ class ClassPlayer:
             self.__name = database_object.name
             self.__hosting = database_object.hosting
             self.__seat = database_object.seat
-            self.__coins = database_object.coins
+            self.__gold = database_object.gold
             self.__crown = database_object.crown
             self.__protected = database_object.protected
             self.__select_expected = database_object.select_expected
@@ -70,12 +70,12 @@ class ClassPlayer:
         self.__seat = value
 
     @property
-    def coins(self):
-        return self.__coins
+    def gold(self):
+        return self.__gold
 
-    @coins.setter
-    def coins(self, value):
-        self.__coins = value
+    @gold.setter
+    def gold(self, value):
+        self.__gold = value
 
     @property
     def character(self):
@@ -162,7 +162,7 @@ class ClassPlayer:
             "name": self.__name,
             "hosting": self.__hosting,
             "seat": self.__seat,
-            "coins": self.__coins,
+            "gold": self.__gold,
             "character": character,
             "cards": cards,
             "buildings": buildings,

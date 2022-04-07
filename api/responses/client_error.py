@@ -115,8 +115,8 @@ def building_limit():
     return response, 400
 
 
-def not_enough_coins():
-    response = define_message("The player making the request does not have enough coins to perform the action.")
+def not_enough_gold():
+    response = define_message("The player making the request does not have enough gold to perform the action.")
 
     return response, 400
 

@@ -17,17 +17,17 @@ class ClassState(enum.Enum):
 
 
 class ClassSettings:
-    def __init__(self, min_players=2, max_players=7, amount_starting_hand=4, amount_starting_coins=2, database_object=None):
+    def __init__(self, min_players=2, max_players=7, amount_starting_hand=4, amount_starting_gold=2, database_object=None):
         self.__min_players = min_players
         self.__max_players = max_players
         self.__amount_starting_hand = amount_starting_hand
-        self.__amount_starting_coins = amount_starting_coins
+        self.__amount_starting_gold = amount_starting_gold
 
         if database_object:  # check if parameters contain a database object
             self.__min_players = database_object.min_players
             self.__max_players = database_object.max_players
             self.__amount_starting_hand = database_object.amount_starting_hand
-            self.__amount_starting_coins = database_object.amount_starting_coins
+            self.__amount_starting_gold = database_object.amount_starting_gold
 
     @property
     def min_players(self):
@@ -42,8 +42,8 @@ class ClassSettings:
         return self.__amount_starting_hand
 
     @property
-    def amount_starting_coins(self):
-        return self.__amount_starting_coins
+    def amount_starting_gold(self):
+        return self.__amount_starting_gold
 
 
 class ClassGame:
@@ -332,9 +332,9 @@ class ClassGame:
         self.__deck_districts, drawn_card = self.__draw_card(self.__deck_districts, -1)  # -1 to draw card on top of deck
         return drawn_card
 
-    def set_starting_coins_per_player(self):
+    def set_starting_gold_per_player(self):
         for player in self.__players:
-            player.coins = self.__settings.amount_starting_coins
+            player.gold = self.__settings.amount_starting_gold
 
     def set_seat_per_player(self):
         self.__players = sorted(self.__players, key=lambda player: player.created, reverse=False)  # order players by created timestamp

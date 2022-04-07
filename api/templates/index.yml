@@ -3,7 +3,7 @@ info:
   description: API for the game named Citadels.
   termsOfService: No terms of service.
   title: Citadels API
-  version: 1.0.4
+  version: 1.0.5
 host: 127.0.0.1:8080
 basePath: '/'
 schemes:
@@ -711,7 +711,7 @@ paths:
       summary: Requests keeping 1 drawn card from deck of districts
       tags:
         - players
-  '/game/{game_uuid}/players/{player_uuid}/action.receive_coins':
+  '/game/{game_uuid}/players/{player_uuid}/action.receive_gold':
     post:
       description: ''
       parameters:
@@ -729,8 +729,8 @@ paths:
           format: uuid
       responses:
         204:
-          description: Receiving coins successful
-      summary: Requests to receive coins for income
+          description: Receiving gold successful
+      summary: Requests to receive gold for income
       tags:
         - players
   '/game/{game_uuid}/players/{player_uuid}/action.start':

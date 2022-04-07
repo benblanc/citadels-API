@@ -4,7 +4,7 @@ GAME_DESCRIPTION = "Test to simulate game and see how far it gets before breakin
 
 NUMBER_OF_PLAYERS = 4
 
-COINS_INCOME_LIMIT = 6
+GOLD_INCOME_LIMIT = 6
 
 EXIT_AFTER_GAME_CREATION = False
 EXIT_AFTER_CHARACTER_SELECTION = False
@@ -52,22 +52,22 @@ def __perform_selection(game_uuid):
         select_character(game_uuid, player_expected_to_select["uuid"], keep_character, remove_character)
 
 
-def __get_cards_player_can_build(cards, districts_in_city, player_coins):
+def __get_cards_player_can_build(cards, districts_in_city, player_gold):
     cards_player_can_build = []
 
     for card in cards:
         if card["name"] not in districts_in_city:  # check if not already built
             card_full_info = get_card(card["name"])
 
-            if player_coins >= card_full_info["coins"]:  # check if affordable
+            if player_gold >= card_full_info["gold"]:  # check if affordable
                 cards_player_can_build.append(card["name"])
 
     return cards_player_can_build
 
 
-def __receive_income(game_uuid, player_uuid, player_coins, player_building_names):
-    if player_coins < COINS_INCOME_LIMIT:
-        receive_coins(game_uuid, player_uuid)
+def __receive_income(game_uuid, player_uuid, player_gold, player_building_names):
+    if player_gold < GOLD_INCOME_LIMIT:
+        receive_gold(game_uuid, player_uuid)
 
     else:
         draw_cards(game_uuid, player_uuid)
@@ -253,10 +253,10 @@ def __perform_turn(game_uuid):
 
                 player_building_names = list(map(lambda building: building["name"], player_buildings))
 
-                cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, player["coins"])
+                cards_player_can_build = __get_cards_player_can_build(player_cards, player_building_names, player["gold"])
 
                 if not character_expected_to_play["income_received"]:  # check if character has not yet received an income
-                    __receive_income(game_uuid, player["uuid"], player["coins"], player_building_names)
+                    __receive_income(game_uuid, player["uuid"], player["gold"], player_building_names)
 
                 elif character_expected_to_play["income_received"] and character_expected_to_play["built"] < character["max_built"] and cards_player_can_build:  # check if character has received an income, building limit not yet reached and there are districts the player can actually build
                     __build_district(game_uuid, player["uuid"], cards_player_can_build[0])
@@ -269,7 +269,7 @@ def __perform_turn(game_uuid):
                     skip_main_ability = True  # skip using the ability next time the script wants to try
                     __use_main_ability(game_uuid, player["uuid"], player_character_turn_name)
 
-                elif "smithy" in player_building_names and player["coins"] > 3 and not skip_smithy_ability:  # check if player has the smithy and has enough coins to use its effect and ability not yet used
+                elif "smithy" in player_building_names and player["gold"] > 3 and not skip_smithy_ability:  # check if player has the smithy and has enough gold to use its effect and ability not yet used
                     if random.choice([0, 1]):  # 50% chance to actually use the district ability
                         skip_smithy_ability = __use_district_ability(game_uuid, player["uuid"], "smithy", player_buildings, player_cards)
 
