@@ -293,7 +293,7 @@ def use_secondary_ability(player, character):
     if school_of_magic:  # check if player has the school of magic
         coins += 1  # increase coins
 
-    log += "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
+    log = "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
 
     player.coins += coins  # add coins
 
