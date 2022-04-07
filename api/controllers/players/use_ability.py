@@ -55,6 +55,14 @@ def use_ability(game_uuid, player_uuid, main, name_character, name_districts, ot
 
         log = ""
 
+        print(game_uuid, player_uuid, main, name_character, name_districts, other_player_uuid)
+        print("game_uuid: ", game_uuid)
+        print("player_uuid: ", player_uuid)
+        print("main: ", main)
+        print("name_character: ", name_character)
+        print("name_districts: ", name_districts)
+        print("other_player_uuid: ", other_player_uuid)
+
         if main:  # check if character ability was the main ability
             if character.name == ClassCharacterName.assassin.value:  # check if the character is the assassin
                 log = character_helpers.use_assassin_ability(log, game_uuid, name_character, player.name)  # use assassin's ability and update log

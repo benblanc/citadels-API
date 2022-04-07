@@ -15,6 +15,8 @@ from api.services import database
 
 from api.utils import game_helpers, helpers, transactions
 
+from pprint import pprint
+
 
 def __trade_cards_with_other_player(log, player_uuid, other_player_uuid, player_name):
     other_player = transactions.get_player(other_player_uuid)  # get player from database
@@ -52,6 +54,11 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
         name_count[name] += 1  # increase count
         amount += 1  # increase amount
 
+    print("name_count:")
+    pprint(name_count)
+
+    print("amount: ", amount)
+
     cards = transactions.get_player_cards(player_uuid)  # get cards in player's hand
 
     if not cards:  # check if the player has no district cards in their hand
@@ -65,6 +72,10 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
     log += "{player_name} as the magician discards {amount} {text} to draw the same amount from the deck of districts.\n".format(player_name=player_name, amount=len(name_districts), text=text)  # update log
 
     _cards = deepcopy(cards)  # take a deepcopy of cards| database will be updated in game_helpers.update_districts_in_database function so it will manipulate the values which we don't want
+
+    print("_cards:")
+    for card in _cards:
+        pprint(card.info)
 
     cards_for_discard_pile = []
     for name, count in name_count.items():  # go through the cards the magician wants to discard
@@ -80,13 +91,28 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
 
         cards_for_discard_pile.append(card_to_discard)  # add card to list
 
-    for card in _cards:  # go through deep copy of cards in hand
-        for _card in cards_for_discard_pile:  # go through cards to discard
-            if card.name == _card.name:  # find card to build
-                card.amount -= 1  # reduce amount of copies of card in hand by 1
+    print("cards_for_discard_pile:")
+    for card in cards_for_discard_pile:
+        pprint(card.info)
 
-                if card.amount < 0:  # check if negative value
-                    card.amount = 0  # set proper null value
+    print("-" * 80)
+
+    for card in _cards:  # go through deep copy of cards in hand
+        for discard in cards_for_discard_pile:  # go through cards to discard
+            if card.name == discard.name:  # find card to build
+                for index in range(discard.amount):  # repeat for the amount
+                    card.amount -= 1  # reduce amount of copies of card in hand by 1
+
+                    if card.amount < 0:  # check if negative value
+                        card.amount = 0  # set proper null value
+
+    print("_cards:")
+    for card in _cards:
+        pprint(card.info)
+
+    print("cards_for_discard_pile:")
+    for card in cards_for_discard_pile:
+        pprint(card.info)
 
     error = game_helpers.update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=deepcopy(cards_for_discard_pile), uuid=game_uuid, from_deck_cards_by_amount=_cards, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
 
@@ -97,6 +123,12 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
 
     if isinstance(drawn_cards, dict):  # check if error message
         return drawn_cards  # in this case it will contain the error message
+
+    print("=" * 80)
+
+    print("drawn_cards:")
+    for card in drawn_cards:
+        pprint(card.info)
 
     deck_districts = transactions.get_game_deck_districts(game_uuid)  # get deck of districts
 
