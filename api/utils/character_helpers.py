@@ -1,3 +1,4 @@
+from collections import Counter
 from copy import deepcopy
 
 from api.classes.card import *
@@ -16,13 +17,13 @@ from api.services import database
 from api.utils import game_helpers, helpers, transactions
 
 
-def __trade_cards_with_other_player(log, player_uuid, other_player_uuid, player_name):
+def __trade_cards_with_other_player(player_uuid, other_player_uuid, player_name):
     other_player = transactions.get_player(other_player_uuid)  # get player from database
 
     if not other_player:  # check if player does not exist
         return responses.not_found("player")
 
-    log += "{player_name} as the magician swaps cards with {other_player_name}.\n".format(player_name=player_name, other_player_name=other_player.name)  # update log
+    log = "{player_name} as the magician swaps cards with {other_player_name}.\n".format(player_name=player_name, other_player_name=other_player.name)  # update log
 
     cards = transactions.get_player_cards(player_uuid)  # get cards in player's hand
 
@@ -41,16 +42,10 @@ def __trade_cards_with_other_player(log, player_uuid, other_player_uuid, player_
     return log
 
 
-def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_name, name_districts):
-    name_count = {}
-    amount = 0
+def __discard_and_draw_from_deck_districts(game_uuid, player_uuid, player_name, name_districts):
+    name_count = dict(Counter(name_districts))  # count occurences of each color
 
-    for name in name_districts:  # go through names
-        if name not in name_count.keys():  # check if name not yet in object
-            name_count[name] = 0  # add name to count object
-
-        name_count[name] += 1  # increase count
-        amount += 1  # increase amount
+    amount = sum(list(map(lambda count: count, name_count.values())))  # get amount of cards which will be discarded
 
     cards = transactions.get_player_cards(player_uuid)  # get cards in player's hand
 
@@ -62,7 +57,7 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
     if len(name_districts) > 1:  # check if more than one cards
         text = "cards"
 
-    log += "{player_name} as the magician discards {amount} {text} to draw the same amount from the deck of districts.\n".format(player_name=player_name, amount=len(name_districts), text=text)  # update log
+    log = "{player_name} as the magician discards {amount} {text} to draw the same amount from the deck of districts.\n".format(player_name=player_name, amount=len(name_districts), text=text)  # update log
 
     _cards = deepcopy(cards)  # take a deepcopy of cards| database will be updated in game_helpers.update_districts_in_database function so it will manipulate the values which we don't want
 
@@ -81,19 +76,20 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
         cards_for_discard_pile.append(card_to_discard)  # add card to list
 
     for card in _cards:  # go through deep copy of cards in hand
-        for _card in cards_for_discard_pile:  # go through cards to discard
-            if card.name == _card.name:  # find card to build
-                card.amount -= 1  # reduce amount of copies of card in hand by 1
+        for discard in cards_for_discard_pile:  # go through cards to discard
+            if card.name == discard.name:  # find card to build
+                for index in range(discard.amount):  # repeat for the amount
+                    card.amount -= 1  # reduce amount of copies of card in hand by 1
 
-                if card.amount < 0:  # check if negative value
-                    card.amount = 0  # set proper null value
+                    if card.amount < 0:  # check if negative value
+                        card.amount = 0  # set proper null value
 
     error = game_helpers.update_districts_in_database(from_table=cards_db, to_table=deck_discard_pile_db, cards=deepcopy(cards_for_discard_pile), uuid=game_uuid, from_deck_cards_by_amount=_cards, from_table_name="cards in player's hand", to_table_name="discard pile")  # write the cards for the discard pile to the deck_discard_pile table and update/remove the cards for the discard pile from the cards in player's hand table
 
     if error:  # check if something went wrong when updating the database
         return error
 
-    drawn_cards = game_helpers.draw_cards_from_deck_districts(game_uuid, amount)  # draw 2 cards from the deck of districts
+    drawn_cards = game_helpers.draw_cards_from_deck_districts(game_uuid, amount)  # draw the discarded amount of cards from the deck of districts
 
     if isinstance(drawn_cards, dict):  # check if error message
         return drawn_cards  # in this case it will contain the error message
@@ -108,7 +104,7 @@ def __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_n
     return log
 
 
-def use_assassin_ability(log, game_uuid, name_character, player_name):
+def use_assassin_ability(game_uuid, name_character, player_name):
     characters_in_game = transactions.get_game_deck_characters(game_uuid)  # get all characters in game
 
     character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
@@ -116,7 +112,7 @@ def use_assassin_ability(log, game_uuid, name_character, player_name):
     if not character_in_game:  # check if there is a character with the given name
         return responses.not_found("character")
 
-    log += "{player_name} as the assassin kills the {character_name}.\n".format(player_name=player_name, character_name=name_character)  # update log
+    log = "{player_name} as the assassin kills the {character_name}.\n".format(player_name=player_name, character_name=name_character)  # update log
 
     players = transactions.get_players(game_uuid)  # get players in game
 
@@ -140,7 +136,7 @@ def use_assassin_ability(log, game_uuid, name_character, player_name):
     return log
 
 
-def use_thief_ability(log, game_uuid, name_character, player_name):
+def use_thief_ability(game_uuid, name_character, player_name):
     characters_in_game = transactions.get_game_deck_characters(game_uuid)  # get all characters in game
 
     character_in_game = helpers.get_filtered_item(characters_in_game, "name", name_character)  # get character
@@ -148,7 +144,7 @@ def use_thief_ability(log, game_uuid, name_character, player_name):
     if not character_in_game:  # check if there is a character with the given name
         return responses.not_found("character")
 
-    log += "{player_name} as the thief robs the {character_name}.\n".format(player_name=player_name, character_name=name_character)  # update log
+    log = "{player_name} as the thief robs the {character_name}.\n".format(player_name=player_name, character_name=name_character)  # update log
 
     players = transactions.get_players(game_uuid)  # get players in game
 
@@ -180,17 +176,17 @@ def use_thief_ability(log, game_uuid, name_character, player_name):
     return log
 
 
-def use_magician_ability(log, game_uuid, player_uuid, other_player_uuid, player_name, name_districts):
+def use_magician_ability(game_uuid, player_uuid, other_player_uuid, player_name, name_districts):
     if other_player_uuid:  # check if uuid of another player was provided | the magician wants to swap cards with another player
-        return __trade_cards_with_other_player(log, player_uuid, other_player_uuid, player_name)  # use ability and update log
+        return __trade_cards_with_other_player(player_uuid, other_player_uuid, player_name)  # use ability and update log
 
     elif name_districts:  # check if district names were provided | the magician wants to discard districts to draw new ones
-        return __discard_and_draw_from_deck_districts(log, game_uuid, player_uuid, player_name, name_districts)  # use ability and update log
+        return __discard_and_draw_from_deck_districts(game_uuid, player_uuid, player_name, name_districts)  # use ability and update log
 
     return responses.bad_request("other_player_uuid or name_districts")  # the required input was not provided
 
 
-def use_warlord_ability(log, game_uuid, player, other_player_uuid, name_districts):
+def use_warlord_ability(game_uuid, player, other_player_uuid, name_districts):
     other_player = transactions.get_player(other_player_uuid)  # get player from database
 
     if not other_player:  # check if player does not exist
@@ -226,7 +222,7 @@ def use_warlord_ability(log, game_uuid, player, other_player_uuid, name_district
     if building_to_destroy.name == ClassDistrictName.keep.value:  # check if player wants to destroy the keep
         return responses.not_keep()
 
-    log += "{player_name} as the warlord destroys the {district_name} in {other_player_name}'s city.\n".format(player_name=player.name, district_name=building_to_destroy.name, other_player_name=other_player.name)  # update log
+    log = "{player_name} as the warlord destroys the {district_name} in {other_player_name}'s city.\n".format(player_name=player.name, district_name=building_to_destroy.name, other_player_name=other_player.name)  # update log
 
     cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
 
@@ -257,7 +253,7 @@ def use_warlord_ability(log, game_uuid, player, other_player_uuid, name_district
     return log
 
 
-def use_secondary_ability(log, player, character):
+def use_secondary_ability(player, character):
     buildings = transactions.get_player_buildings(player.uuid)  # get cards in player's city
 
     cards_complete_info = ClassCard().get_districts()  # get cards in game with complete information
@@ -297,7 +293,7 @@ def use_secondary_ability(log, player, character):
     if school_of_magic:  # check if player has the school of magic
         coins += 1  # increase coins
 
-    log += "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
+    log = "{player_name} as the {character_name} receives {amount} coins for each {color} district in their city.\n".format(player_name=player.name, character_name=character.name, amount=coins, color=color)  # update log
 
     player.coins += coins  # add coins
 
